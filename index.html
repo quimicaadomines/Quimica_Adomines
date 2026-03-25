@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Química Adômines</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: white;
+    color: black;
+    transition: 0.3s;
+}
+
+/* MODO ESCURO */
+.dark-mode {
+    background-color: #0f172a;
+    color: white;
+}
+
+/* FADE OUT AO INICIAR */
+.fade-out {
+    opacity: 0;
+    transition: 0.5s;
+}
+
+/* TOPO */
+.topo {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px;
+}
+
+/* TOGGLE */
+.toggle {
+    width: 60px;
+    height: 30px;
+    background: #ccc;
+    border-radius: 20px;
+    position: relative;
+    cursor: pointer;
+}
+
+.toggle::before {
+    content: "";
+    width: 25px;
+    height: 25px;
+    background: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 2.5px;
+    left: 3px;
+    transition: 0.3s;
+}
+
+.toggle.active {
+    background: #22c55e;
+}
+
+.toggle.active::before {
+    left: 32px;
+}
+
+/* CONTAINER INICIAL */
+.container, .modos-container {
+    text-align: center;
+    margin-top: 100px;
+    min-height: 80vh;
+}
+
+/* LOGO */
+.logo {
+    width: 350px;
+    max-width: 90%;
+    transition: transform 0.3s;
+}
+
+.logo.animar {
+    animation: flutuar 3s ease-in-out infinite;
+}
+
+.logo:hover {
+    transform: scale(1.05);
+}
+
+@keyframes flutuar {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+}
+
+/* DESCRIÇÃO */
+.descricao {
+    font-size: 14px;
+    max-width: 500px;
+    margin: 20px auto;
+    opacity: 0.7;
+}
+
+/* BOTÃO */
+.botao {
+    padding: 15px 30px;
+    font-size: 18px;
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: transform 0.2s, background-color 0.3s;
+}
+
+.botao:hover {
+    background-color: #2563eb;
+}
+
+.botao:active {
+    transform: scale(0.95);
+}
+
+/* BOTÃO DE VOLTAR */
+.voltar-btn {
+    padding: 10px 20px;
+    margin-bottom: 20px;
+    background-color: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.2s, background-color 0.3s;
+}
+
+/* TÍTULO MODOS DE JOGO */
+.modos-titulo {
+    font-size: 36px;
+    font-weight: bold;
+    margin-bottom: 30px;
+}
+
+/* MENU CONFIG */
+.menu {
+    position: fixed;
+    top: 70px;
+    right: 20px;
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    width: 250px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    display: none;
+}
+
+.dark-mode .menu {
+    background: #1e293b;
+}
+
+/* SLIDERS */
+input[type=range] {
+    width: 100%;
+}
+
+/* SPLASH */
+.splash {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: rgba(0, 150, 255, 0.3);
+    border-radius: 50%;
+    transform: scale(0);
+    animation: ripple 0.6s ease-out;
+    pointer-events: none;
+}
+
+.dark-mode .splash {
+    background: rgba(100, 200, 255, 0.3);
+}
+
+@keyframes ripple {
+    to {
+        transform: scale(15);
+        opacity: 0;
+    }
+}
+
+/* MODOS DE JOGO */
+.modos-container {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+}
+
+.modo {
+    display: flex;
+    align-items: center;
+    margin: 15px 0;
+    gap: 15px;
+    width: 80%;
+}
+
+.modo img {
+    width: 100px;
+    border-radius: 10px;
+}
+
+.modo-nome {
+    font-weight: bold;
+    flex: 1;
+    text-align: left;
+}
+
+.modo-botoes {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.modo-botoes button {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.play-btn {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.access-btn {
+    background-color: #facc15;
+    color: black;
+}
+
+.access-niveis {
+    display: none;
+    flex-direction: column;
+    margin-left: 10px;
+}
+
+.access-niveis button {
+    margin: 2px 0;
+    padding: 6px 10px;
+    color: black;
+    border: none;
+    border-radius: 5px;
+}
+
+.exploracao { background-color: #22c55e; }  /* verde */
+.interacao { background-color: #facc15; }   /* amarelo */
+.interpretacao { background-color: #ef4444; } /* vermelho */
+
+/* LINHA DIVISÓRIA */
+.divisor {
+    width: 80%;
+    height: 2px;
+    background-color: #3b82f6;
+    margin: 20px 0;
+}
+
+/* CRÉDITOS */
+.creditos {
+    margin-top: 150px;
+    padding-bottom: 40px;
+    text-align: center;
+    font-size: 11px;
+    opacity: 0.7;
+}
+
+.creditos p {
+    margin: 2px;
+}
+
+.logos {
+    margin-top: 10px;
+}
+
+.logos img {
+    width: 70px;
+    margin: 0 10px;
+    opacity: 0.9;
+    transition: 0.3s;
+}
+
+.logos img:hover {
+    transform: scale(1.2);
+    opacity: 1;
+}
+</style>
+</head>
+
+<body>
+
+<!-- ÁUDIOS -->
+<audio id="musica" src="musica.mp3" loop></audio>
+<audio id="click" src="click.mp3"></audio>
+<audio id="bubble" src="bubble.mp3"></audio>
+<audio id="transicao" src="transicao.mp3"></audio>
+
+<div class="topo">
+    <div onclick="abrirMenu()">⚙️</div>
+    <div class="toggle" onclick="alternarModo(this)"></div>
+</div>
+
+<!-- MENU CONFIG -->
+<div class="menu" id="menuConfig">
+
+    <h3>🔊 Volume</h3>
+
+    <p>Música</p>
+    <input type="range" min="0" max="100" value="50" oninput="ajustarMusica(this.value)">
+
+    <p>Efeitos</p>
+    <input type="range" min="0" max="100" value="50" oninput="ajustarEfeitos(this.value)">
+
+    <p>Efeitos Visuais</p>
+    <div class="toggle active" onclick="toggleEfeitosVisuais(this)"></div>
+
+</div>
+
+<!-- INTERFACE INICIAL -->
+<div class="container" id="tela-inicial">
+    <img src="logo.png" class="logo animar" id="logo">
+
+    <p class="descricao">
+        Química Adômines tem origem no latim “ad omnes”, que significa “para todos”. 
+        O jogo foi desenvolvido com o objetivo de tornar o ensino de Química
+        mais acessível, interativo e compreensível para diferentes públicos.
+    </p>
+
+    <button class="botao" id="btn-iniciar" onclick="iniciarJogo()">Iniciar Jogo</button>
+</div>
+
+<!-- INTERFACE MODOS -->
+<div class="modos-container" id="tela-modos">
+    <h1 class="modos-titulo">Modos de Jogo</h1>
+    <button class="voltar-btn" onclick="voltarTela()">← Voltar</button>
+
+    <div class="modo">
+        <img src="montandoestruturas.png" alt="Montando Estruturas">
+        <span class="modo-nome">Montando Estruturas</span>
+        <div class="modo-botoes">
+            <button class="play-btn">▶️</button>
+            <button class="access-btn" onclick="toggleAccessNiveis(this)">Acessibilidade</button>
+            <div class="access-niveis">
+                <button class="exploracao">Exploração</button>
+                <button class="interacao">Interação</button>
+                <button class="interpretacao">Interpretação</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LINHA DIVISÓRIA -->
+    <div class="divisor"></div>
+</div>
+
+<!-- INTERFACE JOGO -->
+<div class="tela-jogo" id="tela-jogo" style="display:none; flex-direction:column; align-items:center; text-align:center; padding-top:50px;">
+    <button class="voltar-btn" onclick="voltarParaModos()">← Voltar</button>
+
+    <!-- QUADRO BRANCO -->
+    <div style="width: 80%; max-width: 800px; height: 400px; background-color:white; border: 3px solid #3b82f6; margin-bottom: 30px;"></div>
+
+    <!-- TABELA ÁTOMOS E LIGAÇÕES -->
+    <table style="width:80%; max-width:800px; border-collapse: collapse; color:#0000ff; border:2px solid #3b82f6;">
+        <thead>
+            <tr style="background-color:#3b82f6; color:white;">
+                <th style="padding:10px; border:1px solid #3b82f6;">Átomos</th>
+                <th style="padding:10px; border:1px solid #3b82f6;">Ligações</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="padding:10px; border:1px solid #3b82f6;"></td>
+                <td style="padding:10px; border:1px solid #3b82f6;"></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- CRÉDITOS -->
+<div class="creditos">
+    <p><strong>Créditos:</strong></p>
+    <p><strong>Zayde CASTRO</strong> - zayde.lucas@aluno.uece.com.br</p>
+    
+    <div class="logos">
+        <img src="pibid.png">
+        <img src="faced.png">
+        <img src="uece.png">
+    </div>
+</div>
+
+<script>
+const musica = document.getElementById("musica");
+const click = document.getElementById("click");
+const bubble = document.getElementById("bubble");
+const transicao = document.getElementById("transicao");
+
+click.load();
+transicao.load();
+
+const menu = document.getElementById("menuConfig");
+
+let volumeMusica = 0.5;
+let volumeEfeito = 0.5;
+let efeitosVisuais = true;
+
+// iniciar música ao clicar no body
+document.body.addEventListener("click", () => {
+    musica.volume = volumeMusica;
+    musica.play();
+}, { once: true });
+
+function somClick() {
+    click.pause();
+    click.currentTime = 0;
+    click.volume = volumeEfeito;
+    click.play();
+}
+
+function alternarModo(botao) {
+    somClick();
+    document.body.classList.toggle("dark-mode");
+    botao.classList.toggle("active");
+}
+
+// TRANSIÇÃO PARA MODOS
+function iniciarJogo() {
+    somClick();
+    document.body.classList.add("fade-out");
+    transicao.volume = volumeEfeito; 
+    transicao.play();
+
+    setTimeout(() => {
+        document.getElementById("tela-inicial").style.display = "none";
+        document.getElementById("tela-modos").style.display = "flex";
+        document.body.classList.remove("fade-out");
+    }, 500);
+}
+
+// TRANSIÇÃO PARA VOLTAR
+function voltarTela() {
+    somClick();
+    document.body.classList.add("fade-out");
+    transicao.volume = 1; // volume máximo
+    transicao.play();
+
+    setTimeout(() => {
+        document.getElementById("tela-modos").style.display = "none";
+        document.getElementById("tela-inicial").style.display = "block";
+        document.body.classList.remove("fade-out");
+    }, 500);
+}
+
+function abrirMenu() {
+    somClick();
+    menu.style.display = menu.style.display === "block" ? "none" : "block";
+}
+
+function ajustarMusica(valor) {
+    volumeMusica = valor / 100;
+    musica.volume = volumeMusica;
+}
+
+function ajustarEfeitos(valor) {
+    volumeEfeito = valor / 100;
+}
+
+function toggleEfeitosVisuais(botao) {
+    somClick();
+    efeitosVisuais = !efeitosVisuais;
+    botao.classList.toggle("active");
+
+    const logo = document.getElementById("logo");
+    if (efeitosVisuais) {
+        logo.classList.add("animar");
+    } else {
+        logo.classList.remove("animar");
+    }
+}
+
+// SPLASH GLOBAL
+document.addEventListener("click", function(e) {
+    if (!efeitosVisuais) return;
+    if (
+        e.target.closest("button") ||
+        e.target.closest(".toggle") ||
+        e.target.closest(".topo") ||
+        e.target.closest(".menu")
+    ) return;
+
+    const splash = document.createElement("div");
+    splash.className = "splash";
+    splash.style.left = e.clientX + "px";
+    splash.style.top = e.clientY + "px";
+
+    document.body.appendChild(splash);
+    bubble.pause();
+    bubble.currentTime = 0;
+    bubble.volume = volumeEfeito;
+    bubble.play();
+
+    setTimeout(() => splash.remove(), 600);
+});
+
+// ACESSIBILIDADE MODOS
+function toggleAccessNiveis(botao) {
+    const container = botao.nextElementSibling;
+    if (container.style.display === "flex") {
+        container.style.display = "none";
+    } else {
+        container.style.display = "flex";
+    }
+}
+
+// HOVER SONORO E ANIMAÇÃO TODOS BOTÕES
+const todosBotoes = document.querySelectorAll(
+    ".botao, .voltar-btn, .play-btn, .access-btn, .access-niveis button"
+);
+todosBotoes.forEach(btn => {
+    btn.addEventListener("mouseenter", () => {
+        click.volume = volumeEfeito * 0.5;
+        click.play();
+        btn.style.transform = "scale(1.2)";
+    });
+    btn.addEventListener("mouseleave", () => {
+        btn.style.transform = "scale(1)";
+    });
+});
+
+// BOTÃO PLAY MODOS
+const playBtn = document.querySelector(".play-btn");
+playBtn.addEventListener("click", () => {
+    somClick();
+    document.body.classList.add("fade-out");
+    transicao.volume = 1; // volume máximo
+    transicao.play();
+
+    setTimeout(() => {
+        document.getElementById("tela-modos").style.display = "none";
+        document.getElementById("tela-jogo").style.display = "flex";
+        document.body.classList.remove("fade-out");
+    }, 500);
+});
+
+// VOLTAR PARA MODOS
+function voltarParaModos() {
+    somClick();
+    document.body.classList.add("fade-out");
+    transicao.volume = 1;
+    transicao.play();
+
+    setTimeout(() => {
+        document.getElementById("tela-jogo").style.display = "none";
+        document.getElementById("tela-modos").style.display = "flex";
+        document.body.classList.remove("fade-out");
+    }, 500);
+}
+</script>
+
+</body>
+</html>
