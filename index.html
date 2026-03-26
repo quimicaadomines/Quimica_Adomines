@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Química Adômines</title>
 
 <style>
@@ -11,6 +12,7 @@ body {
     background-color: white;
     color: black;
     transition: 0.3s;
+    overflow-x: hidden;
 }
 
 /* MODO ESCURO */
@@ -30,6 +32,23 @@ body {
     display: flex;
     justify-content: space-between;
     padding: 20px;
+}
+
+.topo-icones {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.icon-btn {
+    font-size: 24px;
+    cursor: pointer;
+    transition: 0.2s;
+    user-select: none;
+}
+
+.icon-btn:hover {
+    transform: scale(1.2);
 }
 
 /* TOGGLE */
@@ -130,28 +149,80 @@ body {
     transition: transform 0.2s, background-color 0.3s;
 }
 
-/* TÍTULO MODOS DE JOGO */
+/* TÍTULO MODOS DE JOGO E TUTORIAL */
 .modos-titulo {
     font-size: 36px;
     font-weight: bold;
     margin-bottom: 30px;
 }
 
-/* MENU CONFIG */
-.menu {
+/* MENU CONFIG E POKEDEX */
+.menu, .modal-pokedex {
     position: fixed;
     top: 70px;
-    right: 20px;
     background: white;
     border-radius: 10px;
     padding: 15px;
     width: 250px;
     box-shadow: 0 0 10px rgba(0,0,0,0.2);
     display: none;
+    z-index: 2000;
 }
 
-.dark-mode .menu {
+/* A tela de config fica à esquerda (lado da engrenagem) */
+.menu {
+    left: 20px; 
+}
+
+/* A pokedex fica à direita */
+.modal-pokedex {
+    right: 20px;
+}
+
+.dark-mode .menu, .dark-mode .modal-pokedex {
     background: #1e293b;
+}
+
+/* POKEDEX ESPECÍFICO */
+.modal-pokedex {
+    width: 300px;
+    max-height: 400px;
+    overflow-y: auto;
+    flex-direction: column;
+    gap: 10px;
+}
+.modal-pokedex h3 {
+    margin-top: 0;
+    text-align: center;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 10px;
+}
+.pokedex-item {
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 5px;
+    font-size: 14px;
+    display: flex;
+    justify-content: space-between;
+}
+.pokedex-item.descoberto {
+    background-color: #dcfce7;
+    color: #166534;
+    border: 1px solid #22c55e;
+}
+.dark-mode .pokedex-item.descoberto {
+    background-color: #14532d;
+    color: #4ade80;
+}
+.pokedex-item.oculto {
+    background-color: #f1f5f9;
+    color: #94a3b8;
+    border: 1px dashed #cbd5e1;
+}
+.dark-mode .pokedex-item.oculto {
+    background-color: #334155;
+    color: #64748b;
+    border-color: #475569;
 }
 
 /* SLIDERS */
@@ -169,6 +240,7 @@ input[type=range] {
     transform: scale(0);
     animation: ripple 0.6s ease-out;
     pointer-events: none;
+    z-index: 1000;
 }
 
 .dark-mode .splash {
@@ -227,6 +299,22 @@ input[type=range] {
     color: white;
 }
 
+/* DIFICULDADES */
+.dificuldades-container {
+    display: none;
+    gap: 5px;
+}
+
+.dificuldade-btn {
+    font-weight: bold;
+    color: white;
+}
+
+.dif-facil { background-color: #22c55e; }     
+.dif-medio { background-color: #eab308; color: black; } 
+.dif-dificil { background-color: #f97316; }   
+.dif-impossivel { background-color: #ef4444; } 
+
 .access-btn {
     background-color: #facc15;
     color: black;
@@ -246,9 +334,9 @@ input[type=range] {
     border-radius: 5px;
 }
 
-.exploracao { background-color: #22c55e; }  /* verde */
-.interacao { background-color: #facc15; }   /* amarelo */
-.interpretacao { background-color: #ef4444; } /* vermelho */
+.exploracao { background-color: #22c55e; }  
+.interacao { background-color: #facc15; }   
+.interpretacao { background-color: #ef4444; } 
 
 /* LINHA DIVISÓRIA */
 .divisor {
@@ -286,6 +374,350 @@ input[type=range] {
     transform: scale(1.2);
     opacity: 1;
 }
+
+/* =========================================
+   ÁTOMOS, LIGAÇÕES E MESA DE CONSTRUÇÃO
+   ========================================= */
+
+#wrapper-quadro {
+    display: flex; 
+    justify-content: center; 
+    align-items: flex-start; 
+    margin-bottom: 30px; 
+    width: 80%; 
+    max-width: 900px; 
+    gap: 15px; 
+    position: relative;
+}
+
+.coluna-principal {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+}
+
+#quadro-branco {
+    width: 100%;
+    height: 400px; 
+    background-color: white; 
+    border: 3px solid #3b82f6; 
+    position: relative; 
+    border-radius: 8px;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+#painel-pokedex {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+.pokedex-btn-lateral {
+    background: white;
+    border: 2px solid #3b82f6;
+    color: #3b82f6;
+    border-radius: 8px;
+    padding: 15px 5px;
+    font-size: 24px;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    cursor: pointer;
+    transition: 0.3s;
+    user-select: none;
+}
+.pokedex-btn-lateral:hover {
+    transform: scale(1.05);
+    background: #eff6ff;
+}
+.dark-mode .pokedex-btn-lateral {
+    background: #1e293b;
+    color: #60a5fa;
+    border-color: #60a5fa;
+}
+
+#board-canvas {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform-origin: center;
+}
+
+/* UI DENTRO DO QUADRO BRANCO */
+#hud-info {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #3b82f6;
+    font-size: 12px;
+    font-weight: bold;
+    color: #333;
+    z-index: 100;
+    pointer-events: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    text-align: left;
+}
+.dark-mode #hud-info {
+    background: rgba(30, 41, 59, 0.9);
+    color: white;
+}
+
+.canvas-controls {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    display: flex;
+    gap: 5px;
+    z-index: 100;
+}
+.canvas-controls button {
+    width: 35px;
+    height: 35px;
+    border-radius: 5px;
+    border: none;
+    background: #3b82f6;
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    transition: 0.2s;
+}
+.canvas-controls button:hover {
+    background: #2563eb;
+    transform: scale(1.1);
+}
+
+.tabela-container-celula {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: center;
+    align-items: center;
+    padding: 15px;
+}
+
+/* Elementos Arrancáveis */
+.atomo, .ligacao {
+    transform: rotate(var(--rot, 0deg)) scale(var(--scl, 1));
+    transition: transform 0.2s;
+    z-index: 10;
+}
+
+.atomo {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    font-size: 18px;
+    cursor: grab;
+    user-select: none;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    position: relative;
+}
+
+/* VALÊNCIA E DESTAQUES */
+.valencia-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: white;
+    color: black;
+    border: 1px solid black;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    font-size: 12px;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    pointer-events: none;
+}
+.atomo-completo {
+    box-shadow: 0 0 15px 5px #22c55e !important;
+}
+.atomo-excedido {
+    border: 3px solid #ef4444 !important;
+    box-shadow: 0 0 15px 5px rgba(239, 68, 68, 0.8) !important;
+}
+
+/* HIDROGÊNIOS IMPLÍCITOS */
+.hidrogenios-implicitos {
+    position: absolute;
+    bottom: -6px;
+    right: -8px;
+    font-size: 15px;
+    font-weight: bold;
+    color: #0ea5e9;
+    text-shadow: 1px 1px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff;
+    pointer-events: none;
+    z-index: 50;
+}
+
+.ligacao {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px; 
+    cursor: grab;
+    width: 50px;
+    height: 45px;
+    position: relative;
+}
+
+.linha {
+    width: 100%;
+    height: 6px;
+    background-color: black;
+    border-radius: 3px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+}
+
+.dark-mode .linha {
+    background-color: #333; 
+    box-shadow: 0 2px 4px rgba(255,255,255,0.2);
+}
+
+/* Botão Flutuante de Rotação Livre */
+.rotacionar-handle {
+    display: none; 
+    position: absolute;
+    top: -15px;
+    right: -15px;
+    width: 22px;
+    height: 22px;
+    background: #3b82f6;
+    color: white;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 22px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: grab;
+    z-index: 20;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+#quadro-branco .ligacao .rotacionar-handle {
+    display: block; 
+}
+
+#quadro-branco .ligacao.vinculado .rotacionar-handle {
+    display: none !important;
+}
+
+.flash-verde {
+    box-shadow: 0 0 15px 5px #22c55e !important;
+    transition: box-shadow 0.2s;
+}
+
+.flash-amarelo {
+    box-shadow: 0 0 15px 5px #facc15 !important;
+    transition: box-shadow 0.2s;
+}
+
+.sumir {
+    animation: puf 0.3s forwards;
+    pointer-events: none;
+}
+
+@keyframes puf {
+    0% { transform: rotate(var(--rot, 0deg)) scale(1); opacity: 1; }
+    50% { transform: rotate(var(--rot, 0deg)) scale(1.5); opacity: 0.5; }
+    100% { transform: rotate(var(--rot, 0deg)) scale(0); opacity: 0; }
+}
+
+/* =========================================
+   MENU DE CONTEXTO (CLIQUE DIREITO)
+   ========================================= */
+#menu-contexto {
+    display: none;
+    position: absolute;
+    background: white;
+    border: 1px solid #ccc;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+    z-index: 5000;
+    border-radius: 5px;
+    overflow: hidden;
+    color: black;
+}
+
+.dark-mode #menu-contexto {
+    background: #1e293b;
+    border-color: #333;
+    color: white;
+}
+
+.menu-item {
+    padding: 10px 15px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.2s;
+}
+
+.menu-item:hover {
+    background: #f0f0f0;
+}
+
+.dark-mode .menu-item:hover {
+    background: #334155;
+}
+
+/* SISTEMA DE MENSAGENS / TOASTS */
+#toast-container {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 9999;
+    pointer-events: none;
+}
+.toast {
+    background-color: rgba(0, 0, 0, 0.85);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: 0.3s;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+.dark-mode .toast {
+    background-color: rgba(255, 255, 255, 0.95);
+    color: black;
+}
+
+/* TUTORIAL CONTAINER */
+#tela-tutorial {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+}
 </style>
 </head>
 
@@ -297,41 +729,46 @@ input[type=range] {
 <audio id="bubble" src="bubble.mp3"></audio>
 <audio id="transicao" src="transicao.mp3"></audio>
 
+<div id="toast-container">
+    <div class="toast" id="toast"></div>
+</div>
+
 <div class="topo">
-    <div onclick="abrirMenu()">⚙️</div>
+    <div class="topo-icones">
+        <div class="icon-btn" onclick="abrirMenu()" title="Configurações">⚙️</div>
+    </div>
     <div class="toggle" onclick="alternarModo(this)"></div>
 </div>
 
 <!-- MENU CONFIG -->
 <div class="menu" id="menuConfig">
-
     <h3>🔊 Volume</h3>
-
     <p>Música</p>
     <input type="range" min="0" max="100" value="50" oninput="ajustarMusica(this.value)">
-
     <p>Efeitos</p>
     <input type="range" min="0" max="100" value="50" oninput="ajustarEfeitos(this.value)">
-
     <p>Efeitos Visuais</p>
     <div class="toggle active" onclick="toggleEfeitosVisuais(this)"></div>
-
 </div>
 
-<!-- INTERFACE INICIAL -->
-<div class="container" id="tela-inicial">
-    <img src="logo.png" class="logo animar" id="logo">
+<!-- MODAL POKEDEX -->
+<div class="modal-pokedex" id="modal-pokedex">
+    <h3>📖 Descobertas</h3>
+    <div id="lista-pokedex"></div>
+</div>
 
+<!-- TELA INICIAL -->
+<div class="container" id="tela-inicial">
+    <img src="logo.png" class="logo animar" id="logo" alt="Logo">
     <p class="descricao">
         Química Adômines tem origem no latim “ad omnes”, que significa “para todos”. 
-        O jogo foi desenvolvido com o objetivo de tornar o ensino de Química
+        O jogo foi desenvolvido com o objetivo de tornar o ensino de Química Orgânica 
         mais acessível, interativo e compreensível para diferentes públicos.
     </p>
-
     <button class="botao" id="btn-iniciar" onclick="iniciarJogo()">Iniciar Jogo</button>
 </div>
 
-<!-- INTERFACE MODOS -->
+<!-- TELA DE MODOS -->
 <div class="modos-container" id="tela-modos">
     <h1 class="modos-titulo">Modos de Jogo</h1>
     <button class="voltar-btn" onclick="voltarTela()">← Voltar</button>
@@ -340,7 +777,13 @@ input[type=range] {
         <img src="montandoestruturas.png" alt="Montando Estruturas">
         <span class="modo-nome">Montando Estruturas</span>
         <div class="modo-botoes">
-            <button class="play-btn">▶️</button>
+            <button class="play-btn" onclick="toggleDificuldades()">▶️</button>
+            <div class="dificuldades-container" id="dificuldades-container">
+                <button class="dificuldade-btn dif-facil" onclick="iniciarDificuldade('facil')">Fácil</button>
+                <button class="dificuldade-btn dif-medio" onclick="iniciarDificuldade('medio')">Médio</button>
+                <button class="dificuldade-btn dif-dificil" onclick="iniciarDificuldade('dificil')">Difícil</button>
+                <button class="dificuldade-btn dif-impossivel" onclick="iniciarDificuldade('impossivel')">Impossível</button>
+            </div>
             <button class="access-btn" onclick="toggleAccessNiveis(this)">Acessibilidade</button>
             <div class="access-niveis">
                 <button class="exploracao">Exploração</button>
@@ -349,40 +792,100 @@ input[type=range] {
             </div>
         </div>
     </div>
-
-    <!-- LINHA DIVISÓRIA -->
     <div class="divisor"></div>
 </div>
 
-<!-- INTERFACE JOGO -->
+<!-- TELA DE TUTORIAL -->
+<div class="container" id="tela-tutorial">
+    <h1 class="modos-titulo">Tutorial – Montando Estruturas</h1>
+    <div style="overflow: hidden; border: 2px solid #3b82f6; border-radius: 10px; margin-bottom: 20px; max-width: 90%; background-color: #fff;">
+        <img src="tutorial01.png" id="img-tutorial" style="width: 500px; max-width: 100%; transition: transform 0.3s; transform-origin: center; display: block;">
+    </div>
+    <div style="margin-bottom: 20px; display: flex; gap: 10px;">
+        <button class="botao" style="padding: 10px 15px;" onclick="zoomTutorial(0.2)">🔍+</button>
+        <button class="botao" style="padding: 10px 15px;" onclick="zoomTutorial(-0.2)">🔍-</button>
+    </div>
+    
+    <p class="descricao" style="font-size: 16px; font-weight: bold; margin-bottom: 30px; text-align: left; max-width: 600px;">
+        Neste modo, você deverá arrastar os átomos e suas respectivas ligações para o quadro branco de modo a formar a estrutura que pede o enunciado. Observe a valência de cada átomo, que indica quantas ligações ele pode fazer. Ajuste a posição dos átomos e das ligações conforme necessário até que a molécula esteja completa e correta.
+        <br><br>
+        <span style="color: #3b82f6;">Para arrastar:</span> manter pressionado o botão esquerdo do mouse.<br>
+        <span style="color: #ef4444;">Obs.:</span> ao clicar com o botão direito do mouse em um átomo ou ligação aparecerão novas interações que com certeza lhe ajudarão.
+    </p>
+
+    <button class="botao" onclick="iniciarJogoAposTutorial()">Continuar</button>
+</div>
+
+<!-- TELA DE JOGO -->
 <div class="tela-jogo" id="tela-jogo" style="display:none; flex-direction:column; align-items:center; text-align:center; padding-top:50px;">
     <button class="voltar-btn" onclick="voltarParaModos()">← Voltar</button>
 
-    <!-- QUADRO BRANCO -->
-    <div style="width: 80%; max-width: 800px; height: 400px; background-color:white; border: 3px solid #3b82f6; margin-bottom: 30px;"></div>
+    <div id="menu-contexto">
+        <div class="menu-item" id="btn-completar-valencia" style="display:none;">Ⓗ Completar Valência</div>
+        <div class="menu-item" id="btn-remover-h" style="display:none;">🧹 Limpar H</div>
+        <div class="menu-item" id="btn-inverter-90" style="display:none;">🔄 Inverter 90º</div>
+        <div class="menu-item" id="btn-desvincular" style="display:none;">🔗 Desvincular</div>
+        <div class="menu-item" id="btn-excluir">🗑️ Excluir</div>
+    </div>
 
-    <!-- TABELA ÁTOMOS E LIGAÇÕES -->
-    <table style="width:80%; max-width:800px; border-collapse: collapse; color:#0000ff; border:2px solid #3b82f6;">
-        <thead>
-            <tr style="background-color:#3b82f6; color:white;">
-                <th style="padding:10px; border:1px solid #3b82f6;">Átomos</th>
-                <th style="padding:10px; border:1px solid #3b82f6;">Ligações</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td style="padding:10px; border:1px solid #3b82f6;"></td>
-                <td style="padding:10px; border:1px solid #3b82f6;"></td>
-            </tr>
-        </tbody>
-    </table>
+    <!-- Wrapper do Quadro + Tabela (Alinhados perfeitamente) + Pokedex Lateral -->
+    <div id="wrapper-quadro">
+        
+        <!-- Coluna Esquerda: Quadro + Tabela -->
+        <div class="coluna-principal">
+            
+            <div id="quadro-branco">
+                <div id="hud-info">
+                    <div>Átomos na mesa: <span id="hud-atomos">0</span></div>
+                    <div>Ligações livres: <span id="hud-ligacoes">0</span></div>
+                </div>
+                
+                <div class="canvas-controls">
+                    <button onclick="zoomCanvas(0.1)" title="Aproximar">🔍+</button>
+                    <button onclick="zoomCanvas(-0.1)" title="Afastar">🔍-</button>
+                    <button onclick="rotateCanvas(15)" title="Rotacionar Direita">↻</button>
+                    <button onclick="rotateCanvas(-15)" title="Rotacionar Esquerda">↺</button>
+                    <button onclick="resetCanvas()" title="Resetar Visão">⌂</button>
+                </div>
+
+                <div id="board-canvas"></div>
+            </div>
+
+            <!-- TABELA PERFEITAMENTE ALINHADA E CENTRALIZADA ABAIXO DO QUADRO -->
+            <table style="width:100%; border-collapse: collapse; color:#0000ff; border:2px solid #3b82f6; background-color: rgba(255,255,255,0.9); box-sizing: border-box;">
+                <thead>
+                    <tr style="background-color:#3b82f6; color:white;">
+                        <th style="padding:10px; border:1px solid #3b82f6; width: 60%;">Átomos</th>
+                        <th style="padding:10px; border:1px solid #3b82f6; width: 40%;">Ligações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="border:1px solid #3b82f6; vertical-align: top;">
+                            <div id="container-atomos" class="tabela-container-celula"></div>
+                        </td>
+                        <td style="border:1px solid #3b82f6; vertical-align: top;">
+                            <div id="container-ligacoes" class="tabela-container-celula"></div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </div>
+        
+        <!-- Botão lateral para abrir Catálogo -->
+        <div id="painel-pokedex">
+            <div class="pokedex-btn-lateral" onclick="abrirPokedex()" title="Catálogo de Moléculas">
+                📖<br><span style="font-size: 12px; font-weight: bold;">Catálogo</span>
+            </div>
+        </div>
+    </div>
+
 </div>
 
-<!-- CRÉDITOS -->
 <div class="creditos">
     <p><strong>Créditos:</strong></p>
     <p><strong>Zayde CASTRO</strong> - zayde.lucas@aluno.uece.com.br</p>
-    
     <div class="logos">
         <img src="pibid.png">
         <img src="faced.png">
@@ -404,8 +907,25 @@ const menu = document.getElementById("menuConfig");
 let volumeMusica = 0.5;
 let volumeEfeito = 0.5;
 let efeitosVisuais = true;
+let dificuldadeAtual = ""; 
 
-// iniciar música ao clicar no body
+// Dicionário de Moléculas (Pokédex)
+let moleculasDescobertas = {};
+const dicionarioMoleculas =[
+    { id: 'H2O1', nome: 'Água', formula: 'H₂O' },
+    { id: 'C1H4', nome: 'Metano', formula: 'CH₄' },
+    { id: 'C2H6', nome: 'Etano', formula: 'C₂H₆' },
+    { id: 'O2', nome: 'Gás Oxigênio', formula: 'O₂' },
+    { id: 'C1O2', nome: 'Dióxido de Carbono', formula: 'CO₂' },
+    { id: 'H3N1', nome: 'Amônia', formula: 'NH₃' },
+    { id: 'Cl1Na1', nome: 'Cloreto de Sódio', formula: 'NaCl' },
+    { id: 'H2', nome: 'Gás Hidrogênio', formula: 'H₂' },
+    { id: 'C2H4', nome: 'Eteno', formula: 'C₂H₄' },
+    { id: 'C2H2', nome: 'Etino', formula: 'C₂H₂' },
+    { id: 'Cl1H1', nome: 'Ácido Clorídrico', formula: 'HCl' },
+    { id: 'N2', nome: 'Gás Nitrogênio', formula: 'N₂' }
+];
+
 document.body.addEventListener("click", () => {
     musica.volume = volumeMusica;
     musica.play();
@@ -424,13 +944,11 @@ function alternarModo(botao) {
     botao.classList.toggle("active");
 }
 
-// TRANSIÇÃO PARA MODOS
 function iniciarJogo() {
     somClick();
     document.body.classList.add("fade-out");
     transicao.volume = volumeEfeito; 
     transicao.play();
-
     setTimeout(() => {
         document.getElementById("tela-inicial").style.display = "none";
         document.getElementById("tela-modos").style.display = "flex";
@@ -438,13 +956,11 @@ function iniciarJogo() {
     }, 500);
 }
 
-// TRANSIÇÃO PARA VOLTAR
 function voltarTela() {
     somClick();
     document.body.classList.add("fade-out");
-    transicao.volume = 1; // volume máximo
+    transicao.volume = 1; 
     transicao.play();
-
     setTimeout(() => {
         document.getElementById("tela-modos").style.display = "none";
         document.getElementById("tela-inicial").style.display = "block";
@@ -454,7 +970,35 @@ function voltarTela() {
 
 function abrirMenu() {
     somClick();
+    document.getElementById('modal-pokedex').style.display = "none";
     menu.style.display = menu.style.display === "block" ? "none" : "block";
+}
+
+function abrirPokedex() {
+    somClick();
+    menu.style.display = "none";
+    const modal = document.getElementById('modal-pokedex');
+    if (modal.style.display === "flex") {
+        modal.style.display = "none";
+    } else {
+        modal.style.display = "flex";
+        atualizarListaPokedex();
+    }
+}
+
+function atualizarListaPokedex() {
+    const lista = document.getElementById('lista-pokedex');
+    lista.innerHTML = '';
+    dicionarioMoleculas.forEach(m => {
+        let div = document.createElement('div');
+        div.className = 'pokedex-item ' + (moleculasDescobertas[m.id] ? 'descoberto' : 'oculto');
+        if(moleculasDescobertas[m.id]) {
+            div.innerHTML = `<strong>${m.nome}</strong> <span>${m.formula}</span>`;
+        } else {
+            div.innerHTML = `<strong>???</strong> <span>${m.formula}</span>`;
+        }
+        lista.appendChild(div);
+    });
 }
 
 function ajustarMusica(valor) {
@@ -470,7 +1014,6 @@ function toggleEfeitosVisuais(botao) {
     somClick();
     efeitosVisuais = !efeitosVisuais;
     botao.classList.toggle("active");
-
     const logo = document.getElementById("logo");
     if (efeitosVisuais) {
         logo.classList.add("animar");
@@ -479,14 +1022,19 @@ function toggleEfeitosVisuais(botao) {
     }
 }
 
-// SPLASH GLOBAL
 document.addEventListener("click", function(e) {
     if (!efeitosVisuais) return;
     if (
         e.target.closest("button") ||
         e.target.closest(".toggle") ||
         e.target.closest(".topo") ||
-        e.target.closest(".menu")
+        e.target.closest(".menu") ||
+        e.target.closest(".modal-pokedex") ||
+        e.target.closest(".atomo") || 
+        e.target.closest(".ligacao") ||
+        e.target.closest("#menu-contexto") ||
+        e.target.closest(".canvas-controls") ||
+        e.target.closest(".pokedex-btn-lateral")
     ) return;
 
     const splash = document.createElement("div");
@@ -503,7 +1051,6 @@ document.addEventListener("click", function(e) {
     setTimeout(() => splash.remove(), 600);
 });
 
-// ACESSIBILIDADE MODOS
 function toggleAccessNiveis(botao) {
     const container = botao.nextElementSibling;
     if (container.style.display === "flex") {
@@ -513,37 +1060,91 @@ function toggleAccessNiveis(botao) {
     }
 }
 
-// HOVER SONORO E ANIMAÇÃO TODOS BOTÕES
-const todosBotoes = document.querySelectorAll(
-    ".botao, .voltar-btn, .play-btn, .access-btn, .access-niveis button"
-);
-todosBotoes.forEach(btn => {
-    btn.addEventListener("mouseenter", () => {
-        click.volume = volumeEfeito * 0.5;
-        click.play();
-        btn.style.transform = "scale(1.2)";
-    });
-    btn.addEventListener("mouseleave", () => {
-        btn.style.transform = "scale(1)";
-    });
-});
-
-// BOTÃO PLAY MODOS
-const playBtn = document.querySelector(".play-btn");
-playBtn.addEventListener("click", () => {
+function toggleDificuldades() {
     somClick();
+    const container = document.getElementById("dificuldades-container");
+    if (container.style.display === "flex") {
+        container.style.display = "none";
+    } else {
+        container.style.display = "flex";
+    }
+}
+
+// INICIA O TUTORIAL ANTES DO JOGO
+function iniciarDificuldade(nivel) {
+    somClick();
+    dificuldadeAtual = nivel; 
+    
+    // Animação de Transição
     document.body.classList.add("fade-out");
-    transicao.volume = 1; // volume máximo
+    transicao.volume = 1; 
     transicao.play();
 
     setTimeout(() => {
         document.getElementById("tela-modos").style.display = "none";
+        document.getElementById("tela-tutorial").style.display = "flex";
+        document.body.classList.remove("fade-out");
+        
+        // Reset tutorial zoom
+        zoomTut = 1;
+        document.getElementById('img-tutorial').style.transform = `scale(1)`;
+    }, 500);
+}
+
+// LÓGICA DO ZOOM DA IMAGEM DO TUTORIAL
+let zoomTut = 1;
+function zoomTutorial(amount) {
+    somClick();
+    zoomTut += amount;
+    if(zoomTut < 0.5) zoomTut = 0.5;
+    if(zoomTut > 2.5) zoomTut = 2.5;
+    document.getElementById('img-tutorial').style.transform = `scale(${zoomTut})`;
+}
+
+// PASSA DO TUTORIAL PARA O JOGO EM SI
+function iniciarJogoAposTutorial() {
+    somClick();
+    
+    // Animação de Transição
+    document.body.classList.add("fade-out");
+    transicao.volume = 1; 
+    transicao.play();
+
+    setTimeout(() => {
+        document.getElementById("tela-tutorial").style.display = "none";
         document.getElementById("tela-jogo").style.display = "flex";
         document.body.classList.remove("fade-out");
     }, 500);
-});
+}
 
-// VOLTAR PARA MODOS
+const todosBotoes = document.querySelectorAll(".botao, .voltar-btn, .play-btn, .access-btn, .access-niveis button, .dificuldade-btn");
+todosBotoes.forEach(btn => adicionarEventosHoverUi(btn));
+
+function adicionarEventosHoverUi(elemento) {
+    elemento.addEventListener("mouseenter", () => {
+        click.volume = volumeEfeito * 0.5;
+        click.play();
+        elemento.style.transform = "scale(1.2)";
+    });
+    elemento.addEventListener("mouseleave", () => {
+        elemento.style.transform = "scale(1)";
+    });
+}
+
+function adicionarEventosHoverMesa(elemento) {
+    elemento.addEventListener("mouseenter", () => {
+        if(elementoAtualArrastado || isRotating) return; 
+        click.volume = volumeEfeito * 0.5;
+        click.play();
+        elemento.style.setProperty('--scl', '1.2'); 
+    });
+    elemento.addEventListener("mouseleave", () => {
+        if(elementoAtualArrastado !== elemento) {
+            elemento.style.setProperty('--scl', '1');
+        }
+    });
+}
+
 function voltarParaModos() {
     somClick();
     document.body.classList.add("fade-out");
@@ -556,6 +1157,820 @@ function voltarParaModos() {
         document.body.classList.remove("fade-out");
     }, 500);
 }
+
+/* ==========================================================
+   SISTEMA DE MENSAGENS / TOAST
+   ========================================================== */
+let toastTimeout;
+let lastToastMessage = "";
+
+function mostrarToast(msg) {
+    if (lastToastMessage === msg) return; 
+    const toast = document.getElementById('toast');
+    toast.innerText = msg;
+    toast.classList.add('show');
+    lastToastMessage = msg;
+    clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => lastToastMessage = "", 300); 
+    }, 3000);
+}
+
+/* ==========================================================
+   CONTROLES DE CÂMERA (ZOOM E ROTAÇÃO)
+   ========================================================== */
+let zoomLevel = 1;
+let boardRotation = 0;
+
+function zoomCanvas(amount) {
+    somClick();
+    zoomLevel += amount;
+    if (zoomLevel < 0.5) zoomLevel = 0.5;
+    if (zoomLevel > 2.5) zoomLevel = 2.5;
+    aplicarTransformacaoCanvas();
+}
+
+function rotateCanvas(deg) {
+    somClick();
+    boardRotation = (boardRotation + deg) % 360;
+    aplicarTransformacaoCanvas();
+}
+
+function resetCanvas() {
+    somClick();
+    zoomLevel = 1;
+    boardRotation = 0;
+    aplicarTransformacaoCanvas();
+}
+
+function aplicarTransformacaoCanvas() {
+    const canvas = document.getElementById('board-canvas');
+    canvas.style.transform = `scale(${zoomLevel}) rotate(${boardRotation}deg)`;
+}
+
+/* ==========================================================
+   LÓGICA DOS ÁTOMOS E LIGAÇÕES
+   ========================================================== */
+
+const dadosAtomos =[
+    { sigla: 'H', corBg: 'white', corTexto: 'black', borda: '2px solid black', valencia: 1 },
+    { sigla: 'C', corBg: 'black', corTexto: 'white', borda: 'none', valencia: 4 },
+    { sigla: 'O', corBg: 'red', corTexto: 'white', borda: 'none', valencia: 2 },
+    { sigla: 'N', corBg: 'blue', corTexto: 'white', borda: 'none', valencia: 3 },
+    { sigla: 'S', corBg: 'yellow', corTexto: 'black', borda: 'none', valencia: 2 },
+    { sigla: 'P', corBg: 'orange', corTexto: 'white', borda: 'none', valencia: 3 },
+    { sigla: 'Cl', corBg: 'lightgreen', corTexto: 'black', borda: 'none', valencia: 1 },
+    { sigla: 'F', corBg: 'green', corTexto: 'white', borda: 'none', valencia: 1 },
+    { sigla: 'Br', corBg: 'brown', corTexto: 'white', borda: 'none', valencia: 1 },
+    { sigla: 'I', corBg: 'purple', corTexto: 'white', borda: 'none', valencia: 1 },
+    { sigla: 'Na', corBg: 'lightblue', corTexto: 'black', borda: 'none', valencia: 1 },
+    { sigla: 'K', corBg: '#dda0dd', corTexto: 'black', borda: 'none', valencia: 1 }, 
+    { sigla: 'Ca', corBg: 'lightgray', corTexto: 'black', borda: 'none', valencia: 2 },
+    { sigla: 'Mg', corBg: 'darkgreen', corTexto: 'white', borda: 'none', valencia: 2 },
+    { sigla: 'Al', corBg: 'silver', corTexto: 'black', borda: 'none', valencia: 3 },
+    { sigla: 'Si', corBg: '#d2b48c', corTexto: 'black', borda: 'none', valencia: 4 } 
+];
+
+const dadosLigacoes =[
+    { tipo: 'simples', valor: 1, html: '<div class="linha"></div>' },
+    { tipo: 'dupla', valor: 2, html: '<div class="linha"></div><div class="linha"></div>' },
+    { tipo: 'tripla', valor: 3, html: '<div class="linha"></div><div class="linha"></div><div class="linha"></div>' }
+];
+
+window.addEventListener('DOMContentLoaded', () => {
+    const contAtomos = document.getElementById('container-atomos');
+    const contLigacoes = document.getElementById('container-ligacoes');
+
+    dadosAtomos.forEach(atomo => {
+        let div = document.createElement('div');
+        div.className = 'atomo';
+        let badgeHTML = `<div class="valencia-badge" style="display:none;">${atomo.valencia}</div>`;
+        div.innerHTML = `${atomo.sigla}${badgeHTML}`;
+        div.style.backgroundColor = atomo.corBg;
+        div.style.color = atomo.corTexto;
+        div.style.border = atomo.borda;
+        div.dataset.valencia = atomo.valencia;
+        div.dataset.sigla = atomo.sigla;
+        div.dataset.h = 0; // Hidrogênios embutidos
+        
+        adicionarEventosHoverMesa(div);
+        contAtomos.appendChild(div);
+    });
+
+    dadosLigacoes.forEach(ligacao => {
+        let div = document.createElement('div');
+        div.className = 'ligacao';
+        div.innerHTML = ligacao.html;
+        div.dataset.valor = ligacao.valor;
+        
+        adicionarEventosHoverMesa(div);
+        contLigacoes.appendChild(div);
+    });
+});
+
+/* ==========================================================
+   ARRASTE (DRAG & DROP), VÍNCULOS, ROTAÇÃO E COLISÕES
+   ========================================================== */
+
+let elementoAtualArrastado = null;
+let isClonando = false;
+let offsetX = 0;
+let offsetY = 0;
+let lastMouseX = 0;
+let lastMouseY = 0;
+
+let isRotating = false;
+let elementoRotacionando = null;
+let rotCenterX = 0;
+let rotCenterY = 0;
+
+document.addEventListener('mousedown', iniciarArraste, { passive: false });
+document.addEventListener('touchstart', iniciarArraste, { passive: false });
+
+function iniciarArraste(e) {
+    if (e.type === 'mousedown' && e.button !== 0) return;
+
+    const handle = e.target.closest('.rotacionar-handle');
+    if (handle) {
+        isRotating = true;
+        elementoRotacionando = handle.closest('.ligacao');
+        const rect = elementoRotacionando.getBoundingClientRect();
+        rotCenterX = rect.left + rect.width / 2;
+        rotCenterY = rect.top + rect.height / 2;
+
+        e.stopPropagation();
+        e.preventDefault();
+        
+        document.addEventListener('mousemove', moverRotacao, { passive: false });
+        document.addEventListener('touchmove', moverRotacao, { passive: false });
+        document.addEventListener('mouseup', soltarRotacao);
+        document.addEventListener('touchend', soltarRotacao);
+        return;
+    }
+
+    const alvo = e.target.closest('.atomo, .ligacao');
+    if (!alvo) return;
+    
+    somClick(); 
+    
+    let clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+    let clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+
+    lastMouseX = clientX;
+    lastMouseY = clientY;
+
+    if (alvo.closest('table')) {
+        isClonando = true;
+        elementoAtualArrastado = alvo.cloneNode(true);
+        elementoAtualArrastado.conexoes =[]; 
+        if (elementoAtualArrastado.dataset.h) elementoAtualArrastado.dataset.h = 0; // Reseta hidrogênios ao clonar
+        
+        if (elementoAtualArrastado.classList.contains('atomo')) {
+            let badge = elementoAtualArrastado.querySelector('.valencia-badge');
+            if (badge) badge.style.display = 'flex';
+        }
+
+        if (elementoAtualArrastado.classList.contains('ligacao')) {
+            const btnRot = document.createElement('div');
+            btnRot.className = 'rotacionar-handle';
+            btnRot.innerHTML = '↻';
+            elementoAtualArrastado.appendChild(btnRot);
+        }
+
+        document.body.appendChild(elementoAtualArrastado); 
+        elementoAtualArrastado.style.position = 'absolute';
+        elementoAtualArrastado.style.zIndex = 3000;
+        
+        offsetX = alvo.offsetWidth / 2;
+        offsetY = alvo.offsetHeight / 2;
+        
+        elementoAtualArrastado.style.left = (clientX - offsetX) + 'px';
+        elementoAtualArrastado.style.top = (clientY - offsetY + window.scrollY) + 'px';
+
+    } else {
+        isClonando = false;
+        elementoAtualArrastado = alvo;
+        elementoAtualArrastado.style.zIndex = 3000;
+    }
+
+    elementoAtualArrastado.style.cursor = 'grabbing';
+    elementoAtualArrastado.classList.remove('sumir');
+
+    document.addEventListener('mousemove', moverArraste, { passive: false });
+    document.addEventListener('touchmove', moverArraste, { passive: false });
+    document.addEventListener('mouseup', soltarArraste);
+    document.addEventListener('touchend', soltarArraste);
+}
+
+function getTodosConectados(startEl, visitados = new Set()) {
+    visitados.add(startEl);
+    if (startEl.conexoes) {
+        startEl.conexoes.forEach(vizinho => {
+            if (!visitados.has(vizinho)) {
+                getTodosConectados(vizinho, visitados);
+            }
+        });
+    }
+    return visitados;
+}
+
+function getCoordsNoCanvas(e) {
+    const canvas = document.getElementById('board-canvas');
+    const rect = canvas.getBoundingClientRect(); 
+
+    let cx = rect.left + rect.width / 2;
+    let cy = rect.top + rect.height / 2;
+    
+    let dx = e.clientX - cx;
+    let dy = e.clientY - cy;
+
+    let rad = -boardRotation * Math.PI / 180;
+    let rx = dx * Math.cos(rad) - dy * Math.sin(rad);
+    let ry = dx * Math.sin(rad) + dy * Math.cos(rad);
+
+    rx /= zoomLevel;
+    ry /= zoomLevel;
+
+    let internalX = (canvas.offsetWidth / 2) + rx;
+    let internalY = (canvas.offsetHeight / 2) + ry;
+
+    return { x: internalX, y: internalY + window.scrollY };
+}
+
+function moverArraste(e) {
+    if (!elementoAtualArrastado) return;
+    e.preventDefault();
+
+    let clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+    let clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+
+    let dxMouse = clientX - lastMouseX;
+    let dyMouse = clientY - lastMouseY;
+
+    if (isClonando) {
+        elementoAtualArrastado.style.left = (clientX - offsetX) + 'px';
+        elementoAtualArrastado.style.top = (clientY - offsetY + window.scrollY) + 'px';
+        lastMouseX = clientX;
+        lastMouseY = clientY;
+    } else {
+        let rad = -boardRotation * Math.PI / 180;
+        let dx = (dxMouse * Math.cos(rad) - dyMouse * Math.sin(rad)) / zoomLevel;
+        let dy = (dxMouse * Math.sin(rad) + dyMouse * Math.cos(rad)) / zoomLevel;
+
+        const canvas = document.getElementById('board-canvas');
+        const qW = canvas.clientWidth;
+        const qH = canvas.clientHeight;
+        
+        const grupo = getTodosConectados(elementoAtualArrastado);
+        
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        
+        grupo.forEach(el => {
+            let left = parseFloat(el.style.left) || 0;
+            let top = parseFloat(el.style.top) || 0;
+            let right = left + el.offsetWidth;
+            let bottom = top + el.offsetHeight;
+            if(left < minX) minX = left;
+            if(top < minY) minY = top;
+            if(right > maxX) maxX = right;
+            if(bottom > maxY) maxY = bottom;
+        });
+
+        // Verificação extrema de colisão das bordas durante o arraste
+        let podeMoverX = true;
+        let podeMoverY = true;
+
+        if (minX + dx < 0 || maxX + dx > qW) podeMoverX = false;
+        if (minY + dy < 0 || maxY + dy > qH) podeMoverY = false;
+
+        if (podeMoverX) lastMouseX = clientX; else dx = 0;
+        if (podeMoverY) lastMouseY = clientY; else dy = 0;
+
+        if(podeMoverX || podeMoverY) {
+            grupo.forEach(el => {
+                let currentLeft = parseFloat(el.style.left) || 0;
+                let currentTop = parseFloat(el.style.top) || 0;
+                el.style.left = (currentLeft + dx) + 'px';
+                el.style.top = (currentTop + dy) + 'px';
+            });
+        }
+    }
+}
+
+function soltarArraste(e) {
+    if (!elementoAtualArrastado) return;
+
+    let clientX = e.type.includes('touch') ? e.changedTouches[0].clientX : e.clientX;
+    let clientY = e.type.includes('touch') ? e.changedTouches[0].clientY : e.clientY;
+
+    const quadro = document.getElementById('quadro-branco');
+    const quadroRect = quadro.getBoundingClientRect();
+    const quadroCanvas = document.getElementById('board-canvas');
+
+    document.removeEventListener('mousemove', moverArraste);
+    document.removeEventListener('touchmove', moverArraste);
+    document.removeEventListener('mouseup', soltarArraste);
+    document.removeEventListener('touchend', soltarArraste);
+
+    if (clientX >= quadroRect.left && clientX <= quadroRect.right &&
+        clientY >= quadroRect.top && clientY <= quadroRect.bottom) {
+        
+        if (isClonando) {
+            let coords = getCoordsNoCanvas(e);
+            let xRelativo = coords.x - offsetX;
+            let yRelativo = coords.y - offsetY;
+            
+            // Garantir rigidamente que a peça ao ser solta não fique fora dos limites
+            if(xRelativo < 0) xRelativo = 0;
+            if(yRelativo < 0) yRelativo = 0;
+            if(xRelativo + elementoAtualArrastado.offsetWidth > quadroCanvas.clientWidth) xRelativo = quadroCanvas.clientWidth - elementoAtualArrastado.offsetWidth;
+            if(yRelativo + elementoAtualArrastado.offsetHeight > quadroCanvas.clientHeight) yRelativo = quadroCanvas.clientHeight - elementoAtualArrastado.offsetHeight;
+
+            elementoAtualArrastado.style.left = xRelativo + 'px';
+            elementoAtualArrastado.style.top = yRelativo + 'px';
+            
+            quadroCanvas.appendChild(elementoAtualArrastado);
+            adicionarEventosHoverMesa(elementoAtualArrastado);
+        }
+
+        elementoAtualArrastado.style.cursor = 'grab';
+        elementoAtualArrastado.style.zIndex = 10;
+        
+        let sobreposicao = verificarSobreposicaoAtomo(elementoAtualArrastado);
+        
+        if(!sobreposicao) {
+            tentarVincular(elementoAtualArrastado);
+        }
+
+        // Prevenção extra de colisão final - garante que nenhum bloco encostado na mesa consiga descer as bordas
+        const grupoGeral = getTodosConectados(elementoAtualArrastado);
+        const qW = quadroCanvas.clientWidth;
+        const qH = quadroCanvas.clientHeight;
+        grupoGeral.forEach(el => {
+            let curX = parseFloat(el.style.left) || 0;
+            let curY = parseFloat(el.style.top) || 0;
+            if (curX < 0) el.style.left = '0px';
+            if (curY < 0) el.style.top = '0px';
+            if (curX + el.offsetWidth > qW) el.style.left = (qW - el.offsetWidth) + 'px';
+            if (curY + el.offsetHeight > qH) el.style.top = (qH - el.offsetHeight) + 'px';
+        });
+
+    } else {
+        quebrarVinculos(elementoAtualArrastado);
+        elementoAtualArrastado.classList.add('sumir');
+        const lixo = elementoAtualArrastado;
+        setTimeout(() => { 
+            if (lixo && lixo.parentNode) lixo.parentNode.removeChild(lixo); 
+            atualizarEstadoQuadro();
+        }, 300);
+    }
+
+    elementoAtualArrastado = null;
+    atualizarEstadoQuadro();
+}
+
+// LOGICA DE SUBSTITUIÇÃO (SOBREPOSIÇÃO EXATA) DE ÁTOMOS
+function verificarSobreposicaoAtomo(el) {
+    if (!el.classList.contains('atomo')) return false;
+
+    const atomosNoQuadro = document.querySelectorAll('#board-canvas .atomo');
+    let elCX = parseFloat(el.style.left) + el.offsetWidth/2;
+    let elCY = parseFloat(el.style.top) + el.offsetHeight/2;
+
+    for(let alvo of atomosNoQuadro) {
+        if (alvo === el) continue;
+        
+        let alvoCX = parseFloat(alvo.style.left) + alvo.offsetWidth/2;
+        let alvoCY = parseFloat(alvo.style.top) + alvo.offsetHeight/2;
+
+        let dist = Math.hypot(elCX - alvoCX, elCY - alvoCY);
+        
+        // Área BEM menor e precisa (antes 20, agora 10)
+        if (dist < 10) {
+            somClick(); 
+            
+            el.style.left = alvo.style.left;
+            el.style.top = alvo.style.top;
+            el.dataset.h = alvo.dataset.h || 0; // Transfere o H
+
+            if(alvo.conexoes && alvo.conexoes.length > 0) {
+                if(!el.conexoes) el.conexoes =[];
+                alvo.conexoes.forEach(vizinho => {
+                    vizinho.conexoes = vizinho.conexoes.filter(v => v !== alvo); 
+                    vizinho.conexoes.push(el); 
+                    el.conexoes.push(vizinho);
+                });
+            }
+
+            alvo.classList.add('sumir');
+            alvo.conexoes =[]; 
+            setTimeout(() => { 
+                if(alvo && alvo.parentNode) alvo.remove(); 
+                atualizarEstadoQuadro();
+            }, 300);
+
+            return true; 
+        }
+    }
+    return false;
+}
+
+// LÓGICA DE ENCAIXE E VÍNCULOS
+function tentarVincular(el) {
+    const isAtomoEl = el.classList.contains('atomo');
+    const alvoSelector = isAtomoEl ? '.ligacao' : '.atomo';
+    const possiveisAlvos = document.querySelectorAll('#board-canvas ' + alvoSelector);
+    
+    // Grupo arrastado não pode se ligar a ele mesmo
+    const grupoArrastado = getTodosConectados(el);
+
+    let closestAlvo = null;
+    let minTargetDist = 65; 
+
+    let elCX = parseFloat(el.style.left) + el.offsetWidth/2;
+    let elCY = parseFloat(el.style.top) + el.offsetHeight/2;
+
+    possiveisAlvos.forEach(alvo => {
+        // Ignora ligações que já fazem parte do que foi arrastado (BUGFIX VALÊNCIA)
+        if (grupoArrastado.has(alvo)) return; 
+        if (!el.conexoes) el.conexoes =[];
+        if (el.conexoes.includes(alvo)) return; 
+
+        let alvoCX = parseFloat(alvo.style.left) + alvo.offsetWidth/2;
+        let alvoCY = parseFloat(alvo.style.top) + alvo.offsetHeight/2;
+        
+        let dist = Math.hypot(elCX - alvoCX, elCY - alvoCY);
+        if (dist < minTargetDist) {
+            minTargetDist = dist;
+            closestAlvo = alvo;
+        }
+    });
+
+    if (closestAlvo) {
+        let bond = isAtomoEl ? closestAlvo : el;
+        let atom = isAtomoEl ? el : closestAlvo;
+
+        let ligacoesDoBond = bond.conexoes ||[];
+        let numAtomosNoBond = ligacoesDoBond.filter(c => c.classList.contains('atomo')).length;
+        if (numAtomosNoBond >= 2) return; 
+
+        let bondRot = parseFloat(bond.dataset.angulo) || 0;
+        let rad = bondRot * Math.PI / 180;
+
+        let bondCX = parseFloat(bond.style.left) + bond.offsetWidth/2;
+        let bondCY = parseFloat(bond.style.top) + bond.offsetHeight/2;
+        let atomCX = parseFloat(atom.style.left) + atom.offsetWidth/2;
+        let atomCY = parseFloat(atom.style.top) + atom.offsetHeight/2;
+
+        let distIdeal = 48; 
+        
+        let p1X = bondCX + Math.cos(rad) * distIdeal;
+        let p1Y = bondCY + Math.sin(rad) * distIdeal;
+        let p2X = bondCX - Math.cos(rad) * distIdeal;
+        let p2Y = bondCY - Math.sin(rad) * distIdeal;
+
+        let d1 = Math.hypot(atomCX - p1X, atomCY - p1Y);
+        let d2 = Math.hypot(atomCX - p2X, atomCY - p2Y);
+
+        let targetAtomCX, targetAtomCY, targetBondCX, targetBondCY;
+
+        if (d1 < d2) {
+            targetAtomCX = p1X; targetAtomCY = p1Y;
+            targetBondCX = atomCX - Math.cos(rad) * distIdeal;
+            targetBondCY = atomCY - Math.sin(rad) * distIdeal;
+        } else {
+            targetAtomCX = p2X; targetAtomCY = p2Y;
+            targetBondCX = atomCX + Math.cos(rad) * distIdeal;
+            targetBondCY = atomCY + Math.sin(rad) * distIdeal;
+        }
+
+        const quadroCanvas = document.getElementById('board-canvas');
+        const qW = quadroCanvas.clientWidth;
+        const qH = quadroCanvas.clientHeight;
+
+        if (el === atom) {
+            let left = targetAtomCX - el.offsetWidth/2;
+            let top = targetAtomCY - el.offsetHeight/2;
+            if (left < 0) left = 0; if (left + el.offsetWidth > qW) left = qW - el.offsetWidth;
+            if (top < 0) top = 0; if (top + el.offsetHeight > qH) top = qH - el.offsetHeight;
+            el.style.left = left + 'px';
+            el.style.top = top + 'px';
+        } else {
+            let left = targetBondCX - el.offsetWidth/2;
+            let top = targetBondCY - el.offsetHeight/2;
+            if (left < 0) left = 0; if (left + el.offsetWidth > qW) left = qW - el.offsetWidth;
+            if (top < 0) top = 0; if (top + el.offsetHeight > qH) top = qH - el.offsetHeight;
+            el.style.left = left + 'px';
+            el.style.top = top + 'px';
+        }
+
+        if (!closestAlvo.conexoes) closestAlvo.conexoes =[];
+        el.conexoes.push(closestAlvo);
+        closestAlvo.conexoes.push(el);
+
+        el.classList.add('vinculado');
+        closestAlvo.classList.add('vinculado');
+
+        somClick(); 
+        el.classList.add('flash-verde');
+        setTimeout(() => el.classList.remove('flash-verde'), 400);
+    }
+}
+
+function quebrarVinculos(el) {
+    if (el.conexoes) {
+        el.conexoes.forEach(vizinho => {
+            if(vizinho.conexoes) {
+                vizinho.conexoes = vizinho.conexoes.filter(v => v !== el);
+                if(vizinho.conexoes.length === 0) {
+                    vizinho.classList.remove('vinculado');
+                }
+            }
+        });
+        el.conexoes =[];
+        el.classList.remove('vinculado');
+    }
+}
+
+function moverRotacao(e) {
+    if(!isRotating || !elementoRotacionando) return;
+    e.preventDefault();
+    
+    let clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+    let clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+
+    const angle = Math.atan2(clientY - rotCenterY, clientX - rotCenterX);
+    let deg = angle * (180 / Math.PI);
+    
+    deg -= boardRotation;
+
+    elementoRotacionando.dataset.angulo = deg;
+    elementoRotacionando.style.setProperty('--rot', deg + 'deg');
+}
+
+function soltarRotacao(e) {
+    isRotating = false;
+    elementoRotacionando = null;
+    document.removeEventListener('mousemove', moverRotacao);
+    document.removeEventListener('touchmove', moverRotacao);
+    document.removeEventListener('mouseup', soltarRotacao);
+    document.removeEventListener('touchend', soltarRotacao);
+}
+
+/* ==========================================================
+   LÓGICAS EDUCATIVAS: VALÊNCIAS E MOLÉCULAS
+   ========================================================== */
+
+function atualizarEstadoQuadro() {
+    atualizarValencias();
+    verificarMoleculas();
+    atualizarHUD();
+}
+
+function atualizarValencias() {
+    let atomosNoQuadro = document.querySelectorAll('#board-canvas .atomo');
+    atomosNoQuadro.forEach(atomo => {
+        let valMax = parseInt(atomo.dataset.valencia);
+        let valUsadaH = parseInt(atomo.dataset.h) || 0; // Ligações implícitas de H
+        let valLigacoes = 0;
+        
+        if (atomo.conexoes) {
+            atomo.conexoes.forEach(vizinho => {
+                if (vizinho.classList.contains('ligacao')) {
+                    valLigacoes += parseInt(vizinho.dataset.valor) || 1;
+                }
+            });
+        }
+        
+        let valLivre = valMax - valLigacoes - valUsadaH;
+        let badge = atomo.querySelector('.valencia-badge');
+        if (badge) badge.innerText = valLivre;
+
+        atomo.classList.remove('atomo-completo', 'atomo-excedido');
+        if (valLivre === 0) {
+            atomo.classList.add('atomo-completo');
+        } else if (valLivre < 0) {
+            atomo.classList.add('atomo-excedido');
+            mostrarToast(`Valência do ${atomo.dataset.sigla} excedida!`);
+        }
+    });
+}
+
+function atualizarHUD() {
+    let atomos = document.querySelectorAll('#board-canvas .atomo');
+    let ligacoesLivresTotais = 0;
+    
+    atomos.forEach(a => {
+        let badge = a.querySelector('.valencia-badge');
+        if (badge) {
+            let v = parseInt(badge.innerText);
+            if(v > 0) ligacoesLivresTotais += v;
+        }
+    });
+    
+    document.getElementById('hud-atomos').innerText = atomos.length;
+    document.getElementById('hud-ligacoes').innerText = ligacoesLivresTotais;
+}
+
+function getMoleculeKey(atomos) {
+    let counts = {};
+    atomos.forEach(a => {
+        let sigla = a.dataset.sigla;
+        let qtdH = parseInt(a.dataset.h) || 0;
+        
+        counts[sigla] = (counts[sigla] || 0) + 1;
+        if (qtdH > 0) {
+            counts['H'] = (counts['H'] || 0) + qtdH;
+        }
+    });
+    let sortedKeys = Object.keys(counts).sort();
+    return sortedKeys.map(k => k + counts[k]).join('');
+}
+
+function verificarMoleculas() {
+    let visitadosGlobais = new Set();
+    let atomosNoQuadro = document.querySelectorAll('#board-canvas .atomo');
+    
+    atomosNoQuadro.forEach(atomo => {
+        if (!visitadosGlobais.has(atomo)) {
+            let grupo = getTodosConectados(atomo);
+            grupo.forEach(el => visitadosGlobais.add(el));
+            
+            let atomosGrupo = Array.from(grupo).filter(el => el.classList.contains('atomo'));
+            let ligacoesGrupo = Array.from(grupo).filter(el => el.classList.contains('ligacao'));
+            
+            let todosCompletos = atomosGrupo.every(a => {
+                let badge = a.querySelector('.valencia-badge');
+                return badge && parseInt(badge.innerText) === 0;
+            });
+            
+            let ligacoesValidas = ligacoesGrupo.every(l => {
+                return l.conexoes && l.conexoes.filter(c => c.classList.contains('atomo')).length === 2;
+            });
+
+            if (todosCompletos && ligacoesValidas && atomosGrupo.length > 0) {
+                let chave = getMoleculeKey(atomosGrupo);
+                identificarMolecula(chave);
+            }
+        }
+    });
+}
+
+function identificarMolecula(chave) {
+    let mol = dicionarioMoleculas.find(m => m.id === chave);
+    if (mol) {
+        if (!moleculasDescobertas[mol.id]) {
+            moleculasDescobertas[mol.id] = true;
+            mostrarToast(`Nova molécula descoberta: ${mol.nome} (${mol.formula})!`);
+            bubble.play(); 
+            if (document.getElementById('modal-pokedex').style.display === "flex") {
+                atualizarListaPokedex();
+            }
+        } else {
+            mostrarToast(`Você formou: ${mol.nome} (${mol.formula})`);
+        }
+    }
+}
+
+/* ==========================================================
+   MENU DE CONTEXTO E FUNCIONALIDADES DE HIDROGÊNIO
+   ========================================================== */
+let alvoContexto = null;
+
+function getValLivreParaH(atomo) {
+    let valMax = parseInt(atomo.dataset.valencia);
+    let valLigacoes = 0;
+    if (atomo.conexoes) {
+        atomo.conexoes.forEach(vizinho => {
+            if (vizinho.classList.contains('ligacao')) valLigacoes += parseInt(vizinho.dataset.valor) || 1;
+        });
+    }
+    return valMax - valLigacoes; // Quanto falta apenas pelas ligações do quadro
+}
+
+function renderizarH(atomo) {
+    let numH = parseInt(atomo.dataset.h) || 0;
+    let span = atomo.querySelector('.hidrogenios-implicitos');
+    
+    if (numH > 0) {
+        if (!span) {
+            span = document.createElement('span');
+            span.className = 'hidrogenios-implicitos';
+            atomo.appendChild(span);
+        }
+        const subscripts =['₀','₁','₂','₃','₄','₅','₆','₇','₈','₉'];
+        let subTxt = numH > 1 ? numH.toString().split('').map(d => subscripts[parseInt(d)]).join('') : '';
+        span.innerText = `H${subTxt}`;
+    } else {
+        if (span) span.remove();
+    }
+}
+
+document.addEventListener('contextmenu', function(e) {
+    const alvo = e.target.closest('.atomo, .ligacao');
+    
+    if (alvo && alvo.closest('#board-canvas')) {
+        e.preventDefault();
+        alvoContexto = alvo;
+        
+        const menuCtx = document.getElementById('menu-contexto');
+        menuCtx.style.display = 'block';
+        menuCtx.style.left = e.pageX + 'px';
+        menuCtx.style.top = e.pageY + 'px';
+
+        // Lógica dos Botões no Menu de Contexto
+        let isAtomo = alvo.classList.contains('atomo');
+        document.getElementById('btn-completar-valencia').style.display = isAtomo ? 'flex' : 'none';
+        
+        let temH = isAtomo && (parseInt(alvo.dataset.h) || 0) > 0;
+        document.getElementById('btn-remover-h').style.display = temH ? 'flex' : 'none';
+
+        if (alvo.classList.contains('ligacao') && !alvo.classList.contains('vinculado')) {
+            document.getElementById('btn-inverter-90').style.display = 'flex';
+        } else {
+            document.getElementById('btn-inverter-90').style.display = 'none';
+        }
+        
+        document.getElementById('btn-desvincular').style.display = (alvo.conexoes && alvo.conexoes.length > 0) ? 'flex' : 'none';
+    } else {
+        fecharMenuContexto();
+    }
+});
+
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('#menu-contexto')) fecharMenuContexto();
+});
+
+function fecharMenuContexto() {
+    document.getElementById('menu-contexto').style.display = 'none';
+    alvoContexto = null;
+}
+
+// Botões Funcionais
+document.getElementById('btn-completar-valencia').addEventListener('click', () => {
+    if(alvoContexto && alvoContexto.classList.contains('atomo')) {
+        somClick();
+        let valFaltando = getValLivreParaH(alvoContexto);
+        if (valFaltando > 0) {
+            alvoContexto.dataset.h = valFaltando;
+            renderizarH(alvoContexto);
+            atualizarEstadoQuadro();
+        } else {
+            mostrarToast("A valência deste átomo já está completa (ou excedida).");
+        }
+        fecharMenuContexto();
+    }
+});
+
+document.getElementById('btn-remover-h').addEventListener('click', () => {
+    if(alvoContexto && alvoContexto.classList.contains('atomo')) {
+        somClick();
+        alvoContexto.dataset.h = 0;
+        renderizarH(alvoContexto);
+        atualizarEstadoQuadro();
+        fecharMenuContexto();
+    }
+});
+
+document.getElementById('btn-excluir').addEventListener('click', () => {
+    if(alvoContexto) {
+        somClick();
+        quebrarVinculos(alvoContexto); 
+        alvoContexto.classList.add('sumir');
+        setTimeout(() => { 
+            if(alvoContexto) alvoContexto.remove(); 
+            fecharMenuContexto(); 
+            atualizarEstadoQuadro();
+        }, 300);
+    }
+});
+
+document.getElementById('btn-inverter-90').addEventListener('click', () => {
+    if(alvoContexto && alvoContexto.classList.contains('ligacao')) {
+        somClick();
+        let anguloAtual = parseFloat(alvoContexto.dataset.angulo) || 0;
+        anguloAtual += 90; 
+        alvoContexto.dataset.angulo = anguloAtual;
+        alvoContexto.style.setProperty('--rot', anguloAtual + 'deg');
+        fecharMenuContexto();
+    }
+});
+
+document.getElementById('btn-desvincular').addEventListener('click', () => {
+    if(alvoContexto) {
+        somClick();
+        quebrarVinculos(alvoContexto);
+        
+        alvoContexto.classList.add('flash-amarelo');
+        setTimeout(() => {
+            if(alvoContexto) alvoContexto.classList.remove('flash-amarelo');
+        }, 500); 
+
+        fecharMenuContexto();
+        atualizarEstadoQuadro();
+    }
+});
 </script>
 
 </body>
