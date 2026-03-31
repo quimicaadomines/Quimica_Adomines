@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Química Adômines - Modos de Jogo</title>
+  <link rel="stylesheet" href="global.css">
+  <link rel="stylesheet" href="modos.css">
+</head>
+<body>
+
+<audio id="musica" src="musica.mp3" loop></audio>
+<audio id="click" src="click.mp3"></audio>
+<audio id="bubble" src="bubble.mp3"></audio>
+<audio id="transicaoSom" src="transicao.mp3"></audio>
+<audio id="somConquista" src="conquista.mp3"></audio>
+<audio id="somAplausos" src="aplausus.mp3"></audio>
+
+<header class="topo">
+  <div class="esquerda">
+    <button class="icon-btn" onclick="toggleMenu(event)">⚙️</button>
+    <button class="icon-btn" onclick="toggleMute()" id="muteBtn">🔊</button>
+    <button class="icon-btn" onclick="abrirConquistas()">🏅</button>
+    <div id="trofeus-globais" class="trofeus-container"></div>
+
+    <div id="menu" class="menu">
+      <div class="menu-item"><p>🎵 Volume da música</p><input type="range" id="rangeMusica" min="0" max="1" step="0.1" onchange="volumeMusica(this.value)"></div>
+      <div class="menu-item"><p>🔊 Volume dos efeitos</p><input type="range" id="rangeEfeitos" min="0" max="1" step="0.1" onchange="volumeEfeitos(this.value)"></div>
+      <div class="menu-item checkbox-area"><label><input type="checkbox" id="checkEfeitos" onchange="toggleEfeitos(this)"> Desativar efeitos visuais</label></div>
+    </div>
+  </div>
+  <div class="direita"><button class="icon-btn" onclick="toggleModo()" id="temaBtn">🌙</button></div>
+</header>
+
+<main class="container modos-container">
+  
+  <div style="width: 100%; text-align: left;">
+    <button class="btn-voltar" onclick="mudarTela('index.html')">⬅ Voltar</button>
+  </div>
+
+  <h1 class="titulo-modos">Modos de Jogo</h1>
+
+  <div id="toast-mensagem" class="toast escondido"></div>
+
+  <div class="card-mundo">
+    <div class="card-topo">
+      <div class="card-esquerda">
+        <img src="estruturando.png" alt="Estruturando" class="img-modo">
+        <div class="textos-modo">
+          <h2>ESTRUTURANDO</h2>
+          <p>Nesse modo, você monta estruturas químicas arrastando átomos e formando ligações corretamente.</p>
+        </div>
+      </div>
+      
+      <div class="card-direita">
+        <button class="btn-acao btn-play-normal" onclick="abrirSubmenu('normal')">▶</button>
+        <button class="btn-acao btn-inclusao" onclick="abrirSubmenu('inclusao')"><img src="inclusao.png" alt="Inclusão"><span class="icone-play-inclusao">▶</span></button>
+      </div>
+    </div>
+
+    <div id="submenu-normal" class="submenu escondido">
+      <div class="linha-botoes">
+        <button class="btn-nivel btn-verde" onclick="iniciarModo('livre')">Livre</button>
+        <button class="btn-nivel btn-vermelho" onclick="mostrarDificuldades()">Desafio</button>
+      </div>
+      <div id="submenu-dificuldades" class="linha-botoes escondido" style="margin-top: 15px;">
+        <button class="btn-nivel btn-verde" onclick="iniciarModo('facil')">Fácil</button>
+        <button class="btn-nivel btn-amarelo" onclick="iniciarModo('medio')">Médio</button>
+        <button class="btn-nivel btn-laranja" onclick="iniciarModo('dificil')">Difícil</button>
+        <button class="btn-nivel btn-vermelho" onclick="iniciarModo('impossivel')">Impossível</button>
+      </div>
+    </div>
+
+    <div id="submenu-inclusao" class="submenu escondido">
+      <div class="linha-botoes">
+        <button class="btn-nivel btn-verde" onclick="iniciarModo('inclusao-reconhecer')">Reconhecer</button>
+        <button class="btn-nivel btn-amarelo" onclick="iniciarModo('inclusao-relacionar')">Relacionar</button>
+        <button class="btn-nivel btn-laranja" onclick="iniciarModo('inclusao-interpretar')">Interpretar</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="rodape">
+  <div class="adm"><button class="btn-adm" onclick="abrirChat()">[ADM]</button></div>
+  <div class="creditos"><p class="creditos-titulo">Desenvolvido por</p><p class="autor">Zayde CASTRO</p><p class="email">zayde.lucas@aluno.uece.br</p><div class="logos"><img src="pibid.png"><img src="faced.png"><img src="uece.png"></div></div>
+</footer>
+
+<div id="tela-comemoracao" class="tela-comemoracao">
+    <div id="icone-comemoracao" class="trofeu-gigante">🏆</div>
+    <h1 id="titulo-comemoracao" style="color: white; font-size: 40px; margin-top: 20px;">PLATINA ALCANÇADA!</h1>
+</div>
+
+<div id="chat-overlay" class="modal-overlay" onclick="fecharModais(event)"><div class="modal-box"><div class="modal-header"><h3>Painel ADM</h3><button onclick="fecharChatBtn()">✖</button></div><div class="modal-body chat-body"><div id="chat-mensagens" style="height: 200px; overflow-y: auto; text-align: left; margin-bottom: 10px; background: rgba(0,0,0,0.05); padding: 10px; border-radius: 5px; font-family: monospace;"></div><input type="text" id="chat-input" placeholder="Digite um comando..." style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px;" onkeypress="processarChat(event)"></div></div></div>
+<div id="conquistas-overlay" class="modal-overlay" onclick="fecharModais(event)"><div class="modal-box"><div class="modal-header" style="background: #eab308;"><h3>🏅 Conquistas</h3><button onclick="fecharConquistasBtn()">✖</button></div><div class="modal-body conquistas-lista" id="lista-conquistas"></div></div></div>
+
+<script src="global.js"></script>
+<script src="modos.js"></script>
+</body>
+</html>

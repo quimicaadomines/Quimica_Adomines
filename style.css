@@ -1,0 +1,60 @@
+/* =========================================
+   STYLE CSS - Exclusivo da Tela Inicial
+   ========================================= */
+
+/* CONTAINER PRINCIPAL */
+.container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100px 20px 40px;
+  text-align: center;
+}
+
+/* LOGO E DESCRIÇÃO */
+.logo {
+  width: 400px;
+  max-width: 90vw;
+  margin-bottom: 20px;
+  animation: flutuar 4s ease-in-out infinite;
+  transition: transform 0.3s ease;
+}
+
+@keyframes flutuar {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-15px); }
+  100% { transform: translateY(0px); }
+}
+
+.logo-sem-efeito:hover {
+  transform: scale(1.05);
+}
+
+.descricao {
+  max-width: 600px;
+  font-size: 16px;
+  line-height: 1.6;
+  margin-bottom: 40px;
+  opacity: 0.9;
+}
+
+/* BOTÃO INICIAR */
+.botao-iniciar {
+  padding: 18px 45px;
+  font-size: 20px;
+  font-weight: bold;
+  color: white;
+  background: var(--btn-bg);
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.botao-iniciar:hover {
+  transform: var(--btn-hover);
+  box-shadow: 0 10px 20px rgba(0, 162, 255, 0.4);
+}
