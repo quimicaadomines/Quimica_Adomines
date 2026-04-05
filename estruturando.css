@@ -1,4 +1,4 @@
-body.no-scroll { touch-action: none; }
+body.no-scroll { touch-action: auto !important; overflow: auto !important; }
 .escondido { display: none !important; opacity: 0; pointer-events: none;}
 
 .game-container { padding-top: 80px; width: 100%; max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; min-height: 100vh; }
@@ -108,7 +108,6 @@ body.no-scroll { touch-action: none; }
 .item-catalogo p { font-size: 12px; opacity: 0.8; }
 .icone-lock { font-size: 24px; opacity: 0.5; float: right; }
 
-/* ESTILOS DO NOVO TUTORIAL GENSHIN IMPACT */
 .tutorial-genshin-box { background: #ffffff; width: 90%; max-width: 650px; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 3px solid #0284c7; display: flex; flex-direction: column; animation: fadeInTutorial 0.4s ease-out; }
 @keyframes fadeInTutorial { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
 .tutorial-media-container { width: 100%; height: 300px; background: #e2e8f0; display: flex; justify-content: center; align-items: center; overflow: hidden; border-bottom: 2px solid #cbd5e1; }
@@ -122,9 +121,6 @@ body.no-scroll { touch-action: none; }
 .btn-prosseguir { background: #0284c7; color: white; border: none; padding: 10px 20px; border-radius: 20px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
 .btn-prosseguir:hover { background: #0369a1; transform: translateY(-2px); }
 
-/* ==========================================
-   REGRAS GERAIS PARA CELULAR
-   ========================================== */
 @media screen and (max-width: 950px) {
     .atomo { width: 50px !important; height: 50px !important; font-size: 20px !important; }
     .ligacao { width: 50px !important; height: 25px !important; }
@@ -133,103 +129,76 @@ body.no-scroll { touch-action: none; }
     .lig-vertical .linha { width: 6px !important; height: 50px !important; }
 }
 
-
 /* ==========================================
-   CELULAR DEITADO (LANDSCAPE) - O SEU LAYOUT EXATO
+   CELULAR DEITADO (LANDSCAPE) - O SEU LAYOUT CORRIGIDO
    ========================================== */
 @media screen and (orientation: landscape) and (max-width: 950px),
        screen and (orientation: landscape) and (max-height: 600px) {
 
-    /* DEVOLVE O SCROLL DA PÁGINA (nada de overflow: hidden aqui) */
+    /* DEVOLVE O SCROLL */
     html, body {
         overflow: auto !important; 
         height: auto !important;
+        touch-action: auto !important;
     }
 
     .game-container {
         display: block !important;
-        /* Coloquei um preenchimento no fundo pra você conseguir rolar até o fim do quadro branco 
-           sem ele ficar escondido atrás do menu dos átomos. */
-        padding-bottom: 120px !important; 
+        padding-bottom: 150px !important; /* Espaço pro menu de átomos não tapar o quadro */
     }
 
-    /* O QUADRO BRANCO (Fica na esquerda, NÃO VAI até o final da tela) */
+    /* O QUADRO: 80% da tela + margem esquerda */
     .area-trabalho {
-        /* Deixa espaço na direita para o menu de ligações encaixar perfeitamente ao lado dele */
-        width: calc(100% - 130px) !important; 
-        margin: 0 0 0 10px !important;
+        width: calc(100% - 150px) !important; 
+        margin: 10px 0 10px 10px !important;
         min-height: 400px !important; 
     }
 
-    /* Cancela as amarras da div mãe dos menus */
-    .paineis-pecas {
-        display: block !important;
-        padding: 0 !important;
-        margin: 0 !important;
-    }
+    .paineis-pecas { display: block !important; padding: 0 !important; }
 
-    /* ==========================================================
-       MENU 1: ÁTOMOS (Azul, título visível, fundo da tela, do início ao fim)
-       ========================================================== */
+    /* MENU DE ÁTOMOS: Do início ao fim, linear, no rodapé */
     .paineis-pecas > div:nth-child(1) {
         position: fixed !important; 
         bottom: 0 !important;
         left: 0 !important;
-        width: 100vw !important; /* Vai do início ao fim da tela */
+        width: 100vw !important; 
         min-height: 90px !important;
+        z-index: 10001 !important;
         margin: 0 !important;
-        z-index: 9999 !important;
-        box-sizing: border-box !important;
+        border-radius: 0 !important;
     }
 
-    /* Garante que o nome "Átomos" fique visível lá dentro */
-    .paineis-pecas > div:nth-child(1) h3 {
-        display: block !important;
-        margin-bottom: 5px !important;
-    }
-
-    /* Coloca as peças uma do lado da outra */
     .paineis-pecas > div:nth-child(1) .lista-pecas {
         display: flex !important;
         flex-direction: row !important;
-        flex-wrap: wrap !important;
-        justify-content: center !important;
-        gap: 10px !important;
-    }
-
-
-    /* ==========================================================
-       MENU 2: LIGAÇÕES (Azul, título visível, fixo na direita, ACIMA dos átomos)
-       ========================================================== */
-    .paineis-pecas > div:nth-child(2) {
-        position: fixed !important;
-        bottom: 100px !important; /* Fica posicionado logo acima do menu de átomos */
-        right: 5px !important;    /* Grudado no lado direito, onde o quadro deixou o espaço vazio */
-        width: 120px !important;  
-        margin: 0 !important;
-        z-index: 10000 !important;
-        box-sizing: border-box !important;
-    }
-
-    /* Garante que o nome "Ligações" fique visível */
-    .paineis-pecas > div:nth-child(2) h3 {
-        display: block !important;
-        margin-bottom: 10px !important;
-    }
-
-    /* Coloca as peças empilhadas linearmente, uma em cima da outra */
-    .paineis-pecas > div:nth-child(2) .lista-pecas {
-        display: flex !important;
-        flex-direction: column !important; /* Faz ficar de forma linear, uma embaixo da outra */
-        align-items: center !important;
+        flex-wrap: nowrap !important; /* Tudo alinhado sem pular linha */
+        overflow-x: auto !important; /* Se tiver muitos, dá scroll horizontal só aqui */
+        justify-content: flex-start !important;
+        padding: 10px !important;
         gap: 15px !important;
     }
 
+    /* MENU DE LIGAÇÕES: Rente ao quadro, fixo na direita, uma em cima da outra */
+    .paineis-pecas > div:nth-child(2) {
+        position: fixed !important;
+        top: 80px !important; /* Ajustado para não subir demais */
+        right: 10px !important;
+        width: 120px !important;
+        z-index: 10000 !important;
+        margin: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    .paineis-pecas > div:nth-child(2) .lista-pecas {
+        display: flex !important;
+        flex-direction: column !important; /* Uma em cima da outra */
+        align-items: center !important;
+        gap: 15px !important;
+    }
 }
 
-/* ==========================================
-   CELULAR EM PÉ (PORTRAIT)
-   ========================================== */
+/* CELULAR EM PÉ */
 @media screen and (max-width: 600px) and (orientation: portrait) {
     .area-trabalho { min-height: 60vh !important; margin: 0 10px !important; }
     .paineis-pecas { flex-direction: row !important; padding: 10px !important; gap: 10px !important; margin: 0 !important; }
