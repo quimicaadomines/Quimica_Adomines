@@ -131,43 +131,47 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
 @media (max-height: 600px) and (orientation: landscape) {
     .game-container {
         display: grid;
-        grid-template-columns: 1fr 220px; /* Quadro na esquerda, Peças na direita */
-        grid-template-rows: auto auto 1fr;
-        padding-top: 50px;
-        gap: 5px;
-        height: 100vh;
-        max-width: 100%;
-        overflow: hidden; /* Trava a rolagem da página pra ficar igual app nativo */
+        grid-template-columns: 1fr 140px; /* Quadro ganha todo o espaço (1fr), peças ganham apenas 140px */
+        padding-top: 60px;
+        gap: 10px;
+        /* Removido o bloqueio de rolagem (overflow e height) para que a tela role normalmente */
     }
     
-    .header-modo { grid-column: 1 / -1; padding: 0 15px; margin: 0; display: flex; align-items: center; justify-content: space-between; }
-    #titulo-modo { font-size: 20px; margin: 0; }
-    .btn-voltar { margin: 0; font-size: 14px; }
+    .header-modo, #texto-modo-livre, .hud-desafio { 
+        grid-column: 1 / -1; 
+        margin: 0 15px; 
+    }
     
-    #texto-modo-livre, .hud-desafio { grid-column: 1 / -1; margin: 0 10px; padding: 5px 15px; }
-    .hud-topo { font-size: 16px; margin-bottom: 2px; }
-    .hud-pergunta { font-size: 14px; }
-    .vidas-hud { font-size: 16px; letter-spacing: 2px;}
+    .area-trabalho { 
+        grid-column: 1; 
+        margin: 0 0 20px 15px; 
+        min-height: 450px; /* Garante um quadro alto e bom de jogar */
+        height: 75vh;
+    }
     
-    /* O Quadro ocupa a coluna 1 e a linha 3 inteira */
-    .area-trabalho { grid-column: 1; grid-row: 3; margin: 0 5px 10px 10px; height: auto; min-height: 0; }
+    .paineis-pecas { 
+        grid-column: 2; 
+        margin: 0 15px 20px 0; 
+        padding: 0; 
+        flex-direction: column; /* Empilha Átomos em cima, Ligações embaixo */
+        gap: 10px; 
+        display: flex;
+    }
     
-    /* As peças ocupam a coluna 2 e a linha 3, virando uma barra lateral */
-    .paineis-pecas { grid-column: 2; grid-row: 3; margin: 0 10px 10px 0; padding: 0; flex-direction: column; gap: 10px; overflow-y: auto; height: 100%; min-height: 0; display: flex; flex-wrap: nowrap;}
-    .retangulo-pecas { padding: 10px; flex: none;}
+    .retangulo-pecas { padding: 10px 5px; flex: none; }
+    .lista-pecas { gap: 8px; }
     
-    /* Esconde rodapé no modo deitado para aproveitar a tela toda pro jogo */
-    .rodape { display: none; }
+    .rodape { display: none; } /* Mantemos o rodapé escondido pra focar no jogo */
     
-    /* Forçando Peças Maiores */
-    .atomo { width: 50px !important; height: 50px !important; font-size: 22px !important; }
-    .ligacao { width: 50px !important; height: 25px !important; }
-    .ligacao .linha { width: 50px !important; height: 6px !important; border-radius: 3px !important;}
-    .lig-vertical { width: 25px !important; height: 50px !important; }
-    .lig-vertical .linha { width: 6px !important; height: 50px !important; }
+    /* Tamanho das peças adaptado para caber na barra fina, mas não perder a área de toque */
+    .atomo { width: 45px !important; height: 45px !important; font-size: 20px !important; }
+    .ligacao { width: 45px !important; height: 22px !important; }
+    .ligacao .linha { width: 45px !important; height: 6px !important; border-radius: 3px !important;}
+    .lig-vertical { width: 22px !important; height: 45px !important; }
+    .lig-vertical .linha { width: 6px !important; height: 45px !important; }
 
-    /* Compactando os painéis dentro do quadro para não cobrir a tela */
-    .painel-info, .painel-ferramentas { padding: 5px; width: 140px; background: rgba(255,255,255,0.9); }
+    /* Compactando os painéis dentro do quadro para não cobrir o meio */
+    .painel-info, .painel-ferramentas { padding: 5px; width: 130px; background: rgba(255,255,255,0.9); }
     .dark .painel-info, .dark .painel-ferramentas { background: rgba(15, 23, 42, 0.9); }
     .btn-ferramenta { font-size: 11px; padding: 4px; }
     .btn-verificar { font-size: 14px; padding: 8px 15px; bottom: 5px; width: 90%; }
