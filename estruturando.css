@@ -122,134 +122,117 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
 .btn-prosseguir { background: #0284c7; color: white; border: none; padding: 10px 20px; border-radius: 20px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
 .btn-prosseguir:hover { background: #0369a1; transform: translateY(-2px); }
 
-
 /* ==========================================
-   CELULAR DEITADO (LANDSCAPE) - TELA CHEIA E MENUS NO CANTO DIREITO
+   SUPER RESPONSIVIDADE (CELULARES E TABLETS)
    ========================================== */
-@media screen and (orientation: landscape) and (max-height: 650px),
-       screen and (orientation: landscape) and (max-width: 950px) {
+
+/* REGRAS GERAIS PARA QUALQUER TELA MENOR QUE 950px */
+@media screen and (max-width: 950px) {
+    .atomo { width: 50px !important; height: 50px !important; font-size: 20px !important; }
+    .ligacao { width: 50px !important; height: 25px !important; }
+    .ligacao .linha { width: 50px !important; height: 6px !important; border-radius: 3px !important;}
+    .lig-vertical { width: 25px !important; height: 50px !important; }
+    .lig-vertical .linha { width: 6px !important; height: 50px !important; }
+
+    .painel-info { top: 5px; left: 5px; padding: 5px; width: 130px; font-size: 12px; background: rgba(255,255,255,0.9); }
+    .painel-ferramentas { bottom: 65px; right: 5px; padding: 5px; width: 140px; background: rgba(255,255,255,0.9); }
+    .dark .painel-info, .dark .painel-ferramentas { background: rgba(15, 23, 42, 0.9); }
+    .btn-ferramenta { font-size: 11px; padding: 5px; }
     
-    /* 1. Trava a tela para ser 100% fixa, sem rolar pra baixo */
-    html, body {
-        height: 100% !important;
-        width: 100% !important;
-        overflow: hidden !important;
-        margin: 0 !important;
-        padding: 0 !important;
-    }
-
-    .game-container {
-        display: block !important;
-        width: 100vw !important;
-        height: 100vh !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        max-width: 100% !important;
-        position: relative !important;
-    }
-
-    /* Esconde textos desnecessários e rodapé no modo paisagem */
-    .header-modo, #texto-modo-livre, .rodape { 
-        display: none !important; 
-    }
-
-    /* HUD (Barrinha de vidas/estrelas - Fica colado no topo esquerdo) */
-    .hud-desafio {
-        position: absolute !important;
-        top: 5px !important;
-        left: 5px !important;
-        width: calc(100vw - 160px) !important; /* Deixa o espaço direito livre para os menus */
-        margin: 0 !important;
-        padding: 5px !important;
-        box-sizing: border-box !important;
-        z-index: 50 !important;
-    }
-
-    /* 2. O QUADRO DO JOGO - Ocupa do topo ao chão, cobrindo todo lado esquerdo */
-    .area-trabalho {
-        position: absolute !important;
-        top: 70px !important; /* Começa logo abaixo da HUD */
-        left: 5px !important;
-        bottom: 5px !important; /* Vai até o fim da tela em baixo */
-        width: calc(100vw - 160px) !important; /* Estica até bater na área dos menus */
-        height: auto !important;
-        min-height: 0 !important;
-        margin: 0 !important;
-        box-sizing: border-box !important;
-    }
-
-    /* 3. A CAIXA DOS MENUS - Fica cravada no canto inferior direito */
-    .paineis-pecas {
-        position: absolute !important;
-        bottom: 5px !important; /* Colado na base direita da tela */
-        right: 5px !important;  
-        width: 145px !important; /* Largura fixa do menu direito */
-        height: auto !important;
-        display: flex !important;
-        flex-direction: column !important; /* Empilha as peças */
-        margin: 0 !important;
-        padding: 0 !important;
-        z-index: 1000 !important;
-    }
-
-    /* Formatação dos dois retângulos dentro do menu lateral */
-    .paineis-pecas > div {
-        width: 100% !important;
-        box-sizing: border-box !important;
-        padding: 8px 5px !important;
-    }
-
-    /* MENU DE ÁTOMOS (Fica por baixo - "order: 2") */
-    .paineis-pecas > div:nth-child(1) {
-        order: 2 !important;
-        margin: 0 !important;
-    }
-    .paineis-pecas > div:nth-child(1) .lista-pecas {
-        display: flex !important;
-        flex-direction: row !important;
-        flex-wrap: wrap !important;
-        justify-content: center !important;
-        gap: 6px !important;
-    }
-
-    /* MENU DE LIGAÇÕES (Fica cravado em cima dos átomos - "order: 1") */
-    .paineis-pecas > div:nth-child(2) {
-        order: 1 !important;
-        margin: 0 0 10px 0 !important; /* Dá um espacinho em relação aos átomos embaixo dele */
-    }
-    .paineis-pecas > div:nth-child(2) .lista-pecas {
-        display: flex !important;
-        flex-direction: row !important;
-        flex-wrap: wrap !important;
-        justify-content: center !important;
-        gap: 10px !important;
-    }
-
-    /* Oculta os títulos ("ÁTOMOS", "LIGAÇÕES") se ocuparem muito espaço */
-    .retangulo-pecas h3 {
-        margin-bottom: 5px !important;
-        font-size: 11px !important;
-    }
-
-    /* Deixa as peças um pouco menores para não engolir a tela no mobile */
-    .atomo { width: 45px !important; height: 45px !important; font-size: 18px !important; }
-    .ligacao { width: 45px !important; height: 20px !important; }
-    .ligacao .linha { width: 45px !important; height: 6px !important; border-radius: 3px !important;}
-    .lig-vertical { width: 20px !important; height: 45px !important; }
-    .lig-vertical .linha { width: 6px !important; height: 45px !important; }
+    .btn-ajuda { top: 5px; right: 5px; width: 35px; height: 35px; font-size: 16px; }
+    .btn-catalogo { top: 5px; right: 45px; height: 35px; padding: 0 10px; font-size: 12px; }
 }
 
 /* ==========================================
-   CELULAR EM PÉ (PORTRAIT)
+   1. CELULAR DEITADO (O QUE VOCÊ PEDIU)
+   ========================================== */
+@media screen and (max-width: 950px) and (orientation: landscape), 
+       screen and (max-height: 600px) and (orientation: landscape) {
+    
+    .game-container {
+        display: block !important;
+        padding: 5px !important;
+        padding-bottom: 100px !important; /* Deixa espaço na tela para rolar sem o quadro entrar debaixo dos átomos */
+    }
+
+    .header-modo, #texto-modo-livre { display: none !important; }
+
+    /* O QUADRO DO JOGO (Toma a tela toda na largura) */
+    .area-trabalho {
+        margin: 0 !important;
+        width: 100% !important;
+        height: calc(100vh - 110px) !important; /* Altura da tela menos o espaço do menu de átomos */
+        min-height: 200px !important;
+    }
+
+    /* Cancela as configurações da div mãe que segura os dois menus */
+    .paineis-pecas {
+        display: block !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        position: static !important;
+    }
+
+    /* ========================================================
+       MENU 1: ÁTOMOS (Fixo lá embaixo, largura de 100% da tela)
+       ======================================================== */
+    .paineis-pecas > div:nth-child(1) {
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        width: 100vw !important; /* Esticado de um lado ao outro da tela */
+        height: 90px !important;
+        margin: 0 !important;
+        padding: 10px !important;
+        border-radius: 0 !important; /* Tira arredondamento para encostar perfeito nas laterais */
+        z-index: 1000 !important;
+        box-sizing: border-box !important;
+    }
+
+    .paineis-pecas > div:nth-child(1) .lista-pecas {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important; /* Impede os átomos de ficarem um embaixo do outro */
+        justify-content: space-evenly !important; /* Espalha todos na mesma linha */
+        align-items: center !important;
+        overflow-x: auto !important; /* Permite arrastar os átomos pro lado se a tela for estreita */
+        width: 100% !important;
+        gap: 5px !important;
+    }
+
+    /* ========================================================
+       MENU 2: LIGAÇÕES (Fixo, não rola, acima dos átomos na direita)
+       ======================================================== */
+    .paineis-pecas > div:nth-child(2) {
+        position: fixed !important;
+        bottom: 95px !important; /* Posiciona logo acima do menu de átomos que tem 90px */
+        right: 10px !important; /* Fica do lado direito da tela */
+        width: auto !important; /* Pega só o espaço das ligações */
+        margin: 0 !important;
+        padding: 10px !important;
+        z-index: 1001 !important;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.5) !important;
+    }
+
+    .paineis-pecas > div:nth-child(2) .lista-pecas {
+        display: flex !important;
+        flex-direction: row !important; /* Ligações lado a lado */
+        gap: 10px !important;
+    }
+
+    /* Esconde o título do menu de ligações para ficar só a caixinha fina flutuando */
+    .paineis-pecas > div:nth-child(2) h3 {
+        display: none !important;
+    }
+
+    .rodape { display: none !important; }
+}
+
+/* ==========================================
+   2. CELULAR EM PÉ (PORTRAIT)
    ========================================== */
 @media screen and (max-width: 600px) and (orientation: portrait) {
     .area-trabalho { min-height: 60vh !important; margin: 0 10px !important; }
     .paineis-pecas { flex-direction: row !important; padding: 10px !important; gap: 10px !important; margin: 0 !important; }
     .retangulo-pecas { flex: 1 !important; padding: 10px 5px !important; }
-    
-    .atomo { width: 50px !important; height: 50px !important; font-size: 20px !important; }
-    .ligacao { width: 50px !important; height: 25px !important; }
-    .ligacao .linha { width: 50px !important; height: 6px !important; }
-    .lig-vertical { width: 25px !important; height: 50px !important; }
-    .lig-vertical .linha { width: 6px !important; height: 50px !important; }
 }
