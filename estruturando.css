@@ -122,99 +122,78 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
 .btn-prosseguir { background: #0284c7; color: white; border: none; padding: 10px 20px; border-radius: 20px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
 .btn-prosseguir:hover { background: #0369a1; transform: translateY(-2px); }
 
-
 /* ==========================================
-   SUPER RESPONSIVIDADE (MOBILE EXTREMO)
+   SUPER RESPONSIVIDADE (CELULARES E TABLETS)
    ========================================== */
 
-/* 1. CELULAR DEITADO (LANDSCAPE - SIDE BY SIDE) */
-@media (max-height: 600px) and (orientation: landscape) {
-    .game-container {
-        display: grid;
-        grid-template-columns: 1fr 140px; /* Quadro ganha todo o espaço (1fr), peças ganham apenas 140px */
-        padding-top: 60px;
-        gap: 10px;
-        /* Removido o bloqueio de rolagem (overflow e height) para que a tela role normalmente */
-    }
-    
-    .header-modo, #texto-modo-livre, .hud-desafio { 
-        grid-column: 1 / -1; 
-        margin: 0 15px; 
-    }
-    
-    .area-trabalho { 
-        grid-column: 1; 
-        margin: 0 0 20px 15px; 
-        min-height: 450px; /* Garante um quadro alto e bom de jogar */
-        height: 75vh;
-    }
-    
-    .paineis-pecas { 
-        grid-column: 2; 
-        margin: 0 15px 20px 0; 
-        padding: 0; 
-        flex-direction: column; /* Empilha Átomos em cima, Ligações embaixo */
-        gap: 10px; 
-        display: flex;
-    }
-    
-    .retangulo-pecas { padding: 10px 5px; flex: none; }
-    .lista-pecas { gap: 8px; }
-    
-    .rodape { display: none; } /* Mantemos o rodapé escondido pra focar no jogo */
-    
-    /* Tamanho das peças adaptado para caber na barra fina, mas não perder a área de toque */
-    .atomo { width: 45px !important; height: 45px !important; font-size: 20px !important; }
-    .ligacao { width: 45px !important; height: 22px !important; }
-    .ligacao .linha { width: 45px !important; height: 6px !important; border-radius: 3px !important;}
-    .lig-vertical { width: 22px !important; height: 45px !important; }
-    .lig-vertical .linha { width: 6px !important; height: 45px !important; }
-
-    /* Compactando os painéis dentro do quadro para não cobrir o meio */
-    .painel-info, .painel-ferramentas { padding: 5px; width: 130px; background: rgba(255,255,255,0.9); }
-    .dark .painel-info, .dark .painel-ferramentas { background: rgba(15, 23, 42, 0.9); }
-    .btn-ferramenta { font-size: 11px; padding: 4px; }
-    .btn-verificar { font-size: 14px; padding: 8px 15px; bottom: 5px; width: 90%; }
-    
-    /* Tutorial Genshin adaptado para não estourar a tela horizontal */
-    .tutorial-genshin-box { height: 90vh; width: 95%; max-width: 600px; justify-content: space-between;}
-    .tutorial-media-container { height: 40vh; }
-    .tutorial-text-container { min-height: unset; height: 35vh; overflow-y: auto; padding: 10px; align-items: flex-start;}
-    #tutorial-genshin-texto { font-size: 14px; }
-    .tutorial-controls { padding: 10px; height: 15vh; }
-}
-
-/* 2. CELULAR EM PÉ (PORTRAIT - SUPER COMPACTO) */
-@media (max-width: 600px) and (orientation: portrait) {
-    .game-container { padding-top: 60px; }
-    
-    #titulo-modo { font-size: 22px; }
-    .hud-topo { font-size: 18px; }
-    .hud-pergunta { font-size: 16px; flex-wrap: wrap; text-align: center; }
-
-    .area-trabalho { min-height: 55vh; margin: 0 10px; }
-    
-    /* Peças Gigantes com !important para não ter erro e dedo tocar fácil */
-    .atomo { width: 55px !important; height: 55px !important; font-size: 24px !important; }
+/* REGRAS GERAIS PARA QUALQUER TELA MENOR QUE 950px */
+@media screen and (max-width: 950px) {
+    /* Forçando Peças Maiores DENTRO E FORA do quadro para facilitar o toque! */
+    .atomo { width: 55px !important; height: 55px !important; font-size: 22px !important; }
     .ligacao { width: 55px !important; height: 25px !important; }
     .ligacao .linha { width: 55px !important; height: 8px !important; border-radius: 4px !important;}
     .lig-vertical { width: 25px !important; height: 55px !important; }
     .lig-vertical .linha { width: 8px !important; height: 55px !important; }
 
-    /* Painéis de peças em pé ficam lado a lado embaixo */
-    .paineis-pecas { flex-direction: row; padding: 10px; gap: 10px; }
-    .retangulo-pecas { padding: 10px; flex: 1; }
-
-    /* Menus internos ficam BEM compactos e nos cantos pra não tapar o meio do quadro */
-    .painel-info { top: 5px; left: 5px; padding: 5px; max-width: 120px; font-size: 12px; background: rgba(255,255,255,0.85);}
-    .painel-ferramentas { bottom: 65px; right: 5px; padding: 5px; max-width: 140px; background: rgba(255,255,255,0.85);} 
-    .dark .painel-info, .dark .painel-ferramentas { background: rgba(15, 23, 42, 0.85); }
-    
-    .btn-toggle-info, .btn-toggle-ferramentas { font-size: 12px; margin-bottom: 2px;}
+    /* Compactando os painéis internos para não taparem o centro do quadro */
+    .painel-info { top: 5px; left: 5px; padding: 5px; width: 130px; font-size: 12px; background: rgba(255,255,255,0.9); }
+    .painel-ferramentas { bottom: 65px; right: 5px; padding: 5px; width: 140px; background: rgba(255,255,255,0.9); }
+    .dark .painel-info, .dark .painel-ferramentas { background: rgba(15, 23, 42, 0.9); }
     .btn-ferramenta { font-size: 11px; padding: 5px; }
+    
+    .btn-verificar { bottom: 10px; width: 85%; padding: 12px; font-size: 16px; }
+    .btn-ajuda { top: 5px; right: 5px; width: 35px; height: 35px; font-size: 16px; }
+    .btn-catalogo { top: 5px; right: 45px; height: 35px; padding: 0 10px; font-size: 12px; }
+}
 
-    /* Botoes extras compactos */
-    .btn-verificar { bottom: 10px; width: 90%; font-size: 16px; padding: 10px; }
-    .btn-ajuda { width: 35px; height: 35px; font-size: 16px; top: 5px; right: 5px; }
-    .btn-catalogo { top: 5px; right: 45px; height: 35px; font-size: 12px; padding: 0 10px; }
+/* 1. CELULAR DEITADO (LANDSCAPE - Barra Lateral e Quadro Gigante) */
+@media screen and (max-width: 950px) and (orientation: landscape) {
+    .game-container {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap; /* Permite rolar a tela normalmente */
+        padding-top: 60px;
+    }
+    
+    .header-modo, #texto-modo-livre, .hud-desafio {
+        width: 100%;
+        margin-left: 10px;
+        margin-right: 10px;
+    }
+    
+    /* O quadro principal preenche tudo na esquerda */
+    .area-trabalho {
+        flex: 1; 
+        min-width: 60%; 
+        height: 75vh;
+        min-height: 450px; /* Garante que o quadro não esprema */
+        margin: 0 10px 20px 10px;
+    }
+    
+    /* A caixa de peças vira uma barra lateral estreita na direita */
+    .paineis-pecas {
+        width: 120px; /* Bem fina */
+        flex-direction: column; /* Empilha Átomos e Ligações */
+        margin: 0 10px 20px 0;
+        padding: 5px;
+        gap: 10px;
+        display: flex;
+    }
+    .retangulo-pecas { padding: 10px 5px; flex: none; width: 100%; }
+    
+    /* Removemos o rodapé no modo deitado para aproveitar a tela pro jogo */
+    .rodape { display: none !important; }
+    
+    /* Adaptação do Tutorial Genshin: Metade Vídeo, Metade Texto para não passar da tela */
+    .tutorial-genshin-box { height: 85vh; flex-direction: row; flex-wrap: wrap; }
+    .tutorial-media-container { width: 50%; height: 100%; border-bottom: none; border-right: 2px solid #cbd5e1;}
+    .tutorial-text-container { width: 50%; height: 80%; align-items: flex-start;}
+    .tutorial-controls { width: 50%; height: 20%; margin-left: auto; border-top: none;}
+}
+
+/* 2. CELULAR EM PÉ (PORTRAIT) */
+@media screen and (max-width: 600px) and (orientation: portrait) {
+    .area-trabalho { min-height: 60vh; margin: 0 10px; }
+    .paineis-pecas { flex-direction: row; padding: 10px; gap: 10px; margin: 0; }
+    .retangulo-pecas { flex: 1; padding: 10px 5px; }
 }
