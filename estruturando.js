@@ -19,7 +19,7 @@ function mostrarMensagemGlob(texto) {
         setTimeout(() => { toast.classList.add("escondido"); }, 3000);
     }
 }
-function abrirAjuda() { tocarSomClick(); document.getElementById('ajuda-overlay').style.display = 'block'; }
+function abrirAjuda() { tocarSomClick(); document.getElementById('ajuda-overlay').style.display = 'flex'; }
 
 // ==========================================
 // MODO DESAFIO (LÓGICA E CHEATS)
@@ -36,7 +36,6 @@ const bancoDesafios = {
         { nome: "Metanotiol", dica: "A terminação '-tiol' exige a presença de Enxofre (S).", chk: (c)=> c.C==1 && c.H==4 && c.S==1 && c.simples==5 },
         { nome: "Fosfina", dica: "É formada por Fósforo (P) e Hidrogênios.", chk: (c)=> c.P==1 && c.H==3 && c.simples==3 },
         { nome: "3,3-dimetil-hexano", dica: "'Hex' (6) na principal, e DOIS carbonos pendurados no número 3.", chk: (c)=> c.C==8 && c.H==18 && c.simples==25 },
-        // AQUI FOI CORRIGIDO O ERRO MATEMÁTICO: c.simples passou de 13 para 14!
         { nome: "3-metilbutan-2-ona", dica: "'-ona' significa dupla ligação com Oxigênio (C=O).", chk: (c)=> c.C==5 && c.H==10 && c.O==1 && c.dupla==1 && c.simples==14 },
         { nome: "Hept-1,3,5-trieno", dica: "Cadeia de 7 carbonos (Hept) com TRÊS duplas ligações.", chk: (c)=> c.C==7 && c.H==10 && c.dupla==3 && c.simples==13 }
     ],
@@ -73,14 +72,20 @@ if (modoAtual === "livre") {
     document.getElementById("hud-desafio").classList.remove("escondido");
     document.getElementById("btn-verificar-desafio").classList.remove("escondido");
     if (modoAtual === "impossivel") { document.getElementById("cronometro-desafio").classList.remove("escondido"); }
-    iniciarRodadaDesafio();
+    iniciarRodadaDesafio(true); // true indica que é a rodada inicial (espera o tutorial checar)
 }
 
-function iniciarRodadaDesafio() {
+function iniciarRodadaDesafio(isStart = false) {
     let desafiosDoModo = bancoDesafios[modoAtual];
     document.getElementById("nome-desafio-atual").innerText = desafiosDoModo[indexDesafioAtual].nome;
     atualizarHUD();
-    if (modoAtual === "impossivel") { tempoRestante = tempoMaximo; iniciarCronometro(); }
+    
+    // Se for o modo impossível, resetamos o tempo, mas não iniciamos o cronômetro agora 
+    // se estivermos na inicialização da página. O cronômetro será iniciado no final do checkTutorialOnLoad.
+    if (modoAtual === "impossivel") { 
+        tempoRestante = tempoMaximo; 
+        if (!isStart) { iniciarCronometro(); }
+    }
 }
 
 function atualizarHUD() {
@@ -96,9 +101,13 @@ function iniciarCronometro() {
     clearInterval(intervaloCronometro);
     let display = document.getElementById("cronometro-desafio");
     display.classList.remove("perigo");
+    
+    // Atualiza a visualização no segundo 0 para já mostrar os "03:00" na tela
+    let m = Math.floor(tempoRestante / 60).toString().padStart(2, '0');
+    let s = (tempoRestante % 60).toString().padStart(2, '0');
+    display.innerText = `${m}:${s}`;
 
     intervaloCronometro = setInterval(() => {
-        if(tutorialAtivo) return; 
         tempoRestante--;
         let m = Math.floor(tempoRestante / 60).toString().padStart(2, '0');
         let s = (tempoRestante % 60).toString().padStart(2, '0');
@@ -115,7 +124,6 @@ window.mostrarDicaDesafio = function() {
 };
 
 window.verificarMoleculaDesafio = function() {
-    if(tutorialAtivo) { mostrarMensagemGlob("Tutorial: Você não pode verificar moléculas no tutorial!"); return; }
     tocarSomClick();
     
     let dAtual = bancoDesafios[modoAtual][indexDesafioAtual];
@@ -252,7 +260,6 @@ function finalizarDesafio(vitoria) {
     }
 }
 
-// OS CHEATS GLOBAIS DE FINALIZAÇÃO
 window.cheatCompletarFase = function() {
     if(modoAtual === "livre") return;
     estrelasGanhas = 5;
@@ -307,7 +314,7 @@ function abrirCatalogo() {
         let isUnlk = desbloqueados.includes(mol.id);
         grid.innerHTML += `<div class="item-catalogo ${isUnlk ? 'desbloqueado' : 'bloqueado'}">${isUnlk ? '' : '<span class="icone-lock">🔒</span>'}<h4>${mol.form} - ${mol.nome}</h4><p>${mol.desc}</p></div>`;
     });
-    document.getElementById('catalogo-overlay').style.display = 'block';
+    document.getElementById('catalogo-overlay').style.display = 'flex';
 }
 
 function checarPokedex(grupoId) {
@@ -370,231 +377,177 @@ atomosPermitidos.forEach(atomo => {
 let pecaEmMovimento = null; let grupoEmMovimento =[];
 let mouseStartX = 0, mouseStartY = 0; let zoomLevel = 1;
 let historico =[]; let groupIdCounter = 1; 
-let pecaAlvoMenu = null; let rotacionandoLivre = false;
+let pecaAlvoMenu = null;
 
 function salvarEstado() { historico.push(quadroInner.innerHTML); if(historico.length > 2) historico.shift(); }
 
 // ==========================================
-// TUTORIAL INTERATIVO
+// NOVO TUTORIAL ESTILO GENSHIN IMPACT
 // ==========================================
-let tutorialAtivo = false;
-let passoTutorial = 0;
-let intervalMao;
+const tutorialGenshinData = [
+    {
+        type: 'video',
+        src: 'passo1.mp4',
+        text: '<b>Arraste os átomos</b> para o quadro branco para começar a montar as estruturas moleculares. No celular, <b>toque e segure</b> o átomo com o dedo e arraste até o local desejado. No computador, <b>clique com o botão esquerdo</b> do mouse, segure e mova o átomo até a posição adequada.'
+    },
+    {
+        type: 'video',
+        src: 'passo2.mp4',
+        text: 'Para criar ligações, aproxime os átomos até que fiquem encostados. Quando estiverem corretamente posicionados, a ligação será formada automaticamente.<br><br>Para verificar se estão realmente conectados, <b>mova uma das partes</b>: se a outra se mover junto, a ligação está correta.<br><br>Fique atento às cores: se um átomo piscar em <b><span style="color: #16a34a;">verde</span></b>, significa que sua valência está completa; se piscar em <b><span style="color: #ef4444;">vermelho</span></b>, indica que a valência foi excedida.'
+    },
+    {
+        type: 'video',
+        src: 'passo3.mp4',
+        text: 'Ao clicar com o botão direito sobre um átomo (ou pressioná-lo no celular), um menu surgirá:<br><br><b>🖨️ Copiar e colar:</b> cria uma cópia idêntica.<br><b>➕ Completar valência (H):</b> completa com Hidrogênios.<br><b>✂️ Desvincular peça:</b> separa o átomo da estrutura.<br><b>🗑️ Excluir molécula inteira:</b> remove toda a estrutura ligada.<br><b>🗑️ Excluir átomo:</b> remove apenas a peça.'
+    },
+    {
+        type: 'video',
+        src: 'passo4.mp4',
+        text: 'Ao clicar com o botão direito sobre uma ligação, o menu exibirá as opções anteriores e também a função:<br><br><b>🔄 Girar 90°:</b> rotaciona a ligação em 90 graus, permitindo ajustar a orientação da estrutura molecular no quadro.'
+    },
+    {
+        type: 'video',
+        src: 'passo5.mp4',
+        text: 'Ao dar <b>dois cliques</b> em uma ligação dentro do quadro branco, ela será rotacionada em 90 graus automaticamente, sem a necessidade de abrir o menu de opções. Esse recurso funciona como um atalho para agilizar a edição.'
+    },
+    {
+        type: 'video',
+        src: 'passo6.mp4',
+        text: 'Ao <b>clicar duas vezes</b> em um átomo ou em uma ligação na barra inferior de peças, ele será automaticamente adicionado ao centro do quadro branco, sem a necessidade de arrastá-lo manualmente. Mais um atalho para agilizar sua montagem!'
+    },
+    {
+        type: 'image',
+        src: 'passo7.png',
+        text: 'Dentro do quadro, atente-se aos menus:<br><br><b>🔧 Canto inferior direito:</b> ferramentas para dar zoom, desfazer ações, limpar o quadro e tirar foto da molécula.<br><b>❓ Canto superior direito:</b> botão de interrogação que exibe as explicações das ferramentas e permite <b>rever este tutorial</b>.<br><b>📊 Canto superior esquerdo:</b> mostra a quantidade de átomos e o número de valências livres.'
+    }
+];
 
-function iniciarTutorial() {
-    let area = document.querySelector(".area-trabalho");
-    area.scrollIntoView({ behavior: "smooth", block: "center" });
+let tutorialGenshinStep = 0;
 
-    setTimeout(() => {
-        document.body.classList.add("no-scroll"); 
-        document.getElementById("tutorial-overlay").classList.remove("escondido");
-        tutorialAtivo = true;
-        passoTutorial = 1;
-        executarPassoTutorial();
-    }, 500);
+function checkTutorialOnLoad() {
+    let tutorialKey = "tutorial_estruturando_v4_" + modoAtual;
+    if (!localStorage.getItem(tutorialKey)) {
+        abrirNovoTutorial();
+        localStorage.setItem(tutorialKey, "visto");
+    } else {
+        // Se o tutorial não for abrir, o tempo já pode rodar no modo impossível
+        if (modoAtual === "impossivel") {
+            iniciarCronometro();
+        }
+    }
 }
 
-function pularTutorial() {
-    tutorialAtivo = false;
+function abrirNovoTutorial() {
+    tutorialGenshinStep = 0;
+    document.body.classList.add("no-scroll");
+    let modal = document.getElementById("tutorial-genshin-overlay");
+    modal.classList.remove("escondido");
+    modal.style.display = "flex";
+    renderizarPassoTutorialGenshin();
+}
+
+function abrirTutorialManual() {
+    tocarSomClick();
+    document.getElementById('ajuda-overlay').style.display = 'none';
+    abrirNovoTutorial();
+}
+
+function renderizarPassoTutorialGenshin() {
+    const data = tutorialGenshinData[tutorialGenshinStep];
+    const mediaContainer = document.getElementById("tutorial-media-container");
+    const textContainer = document.getElementById("tutorial-genshin-texto");
+    const dotsContainer = document.getElementById("tutorial-dots");
+    const btnProsseguir = document.getElementById("btn-tutorial-prosseguir");
+
+    mediaContainer.innerHTML = "";
+    if (data.type === 'video') {
+        let video = document.createElement('video');
+        video.src = data.src;
+        video.loop = true;
+        video.muted = false; 
+        video.playsInline = true;
+        mediaContainer.appendChild(video);
+
+        let playPromise = video.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(error => {
+                video.muted = true;
+                video.play();
+            });
+        }
+    } else {
+        let img = document.createElement('img');
+        img.src = data.src;
+        mediaContainer.appendChild(img);
+    }
+
+    textContainer.innerHTML = data.text;
+
+    dotsContainer.innerHTML = "";
+    for (let i = 0; i < tutorialGenshinData.length; i++) {
+        let dot = document.createElement('div');
+        dot.className = "dot" + (i === tutorialGenshinStep ? " active" : "");
+        dotsContainer.appendChild(dot);
+    }
+
+    if (tutorialGenshinStep === tutorialGenshinData.length - 1) {
+        btnProsseguir.innerText = "Concluir ✔️";
+        btnProsseguir.style.background = "#16a34a";
+    } else {
+        btnProsseguir.innerText = "Prosseguir ➡";
+        btnProsseguir.style.background = "#0284c7";
+    }
+}
+
+window.avancarTutorialGenshin = function() {
+    tocarSomClick();
+    if (tutorialGenshinStep < tutorialGenshinData.length - 1) {
+        tutorialGenshinStep++;
+        renderizarPassoTutorialGenshin();
+    } else {
+        fecharTutorialGenshin();
+    }
+}
+
+function fecharTutorialGenshin() {
+    let modal = document.getElementById("tutorial-genshin-overlay");
+    modal.classList.add("escondido");
+    modal.style.display = "none";
     document.body.classList.remove("no-scroll");
-    document.getElementById("tutorial-overlay").classList.add("escondido");
-    clearInterval(intervalMao);
-    removerDestaques();
-    limparQuadro();
-    mostrarMensagemGlob("✅ Tutorial concluído! A tela está livre.");
-}
-
-function avancarTutorial() {
-    if (!tutorialAtivo) return;
-    passoTutorial++;
-    executarPassoTutorial();
-}
-
-function removerDestaques() {
-    document.querySelectorAll('.tutorial-destaque').forEach(el => el.classList.remove('tutorial-destaque'));
-}
-
-function animarMao(funcaoGetOrigem, funcaoGetDestino) {
-    clearInterval(intervalMao);
-    let mao = document.getElementById("mao-tutorial");
-    if(!mao) return;
+    document.getElementById("tutorial-media-container").innerHTML = ""; 
     
-    function loop() {
-        if(!tutorialAtivo) return;
-        let orig = funcaoGetOrigem();
-        let dest = funcaoGetDestino();
-        if(!orig || !dest) return;
-
-        let oRect = orig.getBoundingClientRect();
-        mao.style.transition = "none";
-        mao.style.left = (oRect.left + oRect.width/2) + "px";
-        mao.style.top = (oRect.top + oRect.height/2) + "px";
-        mao.style.transform = "scale(1)";
-        
-        setTimeout(() => {
-            if(!tutorialAtivo) return;
-            let currentDest = funcaoGetDestino();
-            if(currentDest) {
-                let dRect = currentDest.getBoundingClientRect();
-                mao.style.transition = "all 1.5s ease-in-out";
-                mao.style.transform = "scale(0.8)";
-                mao.style.left = (dRect.left + dRect.width/2) + "px";
-                mao.style.top = (dRect.top + dRect.height/2) + "px";
-            }
-        }, 200);
-
-        setTimeout(() => { if(!tutorialAtivo) return; mao.style.transform = "scale(1)"; }, 1700);
-    }
-    loop();
-    intervalMao = setInterval(loop, 2500);
-}
-
-function executarPassoTutorial() {
-    let msg = document.getElementById("texto-tutorial");
-    removerDestaques();
-
-    const getPool = (sel) => document.querySelector(`.retangulo-pecas ${sel}`);
-    const getBoard = (sel) => {
-        let els = document.querySelectorAll(`#quadro-inner ${sel}`);
-        return els[els.length - 1]; 
-    };
-
-    switch(passoTutorial) {
-        case 1:
-            msg.innerText = "Passo 1: Arraste um Hidrogênio (H) para o quadro branco.";
-            getPool('.atomo-H').classList.add('tutorial-destaque');
-            animarMao(() => getPool('.atomo-H'), () => document.getElementById("quadro"));
-            break;
-        case 2:
-            msg.innerText = "Passo 2: Arraste uma Ligação Simples e ENCOSTE no Hidrogênio.";
-            getPool('.lig-simples').classList.add('tutorial-destaque');
-            animarMao(() => getPool('.lig-simples'), () => getBoard('.atomo-H.no-quadro'));
-            break;
-        case 3:
-            msg.innerText = "Passo 3: Arraste um Oxigênio (O) e ENCOSTE na ligação do quadro.";
-            getPool('.atomo-O').classList.add('tutorial-destaque');
-            animarMao(() => getPool('.atomo-O'), () => getBoard('.ligacao.no-quadro'));
-            break;
-        case 4:
-            msg.innerText = "Passo 4: Arraste outra Ligação Simples e conecte do outro lado do Oxigênio.";
-            getPool('.lig-simples').classList.add('tutorial-destaque');
-            animarMao(() => getPool('.lig-simples'), () => getBoard('.atomo-O.no-quadro'));
-            break;
-        case 5:
-            msg.innerText = "Passo 5: Conecte o último Hidrogênio (H) na ligação vazia para formar Água (H2O)!";
-            getPool('.atomo-H').classList.add('tutorial-destaque');
-            animarMao(() => getPool('.atomo-H'), () => getBoard('.ligacao:not([data-occR="true"]):not([data-occL="true"]).no-quadro') || getBoard('.ligacao.no-quadro')); 
-            break;
-        case 6:
-            msg.innerText = "Passo 6: Perfeito! Agora clique com o Botão Direito do mouse no Oxigênio (O).";
-            getBoard('.atomo-O.no-quadro').classList.add('tutorial-destaque');
-            animarMao(() => getBoard('.atomo-O.no-quadro'), () => getBoard('.atomo-O.no-quadro'));
-            break;
-        case 7:
-            msg.innerText = "Passo 7: No menu, clique em 'Excluir Molécula Inteira'.";
-            animarMao(() => document.querySelector('li[onclick*="cmExcluirMolecula"]'), () => document.querySelector('li[onclick*="cmExcluirMolecula"]'));
-            break;
-        case 8:
-            msg.innerText = "Passo 8: A molécula sumiu! Arraste qualquer Átomo novo para o quadro.";
-            document.getElementById('pool-atomos').classList.add('tutorial-destaque');
-            animarMao(() => getPool('.atomo-C'), () => document.getElementById("quadro"));
-            break;
-        case 9:
-            msg.innerText = "Passo 9: Clique com o Botão Direito no átomo solto para ver as opções.";
-            animarMao(() => getBoard('.atomo.no-quadro'), () => getBoard('.atomo.no-quadro'));
-            break;
-        case 10:
-            msg.innerText = "Passo 10: Clique no fundo branco do quadro para fechar o menu.";
-            animarMao(() => document.getElementById('quadro'), () => document.getElementById('quadro'));
-            break;
-        case 11:
-            msg.innerText = "Passo 11: Arraste uma ligação solta para o quadro.";
-            document.getElementById('pool-ligacoes').classList.add('tutorial-destaque');
-            animarMao(() => getPool('.lig-simples'), () => document.getElementById("quadro"));
-            break;
-        case 12:
-            msg.innerText = "Passo 12: Clique com Botão Direito nela para ver que as opções mudam!";
-            animarMao(() => getBoard('.ligacao.no-quadro'), () => getBoard('.ligacao.no-quadro'));
-            break;
-        case 13:
-            msg.innerText = "Passo 13: Clique no fundo branco para fechar o menu novamente.";
-            animarMao(() => document.getElementById('quadro'), () => document.getElementById('quadro'));
-            break;
-        case 14:
-            msg.innerText = "Passo 14: Clique no botão 'Ferramentas' no canto inferior direito.";
-            document.querySelector('.btn-toggle-ferramentas').classList.add('tutorial-destaque');
-            animarMao(() => document.querySelector('.btn-toggle-ferramentas'), () => document.querySelector('.btn-toggle-ferramentas'));
-            break;
-        case 15:
-            msg.innerText = "Passo 15: Clique no botão 'Limpar Tudo' na janela de ferramentas.";
-            animarMao(() => document.querySelector('.btn-ferramenta[title="Limpar Quadro"]'), () => document.querySelector('.btn-ferramenta[title="Limpar Quadro"]'));
-            break;
-        case 16:
-            pularTutorial();
-            break;
+    // Quando o tutorial fecha, se for o modo impossível, o cronômetro começa a rodar!
+    if (modoAtual === "impossivel") {
+        iniciarCronometro();
     }
 }
-setTimeout(iniciarTutorial, 1000);
+
+setTimeout(checkTutorialOnLoad, 500);
 
 
 // ==========================================
-// DRAG & DROP FÍSICO COM NOVO DETECTOR DE DUPLO CLIQUE 
+// DRAG & DROP FÍSICO COM DETECTOR DE DUPLO CLIQUE 
 // ==========================================
 let ultimoCliqueTempo = 0;
 
 document.addEventListener("pointerdown", (e) => {
     
-    // BLOQUEIO DO TUTORIAL
-    if (tutorialAtivo) {
-        if (e.target.closest('#btn-pular-tutorial')) return; 
-        let pecaT = e.target.closest(".peca-draggable");
-        if (e.button !== 2) {
-            if (pecaT && e.target.closest('.retangulo-pecas')) {
-                if (passoTutorial === 1 && pecaT.innerText !== "H") { mostrarMensagemGlob("Tutorial: Pegue o Hidrogênio (H)!"); return; }
-                if (passoTutorial === 2 && !pecaT.classList.contains("lig-simples")) { mostrarMensagemGlob("Tutorial: Pegue a Ligação Simples!"); return; }
-                if (passoTutorial === 3 && pecaT.innerText !== "O") { mostrarMensagemGlob("Tutorial: Pegue o Oxigênio (O)!"); return; }
-                if (passoTutorial === 4 && !pecaT.classList.contains("lig-simples")) { mostrarMensagemGlob("Tutorial: Pegue a Ligação Simples!"); return; }
-                if (passoTutorial === 5 && pecaT.innerText !== "H") { mostrarMensagemGlob("Tutorial: Pegue o último Hidrogênio (H)!"); return; }
-                if (passoTutorial === 8 && pecaT.dataset.tipo !== "atomo") { mostrarMensagemGlob("Tutorial: Pegue qualquer Átomo!"); return; }
-                if (passoTutorial === 11 && pecaT.dataset.tipo !== "ligacao") { mostrarMensagemGlob("Tutorial: Pegue qualquer Ligação!"); return; }
-                if (![1,2,3,4,5,8,11].includes(passoTutorial)) { mostrarMensagemGlob("Siga a instrução da tela!"); return; }
-            }
-            if ((passoTutorial === 10 || passoTutorial === 13) && !e.target.closest("#menu-contexto")) { } 
-            else if (!pecaT && !e.target.closest('.painel-ferramentas') && ![10,13].includes(passoTutorial)) { return; }
-        }
-    }
-
     if(e.button !== 2 && !e.target.closest("#menu-contexto")) { fecharMenuContexto(); }
-    if(tutorialAtivo && passoTutorial === 10 && !e.target.closest("#menu-contexto")) avancarTutorial();
-    if(tutorialAtivo && passoTutorial === 13 && !e.target.closest("#menu-contexto")) avancarTutorial();
-
     if(e.button === 2) return; 
-
-    let handle = e.target.closest(".rotator-handle");
-    if (handle) {
-        e.preventDefault(); rotacionandoLivre = true; pecaEmMovimento = handle.parentElement; return;
-    }
 
     let peca = e.target.closest(".peca-draggable");
     if (!peca) return;
     
-    // DETECTOR DE DUPLO CLIQUE (COLOCOU O CÓDIGO DAQUI DE VOLTA)
     let agora = Date.now();
     let tempoDesdeUltimo = agora - ultimoCliqueTempo;
     ultimoCliqueTempo = agora;
 
     if (tempoDesdeUltimo < 300) {
-        // 1. Duplo clique na barra: Manda pro quadro
         if (e.target.closest('.retangulo-pecas') || (pecaEmMovimento && pecaEmMovimento.dataset.recemCriada === "true")) {
-            if(tutorialAtivo) { mostrarMensagemGlob("Tutorial: Arraste a peça usando o mouse/dedo!"); return; }
-            
             let nova = pecaEmMovimento ? pecaEmMovimento : peca.cloneNode(true);
             if (!pecaEmMovimento) {
                 nova.classList.add("no-quadro");
                 nova.dataset.id = Date.now();
-                if(nova.dataset.tipo === "ligacao") {
-                    let handleDiv = document.createElement("div"); handleDiv.className = "rotator-handle"; handleDiv.innerText = "↻"; nova.appendChild(handleDiv);
-                }
                 quadroInner.appendChild(nova);
             }
             
@@ -614,7 +567,6 @@ document.addEventListener("pointerdown", (e) => {
             return; 
         }
         
-        // 2. Duplo clique em ligação no quadro: Gira 90 graus
         if (peca.classList.contains("ligacao") && peca.dataset.noQuadro === "true") {
             if (!peca.dataset.grupo) { 
                 salvarEstado(); peca.style.transform = ""; peca.dataset.angle = 0; peca.classList.toggle("lig-vertical"); tocarSomClick();
@@ -632,13 +584,7 @@ document.addEventListener("pointerdown", (e) => {
         pecaEmMovimento = peca.cloneNode(true);
         pecaEmMovimento.classList.add("no-quadro");
         pecaEmMovimento.dataset.id = Date.now();
-        pecaEmMovimento.dataset.recemCriada = "true"; // Marca para o duplo clique!
-        
-        if(peca.dataset.tipo === "ligacao") {
-            let handleDiv = document.createElement("div");
-            handleDiv.className = "rotator-handle"; handleDiv.innerText = "↻";
-            pecaEmMovimento.appendChild(handleDiv);
-        }
+        pecaEmMovimento.dataset.recemCriada = "true"; 
 
         quadroInner.appendChild(pecaEmMovimento);
         grupoEmMovimento = [pecaEmMovimento];
@@ -669,21 +615,13 @@ document.addEventListener("pointerdown", (e) => {
 });
 
 document.addEventListener("pointermove", (e) => {
-    if (rotacionandoLivre && pecaEmMovimento) {
-        let rect = pecaEmMovimento.getBoundingClientRect();
-        let cx = rect.left + rect.width / 2; let cy = rect.top + rect.height / 2;
-        let angle = Math.atan2(e.clientY - cy, e.clientX - cx) * (180 / Math.PI);
-        pecaEmMovimento.style.transform = `rotate(${angle}deg)`; pecaEmMovimento.dataset.angle = angle; return;
-    }
     if (grupoEmMovimento.length === 0) return;
     moverGrupo(e.clientX, e.clientY);
 });
 
 document.addEventListener("pointerup", (e) => {
-    if (rotacionandoLivre) { rotacionandoLivre = false; pecaEmMovimento = null; return; }
     if (grupoEmMovimento.length === 0) return;
 
-    let pecaDoTutorial = grupoEmMovimento[0];
     let isNoQuadro = pecaEmMovimento.dataset.noQuadro === "true";
 
     let sobrePainel = false;
@@ -732,20 +670,6 @@ document.addEventListener("pointerup", (e) => {
         grupoEmMovimento.forEach(p => p.remove());
     }
 
-    if (tutorialAtivo && pecaDoTutorial) {
-        if (passoTutorial === 1 && quadroInner.querySelectorAll('.atomo-H.no-quadro').length >= 1) avancarTutorial();
-        else if (passoTutorial === 2 && quadroInner.querySelectorAll('.lig-simples.no-quadro').length >= 1 && pecaDoTutorial.dataset.grupo) avancarTutorial(); 
-        else if (passoTutorial === 3 && quadroInner.querySelectorAll('.atomo-O.no-quadro').length >= 1 && pecaDoTutorial.dataset.grupo) avancarTutorial();
-        else if (passoTutorial === 4 && quadroInner.querySelectorAll('.lig-simples.no-quadro').length >= 2 && pecaDoTutorial.dataset.grupo) avancarTutorial();
-        else if (passoTutorial === 5 && quadroInner.querySelectorAll('.atomo-H.no-quadro').length >= 2 && pecaDoTutorial.dataset.grupo) avancarTutorial();
-        else if (passoTutorial === 8 && quadroInner.querySelectorAll('.atomo.no-quadro').length >= 1) avancarTutorial();
-        else if (passoTutorial === 11 && quadroInner.querySelectorAll('.ligacao.no-quadro').length >= 1) avancarTutorial();
-        else if ([2,3,4,5].includes(passoTutorial) && !pecaDoTutorial.dataset.grupo) {
-            mostrarMensagemGlob("Você precisa ENCOSTAR uma peça na outra para conectar! Tente de novo.");
-            if(pecaDoTutorial) pecaDoTutorial.remove();
-        }
-    }
-
     atualizarContadores(); pecaEmMovimento = null; grupoEmMovimento =[];
 });
 
@@ -754,14 +678,6 @@ document.addEventListener("pointerup", (e) => {
 // MENU DE CONTEXTO (BOTÃO DIREITO)
 // ==========================================
 document.addEventListener("contextmenu", (e) => {
-    if (tutorialAtivo) {
-        let p = e.target.closest(".peca-draggable.no-quadro");
-        if (passoTutorial === 6 && (!p || p.innerText !== "O")) { mostrarMensagemGlob("Tutorial: Clique com o Botão Direito no Oxigênio (O)!"); e.preventDefault(); return; }
-        if (passoTutorial === 9 && (!p || p.dataset.tipo !== "atomo")) { mostrarMensagemGlob("Tutorial: Clique com o Botão Direito no Átomo!"); e.preventDefault(); return; }
-        if (passoTutorial === 12 && (!p || p.dataset.tipo !== "ligacao")) { mostrarMensagemGlob("Tutorial: Clique com o Botão Direito na Ligação!"); e.preventDefault(); return; }
-        if (![6,9,12].includes(passoTutorial)) { e.preventDefault(); return; } 
-    }
-
     let peca = e.target.closest(".peca-draggable.no-quadro");
     if(!peca) return;
     e.preventDefault();
@@ -796,12 +712,6 @@ document.addEventListener("contextmenu", (e) => {
     menu.style.left = e.clientX + "px";
     menu.style.top = e.clientY + "px";
     menu.classList.remove("escondido");
-
-    if (tutorialAtivo) {
-        if (passoTutorial === 6) avancarTutorial(); 
-        else if (passoTutorial === 9) avancarTutorial(); 
-        else if (passoTutorial === 12) avancarTutorial(); 
-    }
 });
 
 function curarQuadro() {
@@ -811,7 +721,6 @@ function curarQuadro() {
 }
 
 window.cmCopiar = function() {
-    if(tutorialAtivo) { mostrarMensagemGlob("Tutorial: Siga a instrução da mãozinha!"); return; }
     if(!pecaAlvoMenu) return;
     salvarEstado();
     
@@ -840,7 +749,6 @@ window.cmExcluir = function() {
 };
 
 window.cmExcluirMolecula = function() {
-    if(tutorialAtivo && passoTutorial !== 7) { mostrarMensagemGlob("Tutorial: Clique em Excluir Molécula Inteira!"); return; }
     if(!pecaAlvoMenu) return;
     salvarEstado();
     let gid = pecaAlvoMenu.dataset.grupo;
@@ -850,16 +758,13 @@ window.cmExcluirMolecula = function() {
         grupoInteiro.forEach(p => p.remove());
     } else { pecaAlvoMenu.remove(); }
     curarQuadro(); atualizarContadores();
-    if (tutorialAtivo && passoTutorial === 7) avancarTutorial();
 };
 
 window.cmGirar90 = function() { 
-    if(tutorialAtivo) { mostrarMensagemGlob("Tutorial: Siga a instrução da mãozinha!"); return; }
     if(!pecaAlvoMenu) return; salvarEstado(); pecaAlvoMenu.style.transform = ""; pecaAlvoMenu.dataset.angle = 0; pecaAlvoMenu.classList.toggle("lig-vertical"); fecharMenuContexto(); 
 };
 
 window.cmCompletar = function() {
-    if(tutorialAtivo) { mostrarMensagemGlob("Tutorial: Siga a instrução da mãozinha!"); return; }
     if(!pecaAlvoMenu) return;
     salvarEstado();
     let valMax = parseInt(pecaAlvoMenu.dataset.valencia);
@@ -885,7 +790,6 @@ window.cmCompletar = function() {
 };
 
 window.cmDesvincular = function() {
-    if(tutorialAtivo) { mostrarMensagemGlob("Tutorial: Siga a instrução da mãozinha!"); return; }
     if(!pecaAlvoMenu) return;
     salvarEstado();
     let p = pecaAlvoMenu;
@@ -1039,27 +943,21 @@ function checarValidacaoAtomo(atomo) {
 // FERRAMENTAS DO QUADRO E ATUALIZAÇÕES
 // ==========================================
 function mudarZoom(d) { 
-    if(tutorialAtivo) { mostrarMensagemGlob("Tutorial: Siga a instrução da mãozinha!"); return; }
     tocarSomClick(); zoomLevel = Math.max(0.5, Math.min(2, zoomLevel+d)); atualizarVisao(); resolverColisaoGlobal(); 
 }
 function resetarVisao() { 
-    if(tutorialAtivo) { mostrarMensagemGlob("Tutorial: Siga a instrução da mãozinha!"); return; }
     tocarSomClick(); zoomLevel = 1; atualizarVisao(); resolverColisaoGlobal(); 
 }
 function atualizarVisao() { quadroInner.style.transform = `scale(${zoomLevel})`; }
 
 function limparQuadro() { 
-    if(tutorialAtivo && passoTutorial !== 15) { mostrarMensagemGlob("Tutorial: Clique apenas em Limpar Tudo no passo correto!"); return; }
     salvarEstado(); tocarSomClick(); quadroInner.innerHTML = ""; atualizarContadores(); 
-    if(tutorialAtivo && passoTutorial === 15) pularTutorial(); 
 }
 function desfazerAcao() { 
-    if(tutorialAtivo) { mostrarMensagemGlob("Tutorial: Siga a instrução da mãozinha!"); return; }
     tocarSomClick(); if(historico.length > 0){ quadroInner.innerHTML = historico.pop(); verificarLigacoesQuimicas(); atualizarContadores(); } 
 }
 
 window.girarMoleculas = function() {
-    if(tutorialAtivo) { mostrarMensagemGlob("Tutorial: Siga a instrução da mãozinha!"); return; }
     salvarEstado(); tocarSomClick();
     let allPecas = Array.from(quadroInner.querySelectorAll('.peca-draggable.no-quadro'));
     if(allPecas.length === 0) return;
@@ -1084,7 +982,6 @@ window.girarMoleculas = function() {
 };
 
 function tirarFoto() {
-  if(tutorialAtivo) { mostrarMensagemGlob("Tutorial: Siga a instrução da mãozinha!"); return; }
   tocarSomClick(); mostrarMensagemGlob("📸 Processando...");
   html2canvas(document.getElementById("quadro-inner"), { backgroundColor: "#ffffff" }).then(c => {
     let l = document.createElement('a'); l.download = 'molecula.png'; l.href = c.toDataURL('image/png'); l.click(); mostrarMensagemGlob("✅ Foto salva!");
@@ -1100,5 +997,4 @@ function atualizarContadores() {
 function togglePainel(id) { 
     tocarSomClick(); let p = document.getElementById(id); p.classList.toggle("painel-recolhido"); let btn = p.querySelector("button");
     if(p.classList.contains("painel-recolhido")) { btn.innerText = "▶ Mostrar"; } else { btn.innerText = id === 'painelInfo' ? "📊 Ocultar" : "🛠️ Ferramentas ⬇"; }
-    if(tutorialAtivo && passoTutorial === 14 && id === 'painelFerramentas') avancarTutorial();
 }

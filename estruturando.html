@@ -65,7 +65,6 @@
       </div>
       <div class="hud-pergunta">
           Monte a estrutura cujo nome é <strong id="nome-desafio-atual">...</strong>
-          <!-- BOTÃO DE DICA DA LÂMPADA AQUI -->
           <button class="btn-dica" onclick="mostrarDicaDesafio()" title="Precisa de uma dica?">💡</button>
       </div>
   </div>
@@ -105,7 +104,6 @@
 
   <div class="paineis-pecas">
     <div class="retangulo-pecas" id="pool-atomos">
-      <!-- REMOVIDO O AVISO DE DUPLO CLIQUE DAQUI. FICA SÓ NA AJUDA (?) AGORA -->
       <h3>Átomos</h3>
       <div class="lista-pecas" id="lista-atomos"></div>
     </div>
@@ -130,17 +128,28 @@
   <ul id="lista-menu-contexto"></ul>
 </div>
 
-<div id="tutorial-overlay" class="escondido">
-    <button id="btn-pular-tutorial" onclick="pularTutorial()">Pular Tutorial ⏭️</button>
-    <div id="texto-tutorial">Siga as instruções da mãozinha!</div>
-    <div id="mao-tutorial">👆</div>
+<!-- NOVO MODAL DE TUTORIAL ESTILO GENSHIN IMPACT -->
+<div id="tutorial-genshin-overlay" class="modal-overlay escondido" style="z-index: 1000000; background: rgba(0,0,0,0.8);">
+    <div class="tutorial-genshin-box">
+        <div class="tutorial-media-container" id="tutorial-media-container">
+            <!-- Vídeo ou Imagem será injetado aqui via JS -->
+        </div>
+        <div class="tutorial-text-container">
+            <p id="tutorial-genshin-texto"></p>
+        </div>
+        <div class="tutorial-controls">
+            <div class="carousel-dots" id="tutorial-dots">
+                <!-- Bolinhas injetadas via JS -->
+            </div>
+            <button id="btn-tutorial-prosseguir" class="btn-prosseguir" onclick="avancarTutorialGenshin()">Prosseguir ➡</button>
+        </div>
+    </div>
 </div>
 
 <div id="modal-estrela" class="modal-overlay" style="z-index: 100000;">
     <div class="modal-box modal-box-epic" style="background: transparent; box-shadow: none; text-align: center; color: white;">
         <div id="animacao-estrela" style="font-size: 150px; text-shadow: 0 0 30px gold; animation: flutuarGigante 2s infinite ease-in-out;">⭐</div>
         <h2 id="texto-estrela" style="font-size: 30px; margin: 20px 0; text-shadow: 2px 2px 4px black;">Você ganhou a 1ª estrela!</h2>
-        <!-- O botão agora diz apenas "Continuar" -->
         <button type="button" onclick="continuarDesafio()" class="btn-epic-green">Continuar</button>
     </div>
 </div>
@@ -188,8 +197,29 @@
     </div>
 </div>
 
-<!-- MANUAL DE FERRAMENTAS ATUALIZADO -->
-<div id="ajuda-overlay" class="modal-overlay" onclick="fecharModais(event)"><div class="modal-box" style="max-width: 600px;"><div class="modal-header" style="background: #0284c7;"><h3>❔ Manual de Ferramentas</h3><button onclick="document.getElementById('ajuda-overlay').style.display='none'">✖</button></div><div class="modal-body" style="text-align: left; font-size: 14px; line-height: 1.6;"><p><strong>🖱️ Arrastar:</strong> Clique e segure para mover átomos e ligações.</p><p><strong>🖱️ Duplo Clique (Painel de Peças):</strong> Adiciona a peça automaticamente no centro do quadro.</p><p><strong>🖱️ Botão Direito:</strong> Clique em uma peça solta para abrir ferramentas extras (Copiar e Colar, Excluir, etc).</p><p><strong>🔄 Duplo Clique (Quadro):</strong> Clique duas vezes numa ligação solta para girá-la em 90º.</p><p><strong>↻ Alavanca Amarela:</strong> Arraste para girar em 360º livremente.</p><p><strong>🗑️ Exclusão Rápida:</strong> Soltar uma peça exatamente em cima de outra igual a exclui.</p><p><strong>🚨 Valência Excedida:</strong> O átomo pisca Vermelho e emite um erro.</p><p><strong>✅ Valência Correta:</strong> O átomo pisca Verde e emite um som de acerto!</p></div></div></div>
+<!-- MANUAL DE FERRAMENTAS ATUALIZADO COM BOTÃO DE REVER TUTORIAL -->
+<div id="ajuda-overlay" class="modal-overlay" onclick="fecharModais(event)">
+    <div class="modal-box" style="max-width: 600px;">
+        <div class="modal-header" style="background: #0284c7;">
+            <h3>❔ Manual de Ferramentas</h3>
+            <button onclick="document.getElementById('ajuda-overlay').style.display='none'">✖</button>
+        </div>
+        <div class="modal-body" style="text-align: left; font-size: 14px; line-height: 1.6;">
+            <p><strong>🖱️ Arrastar:</strong> Clique e segure para mover átomos e ligações.</p>
+            <p><strong>🖱️ Duplo Clique (Painel de Peças):</strong> Adiciona a peça automaticamente no centro do quadro.</p>
+            <p><strong>🖱️ Botão Direito:</strong> Clique em uma peça solta para abrir ferramentas extras (Copiar e Colar, Excluir, etc).</p>
+            <p><strong>🔄 Duplo Clique (Quadro):</strong> Clique duas vezes numa ligação solta para girá-la em 90º.</p>
+            <p><strong>↻ Alavanca Amarela:</strong> Arraste para girar em 360º livremente.</p>
+            <p><strong>🗑️ Exclusão Rápida:</strong> Soltar uma peça exatamente em cima de outra igual a exclui.</p>
+            <p><strong>🚨 Valência Excedida:</strong> O átomo pisca Vermelho e emite um erro.</p>
+            <p><strong>✅ Valência Correta:</strong> O átomo pisca Verde e emite um som de acerto!</p>
+            
+            <div style="text-align: center; margin-top: 20px; padding-top: 15px; border-top: 1px solid #ccc;">
+                <button onclick="abrirTutorialManual()" style="background: #0284c7; color: white; padding: 10px 20px; border: none; border-radius: 20px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.3); font-size: 16px;">▶ Rever Tutorial do Modo</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div id="catalogo-overlay" class="modal-overlay" onclick="fecharModais(event)"><div class="modal-box" style="max-width: 800px;"><div class="modal-header" style="background: #16a34a;"><h3>📚 Catálogo de Moléculas</h3><button onclick="document.getElementById('catalogo-overlay').style.display='none'">✖</button></div><div class="modal-body"><div id="grid-catalogo" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: left;"></div></div></div></div>
 <div id="tela-comemoracao" class="tela-comemoracao"><div id="icone-comemoracao" class="trofeu-gigante">🏆</div><h1 id="titulo-comemoracao" style="color: white; font-size: 40px; margin-top: 20px; text-shadow: 0 0 10px gold;">PLATINA ALCANÇADA!</h1></div>

@@ -58,3 +58,20 @@
   transform: var(--btn-hover);
   box-shadow: 0 10px 20px rgba(0, 162, 255, 0.4);
 }
+
+/* ==========================================
+   RESPONSIVIDADE (MOBILE) - TELA INICIAL
+   ========================================== */
+@media (max-width: 768px) {
+    .container { padding: 80px 15px 30px; }
+    .logo { width: 300px; margin-bottom: 15px; }
+    .descricao { font-size: 14px; margin-bottom: 30px; padding: 0 10px; }
+    
+    /* Botão maior e mais largo para facilitar o clique com o dedo */
+    .botao-iniciar { 
+        width: 100%; 
+        max-width: 300px; 
+        font-size: 18px; 
+        padding: 15px 20px; 
+    }
+}

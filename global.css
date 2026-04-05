@@ -8,10 +8,10 @@ body.saindo { animation: sairTela 0.5s ease forwards; }
 @keyframes sairTela { 0% { opacity: 1; } 100% { opacity: 0; } }
 
 .escondido { display: none !important; opacity: 0; pointer-events: none;}
-.toast { position: fixed; top: 90px; left: 50%; transform: translateX(-50%); background: var(--btn-bg); color: white; padding: 12px 25px; border-radius: 30px; font-weight: bold; font-size: 16px; box-shadow: 0 10px 20px rgba(0,0,0,0.3); z-index: 99999; transition: opacity 0.4s ease, top 0.4s ease; text-align: center;}
+.toast { position: fixed; top: 90px; left: 50%; transform: translateX(-50%); background: var(--btn-bg); color: white; padding: 12px 25px; border-radius: 30px; font-weight: bold; font-size: 16px; box-shadow: 0 10px 20px rgba(0,0,0,0.3); z-index: 99999; transition: opacity 0.4s ease, top 0.4s ease; text-align: center; width: max-content; max-width: 90vw;}
 
 .topo { position: fixed; top: 0; width: 100%; display: flex; justify-content: space-between; padding: 15px 30px; background: var(--header-bg); backdrop-filter: blur(10px); z-index: 1000; box-shadow: var(--shadow); }
-.icon-btn { background: none; border: none; font-size: 24px; cursor: pointer; margin-right: 15px; transition: transform 0.2s; }
+.icon-btn { background: none; border: none; font-size: 24px; cursor: pointer; margin-right: 15px; transition: transform 0.2s; padding: 5px;}
 .icon-btn:hover { transform: scale(1.2); }
 .menu { display: none; position: absolute; top: 60px; left: 30px; background: #ffffff; color: #1e293b; padding: 20px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 250px; z-index: 1000;}
 .menu-item { margin-bottom: 15px; }
@@ -34,7 +34,7 @@ body.saindo { animation: sairTela 0.5s ease forwards; }
 .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); z-index: 9000; backdrop-filter: blur(5px); }
 .modal-box { background: var(--bg-color); width: 90%; max-width: 500px; margin: 10vh auto; border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); overflow: hidden; max-height: 80vh; display: flex; flex-direction: column; }
 .modal-header { background: var(--btn-bg); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
-.modal-header button { background: none; border: none; color: white; font-size: 18px; cursor: pointer; }
+.modal-header button { background: none; border: none; color: white; font-size: 18px; cursor: pointer; padding: 5px;}
 .modal-body { padding: 30px; overflow-y: auto; }
 
 .conquista-item { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid rgba(128,128,128,0.2); gap: 15px; text-align: left; }
@@ -42,7 +42,7 @@ body.saindo { animation: sairTela 0.5s ease forwards; }
 .conquista-texto { font-size: 14px; opacity: 0.6; }
 .conquista-desbloqueada .conquista-icone { opacity: 1; filter: none; }
 .conquista-desbloqueada .conquista-texto { opacity: 1; font-weight: bold; color: #16a34a; }
-.btn-voltar { background: none; border: none; color: var(--text-color); font-size: 18px; font-weight: bold; cursor: pointer; display: flex; align-items: center; margin-bottom: 20px; transition: transform 0.2s, opacity 0.2s; opacity: 0.7; }
+.btn-voltar { background: none; border: none; color: var(--text-color); font-size: 18px; font-weight: bold; cursor: pointer; display: flex; align-items: center; margin-bottom: 20px; transition: transform 0.2s, opacity 0.2s; opacity: 0.7; padding: 5px 0;}
 .btn-voltar:hover { transform: scale(1.1) translateX(-5px); opacity: 1; }
 
 /* TROFÉUS E CELEBRAÇÃO */
@@ -52,7 +52,7 @@ body.saindo { animation: sairTela 0.5s ease forwards; }
 /* FILTRO PRATA PARA O TROFÉU DE CATALOGADOR */
 .trofeu-prata { filter: grayscale(100%) brightness(1.2); }
 
-.tela-comemoracao { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 100000; display: flex; flex-direction: column; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.5s; }
+.tela-comemoracao { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 100000; display: flex; flex-direction: column; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.5s; text-align: center; }
 .tela-comemoracao.ativa { opacity: 1; pointer-events: all; }
 .trofeu-gigante { font-size: 180px; animation: flutuarGigante 2s infinite ease-in-out, brilhoOuro 2s alternate infinite; }
 
@@ -64,3 +64,29 @@ body.saindo { animation: sairTela 0.5s ease forwards; }
 @keyframes brilhoOuro { 0% { filter: drop-shadow(0 0 20px gold); } 100% { filter: drop-shadow(0 0 60px gold); } }
 .confete { position: absolute; width: 10px; height: 10px; background: red; animation: cair 3s linear infinite; z-index: 99999;}
 @keyframes cair { 0% { transform: translateY(-10vh) rotate(0deg); } 100% { transform: translateY(110vh) rotate(360deg); } }
+
+/* ==========================================
+   RESPONSIVIDADE GLOBAL (MOBILE & TABLET)
+   ========================================== */
+@media (max-width: 768px) {
+    .topo { padding: 10px 15px; }
+    .icon-btn { font-size: 20px; margin-right: 5px; }
+    .trofeus-container { margin-right: 5px; }
+    .trofeu-mini { font-size: 16px; }
+    
+    /* O menu suspenso não pode vazar da tela */
+    .menu { left: 10px; right: 10px; width: auto; max-width: 300px; top: 55px; }
+    
+    .modal-box { margin: 5vh auto; width: 95%; max-height: 90vh; }
+    .modal-body { padding: 20px; }
+    
+    /* Ajustes no Rodapé */
+    .rodape { padding: 15px 10px; }
+    .logos img { height: 40px; margin: 0 5px; }
+    
+    /* Efeitos de Título / Comemoração adaptados */
+    .trofeu-gigante { font-size: 120px; }
+    #titulo-comemoracao { font-size: 28px !important; }
+    
+    .toast { top: 70px; padding: 10px 20px; font-size: 14px; }
+}

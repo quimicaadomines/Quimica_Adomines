@@ -27,7 +27,6 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
 .estrelas-hud span.ganha { color: gold; text-shadow: 0 0 10px gold; transform: scale(1.2);}
 .vidas-hud { color: red; font-size: 20px; letter-spacing: 5px; }
 
-/* O BOTÃO DE DICA FICA AQUI */
 .hud-pergunta { font-size: 18px; color: var(--text-color); display: flex; justify-content: center; align-items: center; gap: 15px;}
 #nome-desafio-atual { color: #0284c7; font-size: 22px; text-decoration: underline; }
 .btn-dica { background: #eab308; border: none; border-radius: 50%; width: 35px; height: 35px; font-size: 18px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.3); transition: 0.2s; display: flex; justify-content: center; align-items: center;}
@@ -74,11 +73,6 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
 .lig-vertical { flex-direction: row; width: 20px; height: 40px; }
 .lig-vertical .linha { width: 4px; height: 40px; }
 
-.rotator-handle { position: absolute; top: -15px; right: -15px; width: 20px; height: 20px; background: #eab308; color: black; border-radius: 50%; font-size: 12px; display: flex; justify-content: center; align-items: center; cursor: grab; box-shadow: 0 2px 4px rgba(0,0,0,0.5); z-index: 100;}
-.rotator-handle:active { cursor: grabbing; }
-.peca-draggable[data-grupo] .rotator-handle { display: none; }
-
-/* Z-INDEX ABSURDO PARA O HIDROGÊNIO NÃO SUMIR E FICAR NA FRENTE DE TUDO */
 .hidrogenio-completo { position: absolute; bottom: -5px; right: -10px; font-size: 12px; font-weight: bold; color: #333; background: white; border-radius: 5px; padding: 2px 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); text-shadow: none; z-index: 99999 !important;}
 
 @keyframes piscar-erro { 0% { box-shadow: 0 0 15px red; background-color: #ef4444; } 50% { box-shadow: 0 0 5px darkred; background-color: darkred; } 100% { box-shadow: 0 0 15px red; background-color: #ef4444; } }
@@ -114,10 +108,99 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
 .item-catalogo p { font-size: 12px; opacity: 0.8; }
 .icone-lock { font-size: 24px; opacity: 0.5; float: right; }
 
-#tutorial-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100000; background: rgba(0,0,0,0.4); }
-#btn-pular-tutorial { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; border: 2px solid white; padding: 10px 20px; border-radius: 20px; font-weight: bold; cursor: pointer; pointer-events: auto; transition: 0.3s; backdrop-filter: blur(5px); }
-#btn-pular-tutorial:hover { background: rgba(220, 38, 38, 0.9); }
-#texto-tutorial { position: absolute; top: 80px; left: 50%; transform: translateX(-50%); background: #0284c7; color: white; padding: 15px 30px; border-radius: 10px; font-size: 18px; font-weight: bold; text-align: center; box-shadow: 0 10px 20px rgba(0,0,0,0.3); pointer-events: auto; }
-#mao-tutorial { position: fixed; font-size: 50px; z-index: 100001; filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.5)); pointer-events: none; transform-origin: top left; }
-.tutorial-destaque { box-shadow: 0 0 15px 5px yellow !important; animation: piscarDestaque 1s infinite alternate; z-index: 99999 !important; position: relative;}
-@keyframes piscarDestaque { 0% { filter: brightness(1); } 100% { filter: brightness(1.5); } }
+/* ESTILOS DO NOVO TUTORIAL GENSHIN IMPACT */
+.tutorial-genshin-box {
+    background: #ffffff;
+    width: 90%;
+    max-width: 650px;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    border: 3px solid #0284c7;
+    display: flex;
+    flex-direction: column;
+    animation: fadeInTutorial 0.4s ease-out;
+}
+
+@keyframes fadeInTutorial {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.tutorial-media-container {
+    width: 100%;
+    height: 300px;
+    background: #e2e8f0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    border-bottom: 2px solid #cbd5e1;
+}
+
+.tutorial-media-container video, 
+.tutorial-media-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* Alterado para mostrar a mídia inteira sem cortar */
+}
+
+.tutorial-text-container {
+    padding: 20px;
+    min-height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#tutorial-genshin-texto {
+    font-size: 16px;
+    line-height: 1.6;
+    color: #334155;
+    text-align: justify;
+}
+
+.tutorial-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: #f8fafc;
+    border-top: 1px solid #cbd5e1;
+}
+
+.carousel-dots {
+    display: flex;
+    gap: 8px;
+}
+
+.dot {
+    width: 12px;
+    height: 12px;
+    background: #cbd5e1;
+    border-radius: 50%;
+    transition: 0.3s;
+}
+
+.dot.active {
+    background: #0284c7;
+    transform: scale(1.3);
+}
+
+.btn-prosseguir {
+    background: #0284c7;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.2s;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+}
+
+.btn-prosseguir:hover {
+    background: #0369a1;
+    transform: translateY(-2px);
+}
