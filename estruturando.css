@@ -131,104 +131,122 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
     .ligacao .linha { width: 50px !important; height: 6px !important; border-radius: 3px !important;}
     .lig-vertical { width: 25px !important; height: 50px !important; }
     .lig-vertical .linha { width: 6px !important; height: 50px !important; }
+
+    .painel-info { top: 5px; left: 5px; padding: 5px; width: 130px; font-size: 12px; background: rgba(255,255,255,0.9); }
+    .painel-ferramentas { bottom: 65px; right: 5px; padding: 5px; width: 140px; background: rgba(255,255,255,0.9); }
+    .dark .painel-info, .dark .painel-ferramentas { background: rgba(15, 23, 42, 0.9); }
+    .btn-ferramenta { font-size: 11px; padding: 5px; }
+    
+    .btn-ajuda { top: 5px; right: 5px; width: 35px; height: 35px; font-size: 16px; }
+    .btn-catalogo { top: 5px; right: 45px; height: 35px; padding: 0 10px; font-size: 12px; }
 }
 
 /* ==========================================
-   O CÓDIGO DEFINITIVO DO CELULAR DEITADO
+   CELULAR DEITADO (LANDSCAPE) - TRAVADO TOTALMENTE FIXO
    ========================================== */
 @media screen and (orientation: landscape) and (max-height: 600px), 
        screen and (orientation: landscape) and (max-width: 950px) {
 
-    /* Trava o fundo inteiro, quem rola é só o quadro */
-    body, html { 
+    /* 1. TRAVA A TELA: NADA ROLA AQUI (Global Fixed) */
+    html, body { 
         height: 100vh !important; 
         width: 100vw !important; 
-        overflow: hidden !important; 
+        overflow: hidden !important; /* Bloqueia qualquer rolagem */
         margin: 0 !important; 
         padding: 0 !important; 
+        position: fixed !important;  /* Fica pregado na tela */
     }
 
-    .game-container { padding: 0 !important; margin: 0 !important; }
-    .header-modo, #texto-modo-livre, .rodape { display: none !important; }
+    .game-container { 
+        height: 100vh !important; 
+        width: 100vw !important;
+        padding: 0 !important; 
+        margin: 0 !important; 
+        display: block !important;
+        position: relative !important;
+    }
 
-    /* 1. O QUADRO BRANCO (Fixo no topo e na esquerda, rolando dentro dele) */
+    /* Oculta o que não é o quadro do jogo */
+    .header-modo, #texto-modo-livre, .rodape, .hud-desafio { 
+        display: none !important; 
+    }
+
+    /* 2. O QUADRO BRANCO (Fixo pegando o espaço de cima) */
     .area-trabalho {
         position: fixed !important;
         top: 0 !important;
         left: 0 !important;
-        width: 100vw !important; /* Estica do lado esquerdo ao direito */
-        height: calc(100vh - 80px) !important; /* Deixa exatamente 80px de espaço na base para o menu de átomos */
+        width: 100vw !important;
+        height: calc(100vh - 80px) !important; /* Ocupa até os 80px da barra de átomos lá embaixo */
         margin: 0 !important;
-        overflow-y: auto !important; /* Permite que você role o quadro pra cima e pra baixo */
+        padding: 0 !important;
         z-index: 10 !important;
         border-radius: 0 !important;
+        border: none !important; /* Remove bordas para encaixar perfeitamente */
         border-bottom: 2px solid #0284c7 !important;
+        overflow: hidden !important; /* Trava a rolagem no quadro também, se for pra ser 100% fixo */
     }
 
-    /* Cancela a caixa principal que segura os dois menus pra eles poderem flutuar soltos */
+    /* Abre a caixa principal das peças para poder colocar cada uma em seu lugar absoluto */
     .paineis-pecas {
-        position: static !important;
-        display: block !important;
-        padding: 0 !important;
-        margin: 0 !important;
+        display: contents !important; 
     }
 
     /* ==========================================================
-       2. OS ÁTOMOS (Cravados em baixo. Tela inteira de largura)
+       3. MENU DE ÁTOMOS (Fixo, no Fundo, Tela Inteira)
        ========================================================== */
-    .paineis-pecas .retangulo-pecas:first-child {
-        position: fixed !important; /* Prega na tela, não rola */
-        bottom: 0 !important;       /* No fundo */
-        left: 0 !important;         /* Colado na esquerda */
-        width: 100vw !important;    /* Vai de um lado ao outro da tela inteira */
-        height: 80px !important;    /* Altura exata */
+    .paineis-pecas .retangulo-pecas:nth-child(1) {
+        position: fixed !important; 
+        bottom: 0 !important;       
+        left: 0 !important;         
+        width: 100vw !important;    
+        height: 80px !important;    /* Altura exata da barra de fundo */
         margin: 0 !important;
-        padding: 5px !important;
+        padding: 5px 10px !important;
         border-radius: 0 !important;
         z-index: 9999 !important;
         box-sizing: border-box !important;
-        background-color: var(--header-bg) !important;
     }
 
-    /* Coloca os átomos esticados numa linha só */
-    .paineis-pecas .retangulo-pecas:first-child .lista-pecas {
+    /* Esconde a palavra 'Átomos' para focar só nas peças */
+    .paineis-pecas .retangulo-pecas:nth-child(1) h3 { display: none !important; }
+
+    /* Força a ser uma linha reta de lado a lado */
+    .paineis-pecas .retangulo-pecas:nth-child(1) .lista-pecas {
         display: flex !important;
-        flex-direction: row !important; /* Linha deitada */
-        flex-wrap: nowrap !important;   /* PROIBIDO ir para baixo um do outro */
-        justify-content: center !important; /* Centraliza */
+        flex-direction: row !important;
+        flex-wrap: nowrap !important; /* Proíbe ir para baixo */
+        justify-content: flex-start !important;
         align-items: center !important;
         width: 100% !important;
         height: 100% !important;
-        overflow-x: auto !important; /* Se não couber, você desliza pro lado, não pra baixo */
+        overflow-x: auto !important; /* Só permite rolar de um lado pro outro se os átomos não couberem */
+        overflow-y: hidden !important; /* Impede rolar pra cima e pra baixo */
         gap: 15px !important;
     }
 
-    /* Esconde o título do menu de átomos pra poupar espaço */
-    .paineis-pecas .retangulo-pecas:first-child h3 { display: none !important; }
-
     /* ==========================================================
-       3. AS LIGAÇÕES (Fixas, coladas na direita, ACIMA dos átomos)
+       4. MENU DE LIGAÇÕES (Fixo, Canto Direito, Acima dos Átomos)
        ========================================================== */
-    .paineis-pecas .retangulo-pecas:last-child {
-        position: fixed !important; /* Prega na tela, não rola quando rolar o quadro */
-        bottom: 90px !important;    /* Fica 10px acima do menu dos átomos (que tem 80px de altura) */
-        right: 10px !important;     /* Colado na direita da tela */
-        width: auto !important;     /* Largura automática */
+    .paineis-pecas .retangulo-pecas:nth-child(2) {
+        position: fixed !important; 
+        bottom: 85px !important; /* Fica 5px acima da barra de átomos (que tem 80px) */
+        right: 5px !important;   /* Cravado no lado direito do quadro */
+        width: auto !important;  
         margin: 0 !important;
         padding: 10px !important;
         z-index: 10000 !important;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.5) !important; /* Sombreado pra destacar do fundo branco */
+        box-shadow: 0 5px 15px rgba(0,0,0,0.5) !important;
     }
 
-    .paineis-pecas .retangulo-pecas:last-child .lista-pecas {
+    /* Esconde a palavra 'Ligações' */
+    .paineis-pecas .retangulo-pecas:nth-child(2) h3 { display: none !important; }
+
+    .paineis-pecas .retangulo-pecas:nth-child(2) .lista-pecas {
         display: flex !important;
         flex-direction: row !important; /* Lado a lado */
         gap: 10px !important;
     }
-
-    /* Esconde o título do menu de ligações pra caixinha ficar pequena */
-    .paineis-pecas .retangulo-pecas:last-child h3 { display: none !important; }
-
 }
 
 /* ==========================================
