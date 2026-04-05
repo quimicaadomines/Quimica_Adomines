@@ -146,40 +146,68 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
     .btn-catalogo { top: 5px; right: 45px; height: 35px; padding: 0 10px; font-size: 12px; }
 }
 
-/* 1. CELULAR DEITADO (LANDSCAPE - Barra Lateral e Quadro Gigante) */
+/* 1. CELULAR DEITADO (LANDSCAPE - Ligações na Lateral e Átomos Embaixo) */
 @media screen and (max-width: 950px) and (orientation: landscape) {
     .game-container {
         display: flex;
         flex-direction: row;
-        flex-wrap: wrap; /* Permite rolar a tela normalmente */
+        flex-wrap: wrap; /* Permite os elementos quebrarem linha */
         padding-top: 60px;
+        align-items: flex-start;
     }
     
     .header-modo, #texto-modo-livre, .hud-desafio {
         width: 100%;
         margin-left: 10px;
         margin-right: 10px;
+        order: 1; /* Força os cabeçalhos a ficarem no topo */
     }
     
-    /* O quadro principal preenche tudo na esquerda */
+    /* O quadro principal fica na esquerda, deixando espaço pra barra de ligações */
     .area-trabalho {
-        flex: 1; 
-        min-width: 60%; 
+        width: calc(100% - 140px); /* 100% menos a largura da barra lateral */
+        flex: none; 
         height: 75vh;
-        min-height: 450px; /* Garante que o quadro não esprema */
+        min-height: 450px;
         margin: 0 10px 20px 10px;
+        order: 2; /* Fica logo abaixo dos cabeçalhos */
     }
     
-    /* A caixa de peças vira uma barra lateral estreita na direita */
+    /* Usamos 'contents' para que os 2 painéis possam ser separados no layout */
     .paineis-pecas {
-        width: 120px; /* Bem fina */
-        flex-direction: column; /* Empilha Átomos e Ligações */
-        margin: 0 10px 20px 0;
-        padding: 5px;
-        gap: 10px;
-        display: flex;
+        display: contents; 
     }
-    .retangulo-pecas { padding: 10px 5px; flex: none; width: 100%; }
+
+    /* PAINEL DE LIGAÇÕES (Normalmente o segundo painel) - Fica na lateral direita */
+    .paineis-pecas .retangulo-pecas:last-child {
+        width: 110px;
+        margin: 0 10px 20px 0;
+        padding: 10px 5px;
+        order: 3; /* Ao lado da area de trabalho */
+        display: flex;
+        flex-direction: column;
+        flex: none;
+    }
+    /* Empilha as ligações verticalmente */
+    .paineis-pecas .retangulo-pecas:last-child .lista-pecas {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    /* PAINEL DE ÁTOMOS (Normalmente o primeiro painel) - Fica embaixo do quadro */
+    .paineis-pecas .retangulo-pecas:first-child {
+        width: calc(100% - 140px); /* Mesma largura do quadro acima dele */
+        margin: 0 10px 20px 10px;
+        padding: 10px;
+        order: 4; /* Pula para a linha de baixo do quadro */
+        flex: none;
+    }
+    /* Espalha os átomos horizontalmente */
+    .paineis-pecas .retangulo-pecas:first-child .lista-pecas {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
     
     /* Removemos o rodapé no modo deitado para aproveitar a tela pro jogo */
     .rodape { display: none !important; }
