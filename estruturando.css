@@ -122,20 +122,19 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
 .btn-prosseguir { background: #0284c7; color: white; border: none; padding: 10px 20px; border-radius: 20px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
 .btn-prosseguir:hover { background: #0369a1; transform: translateY(-2px); }
 
+
 /* ==========================================
    SUPER RESPONSIVIDADE (CELULARES E TABLETS)
    ========================================== */
 
 /* REGRAS GERAIS PARA QUALQUER TELA MENOR QUE 950px */
 @media screen and (max-width: 950px) {
-    /* Forçando Peças Maiores DENTRO E FORA do quadro para facilitar o toque! */
     .atomo { width: 55px !important; height: 55px !important; font-size: 22px !important; }
     .ligacao { width: 55px !important; height: 25px !important; }
     .ligacao .linha { width: 55px !important; height: 8px !important; border-radius: 4px !important;}
     .lig-vertical { width: 25px !important; height: 55px !important; }
     .lig-vertical .linha { width: 8px !important; height: 55px !important; }
 
-    /* Compactando os painéis internos para não taparem o centro do quadro */
     .painel-info { top: 5px; left: 5px; padding: 5px; width: 130px; font-size: 12px; background: rgba(255,255,255,0.9); }
     .painel-ferramentas { bottom: 65px; right: 5px; padding: 5px; width: 140px; background: rgba(255,255,255,0.9); }
     .dark .painel-info, .dark .painel-ferramentas { background: rgba(15, 23, 42, 0.9); }
@@ -146,82 +145,79 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
     .btn-catalogo { top: 5px; right: 45px; height: 35px; padding: 0 10px; font-size: 12px; }
 }
 
-/* 1. CELULAR DEITADO (LANDSCAPE - Ligações na Lateral e Átomos Embaixo) */
-@media screen and (max-width: 950px) and (orientation: landscape) {
+/* 1. CELULAR DEITADO (LANDSCAPE - FORÇADO COM GRID) 
+   Adicionei max-height pra capturar *qualquer* celular deitado independente da largura */
+@media screen and (max-height: 650px) and (orientation: landscape), 
+       screen and (max-width: 950px) and (orientation: landscape) {
+    
+    /* Força o container principal a virar uma tabela invisível de 2 colunas */
     .game-container {
-        display: flex;
-        flex-direction: row;
-        flex-wrap: wrap; /* Permite os elementos quebrarem linha */
-        padding-top: 60px;
-        align-items: flex-start;
+        display: grid !important;
+        grid-template-columns: 1fr 130px !important; /* Lado esquerdo flexível, Lado direito fixo 130px */
+        gap: 10px !important;
+        padding-top: 60px !important;
+        align-items: start !important;
     }
     
+    /* Faz todos os textos e HUD ocuparem a parte inteira de cima da tela */
     .header-modo, #texto-modo-livre, .hud-desafio {
-        width: 100%;
-        margin-left: 10px;
-        margin-right: 10px;
-        order: 1; /* Força os cabeçalhos a ficarem no topo */
+        grid-column: 1 / -1 !important;
+        width: auto !important;
+        margin: 0 10px !important;
     }
     
-    /* O quadro principal fica na esquerda, deixando espaço pra barra de ligações */
+    /* O Quadro de jogo ocupa só a coluna da esquerda */
     .area-trabalho {
-        width: calc(100% - 140px); /* 100% menos a largura da barra lateral */
-        flex: none; 
-        height: 75vh;
-        min-height: 450px;
-        margin: 0 10px 20px 10px;
-        order: 2; /* Fica logo abaixo dos cabeçalhos */
+        grid-column: 1 / 2 !important;
+        margin: 0 0 0 10px !important;
+        height: 65vh !important;
+        min-height: 300px !important;
     }
     
-    /* Usamos 'contents' para que os 2 painéis possam ser separados no layout */
+    /* Isso 'explode' o container de peças para podermos mover cada quadro separadamente */
     .paineis-pecas {
-        display: contents; 
+        display: contents !important; 
     }
 
-    /* PAINEL DE LIGAÇÕES (Normalmente o segundo painel) - Fica na lateral direita */
-    .paineis-pecas .retangulo-pecas:last-child {
-        width: 110px;
-        margin: 0 10px 20px 0;
-        padding: 10px 5px;
-        order: 3; /* Ao lado da area de trabalho */
-        display: flex;
-        flex-direction: column;
-        flex: none;
-    }
-    /* Empilha as ligações verticalmente */
-    .paineis-pecas .retangulo-pecas:last-child .lista-pecas {
-        flex-direction: column;
-        align-items: center;
-    }
-    
-    /* PAINEL DE ÁTOMOS (Normalmente o primeiro painel) - Fica embaixo do quadro */
+    /* QUADRO DOS ÁTOMOS: Vai pra baixo do quadro principal */
     .paineis-pecas .retangulo-pecas:first-child {
-        width: calc(100% - 140px); /* Mesma largura do quadro acima dele */
-        margin: 0 10px 20px 10px;
-        padding: 10px;
-        order: 4; /* Pula para a linha de baixo do quadro */
-        flex: none;
+        grid-column: 1 / 2 !important;
+        margin: 0 0 20px 10px !important;
+        width: auto !important;
     }
-    /* Espalha os átomos horizontalmente */
     .paineis-pecas .retangulo-pecas:first-child .lista-pecas {
-        flex-direction: row;
-        flex-wrap: wrap;
-        justify-content: center;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+    }
+
+    /* QUADRO DAS LIGAÇÕES: Vai para a coluna da direita, grudado de lado */
+    .paineis-pecas .retangulo-pecas:last-child {
+        grid-column: 2 / 3 !important;
+        grid-row: auto / span 2 !important; /* Estica do lado do quadro e dos átomos */
+        margin: 0 10px 20px 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    .paineis-pecas .retangulo-pecas:last-child .lista-pecas {
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 20px !important;
     }
     
-    /* Removemos o rodapé no modo deitado para aproveitar a tela pro jogo */
+    /* Remove rodapé pra dar mais espaço */
     .rodape { display: none !important; }
     
-    /* Adaptação do Tutorial Genshin: Metade Vídeo, Metade Texto para não passar da tela */
-    .tutorial-genshin-box { height: 85vh; flex-direction: row; flex-wrap: wrap; }
-    .tutorial-media-container { width: 50%; height: 100%; border-bottom: none; border-right: 2px solid #cbd5e1;}
-    .tutorial-text-container { width: 50%; height: 80%; align-items: flex-start;}
-    .tutorial-controls { width: 50%; height: 20%; margin-left: auto; border-top: none;}
+    /* Adaptação do Tutorial Genshin para modo deitado */
+    .tutorial-genshin-box { height: 85vh !important; flex-direction: row !important; flex-wrap: wrap !important; }
+    .tutorial-media-container { width: 50% !important; height: 100% !important; border-bottom: none !important; border-right: 2px solid #cbd5e1 !important;}
+    .tutorial-text-container { width: 50% !important; height: 80% !important; align-items: flex-start !important;}
+    .tutorial-controls { width: 50% !important; height: 20% !important; margin-left: auto !important; border-top: none !important;}
 }
 
 /* 2. CELULAR EM PÉ (PORTRAIT) */
 @media screen and (max-width: 600px) and (orientation: portrait) {
-    .area-trabalho { min-height: 60vh; margin: 0 10px; }
-    .paineis-pecas { flex-direction: row; padding: 10px; gap: 10px; margin: 0; }
-    .retangulo-pecas { flex: 1; padding: 10px 5px; }
+    .area-trabalho { min-height: 60vh !important; margin: 0 10px !important; }
+    .paineis-pecas { flex-direction: row !important; padding: 10px !important; gap: 10px !important; margin: 0 !important; }
+    .retangulo-pecas { flex: 1 !important; padding: 10px 5px !important; }
 }
