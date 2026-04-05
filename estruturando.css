@@ -128,88 +128,119 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
 
 /* REGRAS GERAIS PARA QUALQUER TELA MENOR QUE 950px */
 @media screen and (max-width: 950px) {
-    .atomo { width: 55px !important; height: 55px !important; font-size: 22px !important; }
-    .ligacao { width: 55px !important; height: 25px !important; }
-    .ligacao .linha { width: 55px !important; height: 8px !important; border-radius: 4px !important;}
-    .lig-vertical { width: 25px !important; height: 55px !important; }
-    .lig-vertical .linha { width: 8px !important; height: 55px !important; }
+    .atomo { width: 50px !important; height: 50px !important; font-size: 20px !important; }
+    .ligacao { width: 50px !important; height: 25px !important; }
+    .ligacao .linha { width: 50px !important; height: 6px !important; border-radius: 3px !important;}
+    .lig-vertical { width: 25px !important; height: 50px !important; }
+    .lig-vertical .linha { width: 6px !important; height: 50px !important; }
 
     .painel-info { top: 5px; left: 5px; padding: 5px; width: 130px; font-size: 12px; background: rgba(255,255,255,0.9); }
     .painel-ferramentas { bottom: 65px; right: 5px; padding: 5px; width: 140px; background: rgba(255,255,255,0.9); }
     .dark .painel-info, .dark .painel-ferramentas { background: rgba(15, 23, 42, 0.9); }
     .btn-ferramenta { font-size: 11px; padding: 5px; }
     
-    .btn-verificar { bottom: 10px; width: 85%; padding: 12px; font-size: 16px; }
     .btn-ajuda { top: 5px; right: 5px; width: 35px; height: 35px; font-size: 16px; }
     .btn-catalogo { top: 5px; right: 45px; height: 35px; padding: 0 10px; font-size: 12px; }
 }
 
+
 /* ==========================================
-   1. CELULAR DEITADO (LANDSCAPE - FORÇA BRUTA ABSOLUTA)
+   1. CELULAR DEITADO (FULL SCREEN / TELA CHEIA C/ MENUS NO CANTO)
    ========================================== */
 @media screen and (max-width: 950px) and (orientation: landscape), 
        screen and (max-height: 600px) and (orientation: landscape) {
     
+    /* Trava a tela para não rolar nada para baixo */
+    html, body {
+        height: 100% !important;
+        overflow: hidden !important;
+    }
+
     .game-container {
-        padding-top: 60px !important;
-        padding-right: 120px !important; /* Cria um espaço vazio fixo na direita para as ligações */
+        padding: 5px !important;
+        height: 100vh !important;
+        min-height: 100vh !important;
         display: block !important;
         position: relative !important;
+        overflow: hidden !important;
     }
+
+    /* Oculta os textos desnecessários pra ganhar espaço total na tela deitada */
+    .header-modo, #texto-modo-livre { display: none !important; }
     
+    /* Deixa o HUD da pergunta compacto lá em cima */
+    .hud-desafio {
+        position: absolute;
+        top: 5px; left: 10px;
+        width: calc(100% - 170px) !important; /* Deixa o espaço direito livre */
+        margin: 0 !important;
+        padding: 5px 10px !important;
+        z-index: 10;
+    }
+
+    /* O QUADRO DO JOGO - Do topo até o fim, ocupando a esquerda */
     .area-trabalho {
-        width: 100% !important;
-        height: 60vh !important;
-        min-height: 250px !important;
-        margin: 0 0 10px 0 !important;
+        position: absolute !important;
+        top: 65px !important; /* Logo abaixo do HUD */
+        left: 10px !important;
+        bottom: 10px !important; /* Estica até o fim da tela */
+        width: calc(100% - 170px) !important; /* Ocupa tudo menos os 170px da direita */
+        height: auto !important;
+        min-height: 0 !important;
+        margin: 0 !important;
     }
-    
+
+    /* O container invisível que segura os 2 blocos de peças no canto inferior direito */
     .paineis-pecas {
-        display: block !important;
+        position: absolute !important;
+        bottom: 10px !important; /* Fica colado no final da tela */
+        right: 10px !important; /* Fica colado na direita */
+        width: 150px !important;
+        display: flex !important;
+        flex-direction: column-reverse !important; /* FORÇA LIGAÇÕES EM CIMA E ÁTOMOS EMBAIXO */
+        gap: 10px !important; /* Espaço entre Ligações e Átomos */
+        margin: 0 !important;
         padding: 0 !important;
-        margin: 0 !important;
-        width: 100% !important;
+        z-index: 100 !important;
     }
-    
-    /* QUADRO 1: ÁTOMOS (Fica deitado embaixo da área de trabalho) */
-    .paineis-pecas > div:first-child {
+
+    /* Formatação igual para as duas caixas para ficarem bonitas empilhadas */
+    .paineis-pecas > div {
         width: 100% !important;
         margin: 0 !important;
+        padding: 8px 5px !important;
     }
-    .paineis-pecas > div:first-child .lista-pecas {
+
+    /* QUADRO DOS ÁTOMOS (Ficará embaixo devido ao column-reverse) */
+    .paineis-pecas > div:nth-child(1) .lista-pecas {
         display: flex !important;
         flex-direction: row !important;
         flex-wrap: wrap !important;
         justify-content: center !important;
+        gap: 8px !important;
+    }
+
+    /* QUADRO DAS LIGAÇÕES (Ficará FIXO LOGO ACIMA DOS ÁTOMOS) */
+    .paineis-pecas > div:nth-child(2) .lista-pecas {
+        display: flex !important;
+        flex-direction: row !important; /* Ligações lado a lado pra economizar espaço */
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+        gap: 10px !important;
+    }
+
+    /* Ajuste do botão Verificar para não atrapalhar no modo deitado */
+    .btn-verificar {
+        bottom: auto !important;
+        top: 10px !important;
+        left: auto !important;
+        right: 170px !important;
+        transform: none !important;
+        padding: 8px 15px !important;
+        font-size: 14px !important;
     }
     
-    /* QUADRO 2: LIGAÇÕES (É pregado com prego na direita da tela) */
-    .paineis-pecas > div:last-child {
-        position: fixed !important;
-        top: 60px !important; /* Fica alinhado em cima */
-        right: 5px !important; /* Grudado na direita */
-        width: 110px !important;
-        max-height: 85vh !important;
-        overflow-y: auto !important;
-        margin: 0 !important;
-        z-index: 1000 !important;
-        display: flex !important;
-        flex-direction: column !important;
-    }
-    .paineis-pecas > div:last-child .lista-pecas {
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: center !important;
-        gap: 15px !important;
-    }
-
     .rodape { display: none !important; }
-
-    /* Adaptação do Tutorial Genshin para modo deitado */
-    .tutorial-genshin-box { height: 85vh !important; flex-direction: row !important; flex-wrap: wrap !important; }
-    .tutorial-media-container { width: 50% !important; height: 100% !important; border-bottom: none !important; border-right: 2px solid #cbd5e1 !important;}
-    .tutorial-text-container { width: 50% !important; height: 80% !important; align-items: flex-start !important;}
-    .tutorial-controls { width: 50% !important; height: 20% !important; margin-left: auto !important; border-top: none !important;}
 }
 
 /* ==========================================
