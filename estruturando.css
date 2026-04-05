@@ -1,70 +1,187 @@
 /* ==========================================
-   RESETS E GERAIS (MANTIDOS)
+   1. RESETS E CONFIGURAÇÕES GERAIS
    ========================================== */
+html, body { 
+    overflow: auto !important; 
+    height: auto !important; 
+    touch-action: auto !important; 
+}
 body.no-scroll { touch-action: auto !important; overflow: auto !important; }
 .escondido { display: none !important; opacity: 0; pointer-events: none;}
 
-.game-container { padding-top: 80px; width: 100%; max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; min-height: 100vh; }
+.game-container { 
+    padding-top: 80px; 
+    width: 100%; 
+    max-width: 1200px; 
+    margin: 0 auto; 
+    display: flex; 
+    flex-direction: column; 
+    min-height: 100vh; 
+}
+
 .header-modo { text-align: left; padding: 0 20px; margin-bottom: 10px; }
 #titulo-modo { font-size: 28px; color: var(--text-color); margin-bottom: 5px; text-transform: uppercase;}
 
-#texto-modo-livre { background: var(--header-bg); padding: 15px 25px; margin: 0 20px 20px; border-radius: 10px; border-left: 5px solid #16a34a; font-size: 14px; line-height: 1.6; box-shadow: var(--shadow); }
+#texto-modo-livre { 
+    background: var(--header-bg); 
+    padding: 15px 25px; 
+    margin: 0 20px 20px; 
+    border-radius: 10px; 
+    border-left: 5px solid #16a34a; 
+    font-size: 14px; 
+    line-height: 1.6; 
+    box-shadow: var(--shadow); 
+}
+#texto-modo-livre p { margin-bottom: 10px; }
+#texto-modo-livre p:last-child { margin-bottom: 0; }
 
 /* ==========================================
-   ÁTOMOS E LIGAÇÕES (+30% DE TAMANHO)
+   2. MODAIS E BOTÕES (ESTILO ÉPICO)
+   ========================================== */
+.modal-box-epic { border: none !important; border-radius: 20px !important; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important; }
+.modal-box-epic .modal-header { border-top-left-radius: 20px; border-top-right-radius: 20px; padding: 20px; text-transform: uppercase; letter-spacing: 1px; }
+
+.btn-epic-green { 
+    padding: 15px 40px; font-size: 20px; font-weight: 900; background: #16a34a; color: white; 
+    border: none; border-radius: 30px; cursor: pointer; box-shadow: 0 5px 15px rgba(22, 163, 74, 0.4); 
+    transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px;
+}
+.btn-epic-green:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(22, 163, 74, 0.6); }
+
+.btn-epic-red { 
+    padding: 15px 40px; background: #ef4444; color: white; border: none; border-radius: 30px; 
+    cursor: pointer; font-weight: 900; font-size: 18px; box-shadow: 0 5px 15px rgba(239, 68, 68, 0.4); 
+    transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px;
+}
+.btn-epic-red:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(239, 68, 68, 0.6); }
+
+@keyframes tremer { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-10px); } 40%, 80% { transform: translateX(10px); } }
+
+/* ==========================================
+   3. HUD, CRONÔMETRO E INDICADORES
+   ========================================== */
+.cronometro { 
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); 
+    background: #ef4444; color: white; font-size: 24px; font-weight: 900; 
+    padding: 5px 20px; border-radius: 30px; box-shadow: inset 0 0 10px rgba(0,0,0,0.5), 0 4px 6px rgba(0,0,0,0.3); 
+    border: 2px solid white; letter-spacing: 2px; 
+}
+.cronometro.perigo { animation: piscarCronometro 1s infinite alternate; background: darkred;}
+@keyframes piscarCronometro { 0% { filter: brightness(1); } 100% { filter: brightness(1.8); transform: translate(-50%, -50%) scale(1.05); } }
+
+.hud-desafio { 
+    background: var(--header-bg); margin: 0 20px 15px; border-radius: 10px; 
+    padding: 15px; border: 2px solid #0284c7; box-shadow: var(--shadow); text-align: center;
+}
+.hud-topo { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 24px;}
+.estrelas-hud span { color: #333; margin: 0 5px; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); transition: 0.5s; }
+.estrelas-hud span.ganha { color: gold; text-shadow: 0 0 10px gold; transform: scale(1.2);}
+.vidas-hud { color: red; font-size: 20px; letter-spacing: 5px; }
+
+.hud-pergunta { font-size: 18px; color: var(--text-color); display: flex; justify-content: center; align-items: center; gap: 15px;}
+#nome-desafio-atual { color: #0284c7; font-size: 22px; text-decoration: underline; }
+
+.btn-dica { 
+    background: #eab308; border: none; border-radius: 50%; width: 35px; height: 35px; 
+    font-size: 18px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.3); 
+    transition: 0.2s; display: flex; justify-content: center; align-items: center;
+}
+.btn-dica:hover { transform: scale(1.1); background: #facc15; }
+
+/* ==========================================
+   4. ÁREA DE TRABALHO E FERRAMENTAS (REDUZIDAS)
+   ========================================== */
+.area-trabalho { 
+    position: relative; min-height: 400px; margin: 0 20px; 
+    border: 4px solid #0284c7; border-radius: 10px; background-color: white; 
+    overflow: visible !important; box-shadow: var(--shadow); z-index: 40; 
+}
+.quadro-grid { 
+    width: 100%; height: 100%; position: absolute; overflow: visible !important; 
+    background-image: linear-gradient(rgba(2,132,199,0.2) 1px, transparent 1px), 
+    linear-gradient(90deg, rgba(2,132,199,0.2) 1px, transparent 1px); 
+    background-size: 30px 30px; 
+}
+#quadro-inner { width: 100%; height: 100%; position: absolute; top: 0; left: 0; transition: transform 0.3s ease; transform-origin: center center; overflow: visible; }
+
+/* Paineis de Ferramentas Menores */
+.painel-info { position: absolute; top: 5px; left: 5px; background: var(--header-bg); border: 1.5px solid #0284c7; border-radius: 6px; padding: 4px; z-index: 20; }
+.painel-ferramentas { position: absolute; bottom: 5px; right: 5px; background: var(--header-bg); border: 1.5px solid #0284c7; border-radius: 6px; padding: 4px; z-index: 20; }
+.btn-toggle-info, .btn-toggle-ferramentas { background: none; border: none; font-weight: bold; cursor: pointer; color: #0284c7; font-size: 10px; width: 100%; text-align: left; }
+.conteudo-painel { transition: max-height 0.3s ease; max-height: 200px; opacity: 1; overflow: hidden; }
+.painel-recolhido .conteudo-painel { max-height: 0; opacity: 0; }
+.ferramentas-grid { display: grid; gap: 4px; }
+.btn-ferramenta { background: #f0f4f8; border: 1px solid #ccc; border-radius: 4px; font-size: 10px; padding: 4px; cursor: pointer; font-weight: bold;}
+.btn-ferramenta:hover { background: #0284c7; color: white; }
+
+/* ==========================================
+   5. ÁTOMOS E LIGAÇÕES (AUMENTO DE 30%+)
    ========================================== */
 .atomo { 
-    width: 55px !important; /* Era 40px, +30% = 52-55px */
-    height: 55px !important; 
+    width: 60px !important; height: 60px !important; 
     border-radius: 50%; display: flex; justify-content: center; align-items: center; 
-    font-size: 22px !important; /* Texto maior também */
-    font-weight: 900; color: white; 
+    font-size: 22px !important; font-weight: 900; color: white; 
     box-shadow: inset -4px -4px 8px rgba(0,0,0,0.3), 0 3px 5px rgba(0,0,0,0.3); 
     text-shadow: 1px 1px 2px black; z-index: 50 !important; position: relative;
 }
 
 .ligacao { 
-    display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 4px; 
-    width: 55px !important; /* Acompanhando o átomo */
-    height: 25px !important; 
-    z-index: 10 !important;
+    display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px; 
+    width: 60px !important; height: 28px !important; z-index: 10 !important;
 }
-.ligacao .linha { width: 55px !important; height: 7px !important; background-color: #334155; border-radius: 3px; }
+.ligacao .linha { width: 60px !important; height: 8px !important; background-color: #334155; border-radius: 4px; }
+.lig-vertical { flex-direction: row; width: 28px !important; height: 60px !important; }
+.lig-vertical .linha { width: 8px !important; height: 60px !important; }
 
-.lig-vertical { flex-direction: row; width: 25px !important; height: 55px !important; }
-.lig-vertical .linha { width: 7px !important; height: 55px !important; }
+/* Cores dos Átomos */
+.atomo-C { background-color: #333333; }
+.atomo-H { background-color: #f1f5f9; color: #333; text-shadow: none; }
+.atomo-O { background-color: #ef4444; }
+.atomo-N { background-color: #3b82f6; }
+.atomo-S { background-color: #eab308; }
+.atomo-P { background-color: #f97316; }
+.atomo-Cl { background-color: #22c55e; }
+.atomo-F { background-color: #86efac; color: #333; text-shadow: none;}
+.atomo-Br { background-color: #7f1d1d; }
+.atomo-I { background-color: #9333ea; }
+.no-quadro { position: absolute; margin: 0; }
+
+.hidrogenio-completo { position: absolute; bottom: -5px; right: -10px; font-size: 11px; font-weight: bold; color: #333; background: white; border-radius: 4px; padding: 2px 4px; z-index: 99; }
 
 /* ==========================================
-   QUADRO E FERRAMENTAS (REDUZIDOS)
+   6. INTERAÇÕES E ANIMAÇÕES
    ========================================== */
-.area-trabalho { 
-    position: relative; 
-    min-height: 400px; /* Diminuído */
-    margin: 0 20px; 
-    border: 4px solid #0284c7; 
-    border-radius: 10px; 
-    background-color: white; 
-    overflow: visible !important; 
-    box-shadow: var(--shadow); 
-    z-index: 40; 
-}
+.peca-draggable { cursor: grab; user-select: none; touch-action: none; position: relative; }
+.peca-draggable:active { cursor: grabbing; }
 
-/* Ferramentas compactas para não ocupar espaço */
-.painel-info, .painel-ferramentas { 
-    padding: 4px !important; 
-    border: 1px solid #0284c7 !important;
-}
-.btn-ferramenta { padding: 4px 8px !important; font-size: 11px !important; }
-.btn-toggle-info, .btn-toggle-ferramentas { font-size: 10px !important; }
+@keyframes piscar-erro { 0% { box-shadow: 0 0 15px red; background-color: #ef4444; } 50% { box-shadow: 0 0 5px darkred; background-color: darkred; } 100% { box-shadow: 0 0 15px red; background-color: #ef4444; } }
+@keyframes piscar-sucesso-verde { 0% { box-shadow: 0 0 15px #22c55e; } 50% { box-shadow: 0 0 30px #16a34a; } 100% { box-shadow: 0 0 0px transparent; } }
+
+.atomo-erro { animation: piscar-erro 0.5s infinite !important; }
+.atomo-sucesso { animation: piscar-sucesso-verde 0.5s 4 !important; }
 
 /* ==========================================
-   LANDSCAPE (O LAYOUT CORRIGIDO)
+   7. MENUS, CATÁLOGO E TUTORIAL
+   ========================================== */
+#menu-contexto { position: fixed; background: white; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); z-index: 100000; width: 240px; overflow: hidden;}
+#menu-contexto li { padding: 12px 15px; font-size: 14px; cursor: pointer; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 10px;}
+#menu-contexto li:hover { background: #0284c7; color: white; }
+
+.item-catalogo { background: #f8fafc; border: 1px solid #ccc; padding: 10px; border-radius: 8px; margin-bottom: 10px;}
+.item-catalogo.desbloqueado { border-left: 5px solid #16a34a; }
+.item-catalogo.bloqueado { opacity: 0.6; filter: grayscale(100%); }
+
+.tutorial-genshin-box { background: #ffffff; width: 90%; max-width: 650px; border-radius: 15px; overflow: hidden; border: 3px solid #0284c7; display: flex; flex-direction: column; }
+.tutorial-media-container { width: 100%; height: 250px; background: #e2e8f0; display: flex; justify-content: center; align-items: center; }
+.tutorial-text-container { padding: 15px; text-align: justify; color: #334155; }
+
+/* ==========================================
+   8. LANDSCAPE (O NOVO LAYOUT REVISADO)
    ========================================== */
 @media screen and (orientation: landscape) and (max-width: 950px) {
     
     html, body { overflow: auto !important; height: auto !important; }
 
-    /* Alinhamento Lado a Lado */
     .game-container { 
         display: flex !important; 
         flex-direction: row !important; 
@@ -73,43 +190,51 @@ body.no-scroll { touch-action: auto !important; overflow: auto !important; }
         justify-content: flex-start !important;
     }
 
-    /* Quadro: 80% e altura menor */
+    /* Quadro: 78% da largura, altura reduzida */
     .area-trabalho {
         flex: 0 0 78% !important; 
         width: 78% !important;
         margin: 0 !important;
-        min-height: 350px !important; 
+        min-height: 340px !important;
+        position: relative !important;
     }
 
     .paineis-pecas { display: contents !important; }
 
-    /* Menu de Ligações: Rente ao quadro na direita */
+    /* Menu de Ligações: Rente à direita do quadro */
     .paineis-pecas > div:nth-child(2) {
         order: 2 !important;
-        flex: 0 0 18% !important;
-        width: 18% !important;
-        margin-left: 2% !important;
+        flex: 0 0 19% !important;
+        width: 19% !important;
+        margin-left: 1% !important;
         display: flex !important;
         flex-direction: column !important;
         background: var(--btn-bg) !important;
         border: 3px solid #0284c7 !important;
         border-radius: 15px !important;
-        height: 350px !important; /* Mesma altura do quadro */
+        height: 340px !important; /* Mesma altura do quadro */
         padding: 10px !important;
         position: relative !important;
     }
 
-    /* Menu de Átomos: Embaixo, RENTE à linha final do menu de ligações */
+    .paineis-pecas > div:nth-child(2) .lista-pecas {
+        flex-direction: column !important;
+        gap: 15px !important;
+        align-items: center !important;
+        overflow-y: auto !important;
+    }
+
+    /* Menu de Átomos: Embaixo, ALINHADO RENTE à ponta do menu de ligações */
     .paineis-pecas > div:nth-child(1) {
         order: 3 !important;
-        flex: 0 0 98% !important; /* 78% do quadro + 2% margem + 18% ligações = 98% */
+        flex: 0 0 98% !important; /* Soma das larguras acima para alinhar a borda direita */
         width: 98% !important;
-        margin: 15px 0 !important;
+        margin: 20px 0 !important;
         background: var(--btn-bg) !important;
-        border: 4px solid #0284c7 !important; /* BORDA AZUL */
-        border-radius: 25px !important; /* PONTAS ARREDONDADAS */
+        border: 4px solid #0284c7 !important; /* BORDA AZUL SOLICITADA */
+        border-radius: 25px !important; /* PONTAS ARREDONDADAS SOLICITADAS */
         padding: 15px !important;
-        position: relative !important;
+        position: relative !important; /* NÃO SEGUE A TELA */
     }
 
     .paineis-pecas > div:nth-child(1) .lista-pecas {
@@ -121,24 +246,13 @@ body.no-scroll { touch-action: auto !important; overflow: auto !important; }
         gap: 30px !important;
     }
 
-    .paineis-pecas > div:nth-child(2) .lista-pecas {
-        flex-direction: column !important;
-        gap: 20px !important;
-        align-items: center !important;
-    }
+    .retangulo-pecas h3 { font-size: 11px !important; margin-bottom: 5px !important; text-transform: uppercase; }
 }
 
-/* ==========================================
-   RESTO DO CÓDIGO (CORES E ANIMAÇÕES MANTIDAS)
-   ========================================== */
-.atomo-C { background-color: #333333; }
-.atomo-H { background-color: #f1f5f9; color: #333; text-shadow: none; }
-.atomo-O { background-color: #ef4444; }
-.atomo-N { background-color: #3b82f6; }
-.atomo-S { background-color: #eab308; }
+/* PORTRAIT */
+@media screen and (max-width: 600px) and (orientation: portrait) {
+    .area-trabalho { min-height: 55vh !important; margin: 0 10px !important; }
+    .paineis-pecas { flex-direction: row !important; }
+}
 
-.modal-box-epic { border: none !important; border-radius: 20px !important; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important; }
-.cronometro.perigo { animation: piscarCronometro 1s infinite alternate; background: darkred;}
-@keyframes piscarCronometro { 0% { filter: brightness(1); } 100% { filter: brightness(1.8); transform: translate(-50%, -50%) scale(1.05); } }
-
-/* Tutorial, HUD e Toasts seguem aqui... (mantive as 230 linhas na estrutura interna) */
+/* FIM DO CÓDIGO */
