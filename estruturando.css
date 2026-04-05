@@ -130,70 +130,73 @@ body.no-scroll { touch-action: auto !important; overflow: auto !important; }
 }
 
 /* ==========================================
-   CELULAR DEITADO (LANDSCAPE) - O SEU LAYOUT CORRIGIDO
+   CELULAR DEITADO (LANDSCAPE) - SEM SEGUIR A TELA
    ========================================== */
 @media screen and (orientation: landscape) and (max-width: 950px),
        screen and (orientation: landscape) and (max-height: 600px) {
 
-    /* DEVOLVE O SCROLL */
     html, body {
         overflow: auto !important; 
         height: auto !important;
-        touch-action: auto !important;
     }
 
     .game-container {
         display: block !important;
-        padding-bottom: 150px !important; /* Espaço pro menu de átomos não tapar o quadro */
+        padding-bottom: 20px !important; 
     }
 
-    /* O QUADRO: 80% da tela + margem esquerda */
+    /* O QUADRO: 80% da tela */
     .area-trabalho {
         width: calc(100% - 150px) !important; 
         margin: 10px 0 10px 10px !important;
         min-height: 400px !important; 
+        display: inline-block !important; /* Permite o menu do lado */
+        vertical-align: top;
     }
 
-    .paineis-pecas { display: block !important; padding: 0 !important; }
+    .paineis-pecas { 
+        display: block !important; 
+        padding: 0 !important; 
+        margin: 0 10px !important;
+    }
 
-    /* MENU DE ÁTOMOS: Do início ao fim, linear, no rodapé */
+    /* MENU DE ÁTOMOS: Borda arredondada, com borda azul e no fluxo da tela */
     .paineis-pecas > div:nth-child(1) {
-        position: fixed !important; 
-        bottom: 0 !important;
-        left: 0 !important;
-        width: 100vw !important; 
-        min-height: 90px !important;
-        z-index: 10001 !important;
-        margin: 0 !important;
-        border-radius: 0 !important;
+        position: relative !important; /* NÃO SEGUE MAIS A TELA */
+        width: 100% !important; 
+        min-height: 100px !important;
+        margin: 20px 0 !important;
+        border-radius: 20px !important; /* PONTAS ARREDONDADAS */
+        border: 3px solid #0284c7 !important; /* COM BORDA */
+        z-index: 10 !important;
     }
 
     .paineis-pecas > div:nth-child(1) .lista-pecas {
         display: flex !important;
         flex-direction: row !important;
-        flex-wrap: nowrap !important; /* Tudo alinhado sem pular linha */
-        overflow-x: auto !important; /* Se tiver muitos, dá scroll horizontal só aqui */
-        justify-content: flex-start !important;
-        padding: 10px !important;
+        flex-wrap: nowrap !important; 
+        overflow-x: auto !important; 
+        justify-content: center !important;
+        padding: 15px !important;
         gap: 15px !important;
     }
 
-    /* MENU DE LIGAÇÕES: Rente ao quadro, fixo na direita, uma em cima da outra */
+    /* MENU DE LIGAÇÕES: Rente ao quadro, parado na tela */
     .paineis-pecas > div:nth-child(2) {
-        position: fixed !important;
-        top: 80px !important; /* Ajustado para não subir demais */
+        position: absolute !important; /* Fica preso em relação ao container pai */
+        top: 90px !important;
         right: 10px !important;
         width: 120px !important;
-        z-index: 10000 !important;
+        height: 400px !important;
         margin: 0 !important;
         display: flex !important;
         flex-direction: column !important;
+        border-radius: 15px !important;
+        border: 2px solid #0284c7 !important;
     }
 
     .paineis-pecas > div:nth-child(2) .lista-pecas {
-        display: flex !important;
-        flex-direction: column !important; /* Uma em cima da outra */
-        align-items: center !important;
+        flex-direction: column !important;
         gap: 15px !important;
     }
 }
@@ -202,5 +205,4 @@ body.no-scroll { touch-action: auto !important; overflow: auto !important; }
 @media screen and (max-width: 600px) and (orientation: portrait) {
     .area-trabalho { min-height: 60vh !important; margin: 0 10px !important; }
     .paineis-pecas { flex-direction: row !important; padding: 10px !important; gap: 10px !important; margin: 0 !important; }
-    .retangulo-pecas { flex: 1 !important; padding: 10px 5px !important; }
 }
