@@ -124,12 +124,12 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
 
 
 /* ==========================================
-   CELULAR DEITADO (LANDSCAPE) - TELA CHEIA E MENUS NO CANTO
+   CELULAR DEITADO (LANDSCAPE) - TELA CHEIA E MENUS NO CANTO DIREITO
    ========================================== */
-@media screen and (orientation: landscape) and (max-height: 600px),
+@media screen and (orientation: landscape) and (max-height: 650px),
        screen and (orientation: landscape) and (max-width: 950px) {
     
-    /* Trava a tela para não rolar absolutamente nada */
+    /* 1. Trava a tela para ser 100% fixa, sem rolar pra baixo */
     html, body {
         height: 100% !important;
         width: 100% !important;
@@ -145,60 +145,61 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
         padding: 0 !important;
         margin: 0 !important;
         max-width: 100% !important;
+        position: relative !important;
     }
 
-    /* Esconde textos desnecessários no modo paisagem */
+    /* Esconde textos desnecessários e rodapé no modo paisagem */
     .header-modo, #texto-modo-livre, .rodape { 
         display: none !important; 
     }
 
-    /* HUD de status (Fica colado no topo esquerdo) */
+    /* HUD (Barrinha de vidas/estrelas - Fica colado no topo esquerdo) */
     .hud-desafio {
         position: absolute !important;
         top: 5px !important;
         left: 5px !important;
-        width: calc(100vw - 160px) !important; /* Deixa 150px livres na direita pros botões */
+        width: calc(100vw - 160px) !important; /* Deixa o espaço direito livre para os menus */
         margin: 0 !important;
         padding: 5px !important;
         box-sizing: border-box !important;
         z-index: 50 !important;
     }
 
-    /* QUADRO DO JOGO (Ocupa tudo do topo ao chão, respeitando a margem direita) */
+    /* 2. O QUADRO DO JOGO - Ocupa do topo ao chão, cobrindo todo lado esquerdo */
     .area-trabalho {
         position: absolute !important;
         top: 70px !important; /* Começa logo abaixo da HUD */
         left: 5px !important;
-        bottom: 5px !important; /* Vai até o fim da tela */
-        width: calc(100vw - 160px) !important; /* Para antes dos botões do lado direito */
+        bottom: 5px !important; /* Vai até o fim da tela em baixo */
+        width: calc(100vw - 160px) !important; /* Estica até bater na área dos menus */
         height: auto !important;
         min-height: 0 !important;
         margin: 0 !important;
         box-sizing: border-box !important;
     }
 
-    /* CAIXA QUE SEGURA OS MENUS DE PEÇAS (Fica cravada no canto inferior direito) */
+    /* 3. A CAIXA DOS MENUS - Fica cravada no canto inferior direito */
     .paineis-pecas {
         position: absolute !important;
-        bottom: 5px !important; /* Colado na base da tela */
-        right: 5px !important;  /* Colado no canto direito da tela */
-        width: 145px !important; /* Largura fixa do menu */
+        bottom: 5px !important; /* Colado na base direita da tela */
+        right: 5px !important;  
+        width: 145px !important; /* Largura fixa do menu direito */
         height: auto !important;
         display: flex !important;
-        flex-direction: column !important; /* Empilha os filhos na vertical */
+        flex-direction: column !important; /* Empilha as peças */
         margin: 0 !important;
         padding: 0 !important;
         z-index: 1000 !important;
     }
 
-    /* Reduz um pouco os itens para caber melhor na lateral */
+    /* Formatação dos dois retângulos dentro do menu lateral */
     .paineis-pecas > div {
         width: 100% !important;
         box-sizing: border-box !important;
         padding: 8px 5px !important;
     }
 
-    /* MENU DE ÁTOMOS (Forçamos ele a ir para baixo usando "order: 2") */
+    /* MENU DE ÁTOMOS (Fica por baixo - "order: 2") */
     .paineis-pecas > div:nth-child(1) {
         order: 2 !important;
         margin: 0 !important;
@@ -211,10 +212,10 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
         gap: 6px !important;
     }
 
-    /* MENU DE LIGAÇÕES (Forçamos ele a ir para cima dos átomos usando "order: 1") */
+    /* MENU DE LIGAÇÕES (Fica cravado em cima dos átomos - "order: 1") */
     .paineis-pecas > div:nth-child(2) {
         order: 1 !important;
-        margin: 0 0 10px 0 !important; /* Espaço entre as ligações e os átomos */
+        margin: 0 0 10px 0 !important; /* Dá um espacinho em relação aos átomos embaixo dele */
     }
     .paineis-pecas > div:nth-child(2) .lista-pecas {
         display: flex !important;
@@ -224,13 +225,13 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
         gap: 10px !important;
     }
 
-    /* Oculta títulos dentro das caixas se ficarem muito grandes (opcional) */
+    /* Oculta os títulos ("ÁTOMOS", "LIGAÇÕES") se ocuparem muito espaço */
     .retangulo-pecas h3 {
         margin-bottom: 5px !important;
         font-size: 11px !important;
     }
 
-    /* Reduzindo as peças para mobile */
+    /* Deixa as peças um pouco menores para não engolir a tela no mobile */
     .atomo { width: 45px !important; height: 45px !important; font-size: 18px !important; }
     .ligacao { width: 45px !important; height: 20px !important; }
     .ligacao .linha { width: 45px !important; height: 6px !important; border-radius: 3px !important;}
