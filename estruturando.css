@@ -1,5 +1,5 @@
 /* ==========================================
-   TRAVA ABSOLUTA DE TELA (Para o Tutorial)
+   TRAVA DO TUTORIAL (Fundo Inativo)
    ========================================== */
 body.no-scroll { overflow: hidden !important; touch-action: none !important; pointer-events: none !important; }
 body.no-scroll .tutorial-genshin-box, 
@@ -44,11 +44,13 @@ body.no-scroll .swal2-container { pointer-events: auto !important; }
 .btn-verificar { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); background: #16a34a; color: white; padding: 12px 30px; border-radius: 30px; border: 3px solid white; font-size: 18px; font-weight: bold; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.4); z-index: 50; transition: 0.2s; }
 .btn-verificar:hover { background: #15803d; transform: translateX(-50%) scale(1.05); }
 
-/* BOTÕES DE AJUDA E CATÁLOGO - BLINDADOS */
-.btn-ajuda { position: fixed !important; top: 15px !important; right: 15px !important; width: 40px; height: 40px; background: #ffffff; color: #0284c7; border: 2px solid #0284c7; border-radius: 50%; font-size: 20px; font-weight: bold; cursor: pointer; z-index: 99999 !important; box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: 0.2s; flex-shrink: 0; }
+/* ==========================================
+   BOTÕES DE AJUDA E CATÁLOGO (RESTAURADOS E BLINDADOS)
+   ========================================== */
+.btn-ajuda { position: absolute !important; top: 10px !important; right: 10px !important; width: 40px !important; height: 40px !important; background: #ffffff; color: #0284c7; border: 2px solid #0284c7; border-radius: 50%; font-size: 20px; font-weight: bold; cursor: pointer; z-index: 999999 !important; box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: 0.2s; flex-shrink: 0; }
 .btn-ajuda:hover { transform: scale(1.1); background: #e0f2fe; }
 
-.btn-catalogo { position: fixed !important; top: 15px !important; right: 65px !important; height: 40px; background: #16a34a; color: white; border: 2px solid white; border-radius: 20px; padding: 0 15px; font-size: 14px; font-weight: bold; cursor: pointer; z-index: 99999 !important; box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: 0.2s; flex-shrink: 0; white-space: nowrap; }
+.btn-catalogo { position: absolute !important; top: 10px !important; right: 60px !important; height: 40px !important; background: #16a34a; color: white; border: 2px solid white; border-radius: 20px; padding: 0 15px; font-size: 14px; font-weight: bold; cursor: pointer; z-index: 999999 !important; box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: 0.2s; flex-shrink: 0; white-space: nowrap; }
 .btn-catalogo:hover { transform: scale(1.05); background: #15803d; }
 
 .toast { position: fixed; top: 90px; left: 50%; transform: translateX(-50%); background: var(--btn-bg); color: white; padding: 12px 25px; border-radius: 30px; font-weight: bold; font-size: 16px; box-shadow: 0 10px 20px rgba(0,0,0,0.3); z-index: 9999; transition: opacity 0.4s ease, top 0.4s ease; text-align: center;}
@@ -70,7 +72,7 @@ body.no-scroll .swal2-container { pointer-events: auto !important; }
 .btn-ferramenta:hover { background: #0284c7; color: white; transform: scale(1.05); }
 
 /* ==========================================
-   ÁTOMOS E LIGAÇÕES
+   PAINEL DE PEÇAS GERAL
    ========================================== */
 .paineis-pecas { display: flex; justify-content: space-between; padding: 20px; gap: 20px; height: auto; min-height: 150px; flex-wrap: wrap; z-index: 30; position: relative;}
 .retangulo-pecas { flex: 1; background: var(--btn-bg); border-radius: 10px; padding: 15px; color: white; box-shadow: var(--shadow); display: flex; flex-direction: column; }
@@ -142,10 +144,11 @@ body.no-scroll .swal2-container { pointer-events: auto !important; }
 
 
 /* ==========================================
-   SUPER RESPONSIVIDADE (CELULARES)
+   SUPER RESPONSIVIDADE (CELULARES E TABLETS)
    ========================================== */
+
 @media screen and (max-width: 950px) {
-    /* Diminui os átomos e ferramentas geral para caber bem no mobile */
+    /* BASE PARA TELAS MENORES (EM PÉ OU DEITADO) */
     .atomo { width: 45px !important; height: 45px !important; min-width: 45px !important; min-height: 45px !important; font-size: 18px !important; flex-shrink: 0 !important; }
     .ligacao { width: 45px !important; height: 22px !important; min-width: 45px !important; flex-shrink: 0 !important;}
     .ligacao .linha { width: 45px !important; height: 6px !important; border-radius: 3px !important;}
@@ -161,7 +164,7 @@ body.no-scroll .swal2-container { pointer-events: auto !important; }
 }
 
 /* ==========================================
-   CELULAR DEITADO (LANDSCAPE - SEU LAYOUT)
+   CELULAR DEITADO (LANDSCAPE - O SEU LAYOUT)
    ========================================== */
 @media screen and (max-width: 950px) and (orientation: landscape) {
     .game-container {
@@ -175,7 +178,7 @@ body.no-scroll .swal2-container { pointer-events: auto !important; }
     
     /* QUADRO NA ESQUERDA */
     .area-trabalho {
-        width: calc(100% - 130px); /* Libera a largura para as ligações */
+        width: calc(100% - 110px); /* Libera a largura para as ligações */
         flex: none; 
         min-height: 380px;
         margin: 0 0 10px 10px;
@@ -186,7 +189,7 @@ body.no-scroll .swal2-container { pointer-events: auto !important; }
 
     /* LIGAÇÕES NA DIREITA */
     .paineis-pecas > div:nth-child(2) {
-        width: 110px;
+        width: 90px;
         order: 3;
         margin: 0 10px 10px 10px;
         display: flex;
@@ -195,7 +198,7 @@ body.no-scroll .swal2-container { pointer-events: auto !important; }
     }
     .paineis-pecas > div:nth-child(2) .lista-pecas {
         flex-direction: column;
-        gap: 15px;
+        gap: 10px;
     }
 
     /* ÁTOMOS NO FUNDO DA TELA */
@@ -205,15 +208,20 @@ body.no-scroll .swal2-container { pointer-events: auto !important; }
         margin: 0 10px 20px 10px;
     }
     
+    /* CORREÇÃO DO ÁTOMO SUMINDO E CORTANDO */
     .paineis-pecas > div:nth-child(1) .lista-pecas {
         display: flex;
         flex-direction: row;
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        gap: 6px; /* Diminui a lacuna para caber todos */
-        padding: 15px 5px; /* ESPAÇO SEGURO PARA ROLAR A TELA SEM PEGAR NO ÁTOMO */
-        justify-content: space-evenly;
+        flex-wrap: nowrap; /* Mantém numa linha só */
+        justify-content: center; /* Centraliza todos */
+        gap: 2px; /* Reduz espaço para caberem os 10 perfeitamente */
+        padding: 5px; /* Padding minímo para a sombra não cortar */
     }
+
+    /* Diminuindo apenas no modo deitado para caber todos os 10 átomos na tela */
+    .atomo { width: 38px !important; height: 38px !important; min-width: 38px !important; min-height: 38px !important; font-size: 16px !important; }
+    .ligacao { width: 38px !important; height: 20px !important; min-width: 38px !important; }
+    .ligacao .linha { width: 38px !important; }
     
     .rodape { display: none !important; }
     
