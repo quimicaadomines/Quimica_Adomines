@@ -1,7 +1,16 @@
-body.no-scroll { overflow: hidden !important; touch-action: none; }
+/* ==========================================
+   TRAVA ABSOLUTA DE TELA (Para o Tutorial)
+   ========================================== */
+body.no-scroll { overflow: hidden !important; touch-action: none !important; pointer-events: none !important; }
+body.no-scroll .tutorial-genshin-box, 
+body.no-scroll .swal2-container { pointer-events: auto !important; }
+
 .escondido { display: none !important; opacity: 0; pointer-events: none;}
 
-.game-container { padding-top: 80px; width: 100%; max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; min-height: 100vh; position: relative; }
+/* ==========================================
+   ESTILOS GERAIS
+   ========================================== */
+.game-container { padding-top: 80px; width: 100%; max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; min-height: 100vh; position: relative; box-sizing: border-box; }
 .header-modo { text-align: left; padding: 0 20px; margin-bottom: 10px; }
 #titulo-modo { font-size: 28px; color: var(--text-color); margin-bottom: 5px; text-transform: uppercase;}
 
@@ -35,15 +44,18 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
 .btn-verificar { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); background: #16a34a; color: white; padding: 12px 30px; border-radius: 30px; border: 3px solid white; font-size: 18px; font-weight: bold; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.4); z-index: 50; transition: 0.2s; }
 .btn-verificar:hover { background: #15803d; transform: translateX(-50%) scale(1.05); }
 
-/* SEUS BOTÕES ORIGINAIS REFORÇADOS PARA NÃO SUMIREM */
-.btn-ajuda { position: absolute; top: 10px; right: 10px; width: 40px; height: 40px; background: #ffffff; color: #0284c7; border: 2px solid #0284c7; border-radius: 50%; font-size: 20px; font-weight: bold; cursor: pointer; z-index: 999; box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: 0.2s; }
+/* BOTÕES DE AJUDA E CATÁLOGO - BLINDADOS */
+.btn-ajuda { position: fixed !important; top: 15px !important; right: 15px !important; width: 40px; height: 40px; background: #ffffff; color: #0284c7; border: 2px solid #0284c7; border-radius: 50%; font-size: 20px; font-weight: bold; cursor: pointer; z-index: 99999 !important; box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: 0.2s; flex-shrink: 0; }
 .btn-ajuda:hover { transform: scale(1.1); background: #e0f2fe; }
 
-.btn-catalogo { position: absolute; top: 10px; right: 60px; height: 40px; background: #16a34a; color: white; border: 2px solid white; border-radius: 20px; padding: 0 15px; font-size: 14px; font-weight: bold; cursor: pointer; z-index: 999; box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: 0.2s; }
+.btn-catalogo { position: fixed !important; top: 15px !important; right: 65px !important; height: 40px; background: #16a34a; color: white; border: 2px solid white; border-radius: 20px; padding: 0 15px; font-size: 14px; font-weight: bold; cursor: pointer; z-index: 99999 !important; box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: 0.2s; flex-shrink: 0; white-space: nowrap; }
 .btn-catalogo:hover { transform: scale(1.05); background: #15803d; }
 
 .toast { position: fixed; top: 90px; left: 50%; transform: translateX(-50%); background: var(--btn-bg); color: white; padding: 12px 25px; border-radius: 30px; font-weight: bold; font-size: 16px; box-shadow: 0 10px 20px rgba(0,0,0,0.3); z-index: 9999; transition: opacity 0.4s ease, top 0.4s ease; text-align: center;}
 
+/* ==========================================
+   ÁREA DE TRABALHO
+   ========================================== */
 .area-trabalho { position: relative; min-height: 500px; margin: 0 20px; border: 4px solid #0284c7; border-radius: 10px; background-color: white; overflow: visible !important; box-shadow: var(--shadow); z-index: 40; }
 .quadro-grid { width: 100%; height: 100%; position: absolute; overflow: visible !important; background-image: linear-gradient(rgba(2,132,199,0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(2,132,199,0.2) 1px, transparent 1px); background-size: 30px 30px; }
 #quadro-inner { width: 100%; height: 100%; position: absolute; top: 0; left: 0; transition: transform 0.3s ease; transform-origin: center center; overflow: visible; }
@@ -57,6 +69,9 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
 .btn-ferramenta { background: #f0f4f8; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; padding: 8px; cursor: pointer; transition: 0.2s; font-weight: bold;}
 .btn-ferramenta:hover { background: #0284c7; color: white; transform: scale(1.05); }
 
+/* ==========================================
+   ÁTOMOS E LIGAÇÕES
+   ========================================== */
 .paineis-pecas { display: flex; justify-content: space-between; padding: 20px; gap: 20px; height: auto; min-height: 150px; flex-wrap: wrap; z-index: 30; position: relative;}
 .retangulo-pecas { flex: 1; background: var(--btn-bg); border-radius: 10px; padding: 15px; color: white; box-shadow: var(--shadow); display: flex; flex-direction: column; }
 .retangulo-pecas h3 { margin-bottom: 10px; text-align: center; font-size: 14px; letter-spacing: 1px; text-transform: uppercase;}
@@ -66,7 +81,6 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
 .peca-draggable:hover { transform: scale(1.1); }
 .peca-draggable:active { cursor: grabbing; }
 
-/* REGRAS ANTI-OVAL E DE TAMANHO MÍNIMO ADICIONADAS AQUI */
 .atomo { width: 40px; height: 40px; min-width: 40px; min-height: 40px; flex-shrink: 0; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 16px; font-weight: 900; color: white; box-shadow: inset -4px -4px 8px rgba(0,0,0,0.3), 0 3px 5px rgba(0,0,0,0.3); text-shadow: 1px 1px 2px black; z-index: 50 !important; position: relative;}
 .ligacao { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 4px; padding: 0; width: 40px; height: 20px; min-width: 40px; flex-shrink: 0; z-index: 10 !important;}
 .ligacao .linha { width: 40px; height: 4px; background-color: #334155; border-radius: 2px; box-shadow: 0 1px 2px rgba(0,0,0,0.3); pointer-events: none;}
@@ -110,7 +124,9 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
 .item-catalogo p { font-size: 12px; opacity: 0.8; }
 .icone-lock { font-size: 24px; opacity: 0.5; float: right; }
 
-/* SEU TUTORIAL GENSHIN IMPACT INTACTO E ORIGINAL */
+/* ==========================================
+   TUTORIAL GENSHIN IMPACT 
+   ========================================== */
 .tutorial-genshin-box { background: #ffffff; width: 90%; max-width: 650px; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 3px solid #0284c7; display: flex; flex-direction: column; animation: fadeInTutorial 0.4s ease-out; }
 @keyframes fadeInTutorial { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
 .tutorial-media-container { width: 100%; height: 300px; background: #e2e8f0; display: flex; justify-content: center; align-items: center; overflow: hidden; border-bottom: 2px solid #cbd5e1; }
@@ -124,17 +140,17 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
 .btn-prosseguir { background: #0284c7; color: white; border: none; padding: 10px 20px; border-radius: 20px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
 .btn-prosseguir:hover { background: #0369a1; transform: translateY(-2px); }
 
-/* ==========================================
-   SUPER RESPONSIVIDADE (CELULARES E TABLETS)
-   ========================================== */
 
-/* REGRAS GERAIS PARA QUALQUER TELA MENOR QUE 950px */
+/* ==========================================
+   SUPER RESPONSIVIDADE (CELULARES)
+   ========================================== */
 @media screen and (max-width: 950px) {
-    .atomo { width: 50px !important; height: 50px !important; min-width: 50px !important; min-height: 50px !important; font-size: 20px !important; flex-shrink: 0 !important; }
-    .ligacao { width: 50px !important; height: 25px !important; min-width: 50px !important; flex-shrink: 0 !important;}
-    .ligacao .linha { width: 50px !important; height: 6px !important; border-radius: 3px !important;}
-    .lig-vertical { width: 25px !important; height: 50px !important; min-width: 25px !important; min-height: 50px !important; }
-    .lig-vertical .linha { width: 6px !important; height: 50px !important; }
+    /* Diminui os átomos e ferramentas geral para caber bem no mobile */
+    .atomo { width: 45px !important; height: 45px !important; min-width: 45px !important; min-height: 45px !important; font-size: 18px !important; flex-shrink: 0 !important; }
+    .ligacao { width: 45px !important; height: 22px !important; min-width: 45px !important; flex-shrink: 0 !important;}
+    .ligacao .linha { width: 45px !important; height: 6px !important; border-radius: 3px !important;}
+    .lig-vertical { width: 22px !important; height: 45px !important; min-width: 22px !important; min-height: 45px !important; }
+    .lig-vertical .linha { width: 6px !important; height: 45px !important; }
 
     .painel-info { top: 5px; left: 5px; padding: 5px; width: 130px; font-size: 12px; background: rgba(255,255,255,0.9); }
     .painel-ferramentas { bottom: 65px; right: 5px; padding: 5px; width: 140px; background: rgba(255,255,255,0.9); }
@@ -145,7 +161,7 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
 }
 
 /* ==========================================
-   O LAYOUT LANDSCAPE (EXATAMENTE COMO VOCÊ PEDIU)
+   CELULAR DEITADO (LANDSCAPE - SEU LAYOUT)
    ========================================== */
 @media screen and (max-width: 950px) and (orientation: landscape) {
     .game-container {
@@ -157,9 +173,9 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
     
     .header-modo, #texto-modo-livre, .hud-desafio { width: 100%; order: 1; margin: 0 10px 10px 10px; }
     
-    /* QUADRO DO JOGO (Deixa o buraco na direita) */
+    /* QUADRO NA ESQUERDA */
     .area-trabalho {
-        width: calc(100% - 140px); /* Tira o espaço exato pro menu das ligações */
+        width: calc(100% - 130px); /* Libera a largura para as ligações */
         flex: none; 
         min-height: 380px;
         margin: 0 0 10px 10px;
@@ -168,9 +184,9 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
 
     .paineis-pecas { display: contents; }
 
-    /* LIGAÇÕES (Ficam na direita, no buraco) */
+    /* LIGAÇÕES NA DIREITA */
     .paineis-pecas > div:nth-child(2) {
-        width: 120px;
+        width: 110px;
         order: 3;
         margin: 0 10px 10px 10px;
         display: flex;
@@ -182,26 +198,26 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
         gap: 15px;
     }
 
-    /* ÁTOMOS (Ficam embaixo, pegando a tela inteira) */
+    /* ÁTOMOS NO FUNDO DA TELA */
     .paineis-pecas > div:nth-child(1) {
         width: calc(100% - 20px);
         order: 4;
         margin: 0 10px 20px 10px;
     }
     
-    /* Isso aqui garante que o átomo não corte a sombra e deslize pra os lados */
     .paineis-pecas > div:nth-child(1) .lista-pecas {
         display: flex;
         flex-direction: row;
         flex-wrap: nowrap;
         overflow-x: auto;
-        gap: 15px;
-        padding: 10px; /* Resolve o corte do átomo */
+        gap: 6px; /* Diminui a lacuna para caber todos */
+        padding: 15px 5px; /* ESPAÇO SEGURO PARA ROLAR A TELA SEM PEGAR NO ÁTOMO */
+        justify-content: space-evenly;
     }
     
     .rodape { display: none !important; }
     
-    /* TUTORIAL GENSHIN LANDSCAPE (Código original restaurado) */
+    /* TUTORIAL (DEITADO) */
     .tutorial-genshin-box { height: 85vh; flex-direction: row; flex-wrap: wrap; }
     .tutorial-media-container { width: 50%; height: 100%; border-bottom: none; border-right: 2px solid #cbd5e1;}
     .tutorial-text-container { width: 50%; height: 80%; align-items: flex-start; overflow-y: auto;}
