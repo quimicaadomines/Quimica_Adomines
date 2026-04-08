@@ -110,7 +110,7 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
 .item-catalogo p { font-size: 12px; opacity: 0.8; }
 .icone-lock { font-size: 24px; opacity: 0.5; float: right; }
 
-/* SEU TUTORIAL GENSHIN IMPACT INTACTO E ORIGINAL */
+/* SEU TUTORIAL GENSHIN IMPACT INTACTO E ORIGINAL (Modo Normal/Retrato) */
 .tutorial-genshin-box { background: #ffffff; width: 90%; max-width: 650px; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 3px solid #0284c7; display: flex; flex-direction: column; animation: fadeInTutorial 0.4s ease-out; }
 @keyframes fadeInTutorial { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
 .tutorial-media-container { width: 100%; height: 300px; background: #e2e8f0; display: flex; justify-content: center; align-items: center; overflow: hidden; border-bottom: 2px solid #cbd5e1; }
@@ -201,37 +201,40 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
     
     .rodape { display: none !important; }
     
-    /* TUTORIAL GENSHIN LANDSCAPE (CORRIGIDO COM GRID) */
+    /* ==========================================
+       TUTORIAL GENSHIN LANDSCAPE (FORÇA BRUTA)
+       ========================================== */
     .tutorial-genshin-box { 
-        height: 85vh; 
-        display: grid; 
-        grid-template-columns: 50% 50%; 
-        grid-template-rows: 1fr auto; 
+        position: relative !important; 
+        height: 85vh !important; 
+        display: flex !important; 
+        flex-direction: row !important; 
+        flex-wrap: nowrap !important; /* Proíbe de quebrar a linha */
+        align-items: stretch !important;
     }
     .tutorial-media-container { 
-        width: 100%; 
-        height: 100%; 
-        grid-column: 1 / 2; 
-        grid-row: 1 / 3; 
-        border-bottom: none; 
-        border-right: 2px solid #cbd5e1;
+        width: 50% !important; 
+        height: 100% !important; 
+        border-bottom: none !important; 
+        border-right: 2px solid #cbd5e1 !important;
     }
     .tutorial-text-container { 
-        width: 100%; 
-        height: 100%; 
-        grid-column: 2 / 3; 
-        grid-row: 1 / 2; 
-        align-items: flex-start; 
-        overflow-y: auto; 
+        width: 50% !important; 
+        height: 100% !important; 
+        align-items: flex-start !important; 
+        padding-bottom: 80px !important; /* Deixa um buraco pro botão não ficar em cima do texto */
+        overflow-y: auto !important; /* O texto rola se for grande */
     }
     .tutorial-controls { 
-        width: 100%; 
-        height: auto; 
-        grid-column: 2 / 3; 
-        grid-row: 2 / 3; 
-        margin-left: 0; 
-        border-top: 1px solid #cbd5e1; 
-        box-sizing: border-box; 
+        position: absolute !important; /* PREGA O BOTÃO NA CAIXA */
+        bottom: 0 !important; 
+        right: 0 !important; 
+        width: 50% !important; /* Ocupa só a metade direita */
+        height: 70px !important; 
+        background: #f8fafc !important; /* Fundo sólido pro texto não aparecer vazado atrás */
+        border-top: 1px solid #cbd5e1 !important; 
+        box-sizing: border-box !important;
+        z-index: 100 !important; /* Garante que fica na frente de tudo */
     }
 }
 
