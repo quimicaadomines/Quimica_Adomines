@@ -85,7 +85,7 @@ window.mostrarInformacaoQuimica = function() {
 }
 
 // ==========================================
-// 🎨 MÓDULO 1A: PINTURA EM CANVAS (MOTOR BLINDADO E CORRIGIDO!)
+// 🎨 MÓDULO 1A: PINTURA EM CANVAS
 // ==========================================
 let canvas = document.getElementById("canvas-pintura");
 let ctx = canvas ? canvas.getContext("2d", { willReadFrequently: true }) : null;
@@ -97,7 +97,6 @@ let pintouAlgo = false;
 let zoomPintura = 1.0;
 let historicoPintura =[];
 
-// SÓ ATRELA OS EVENTOS DE MOUSE UMA ÚNICA VEZ PARA NÃO DAR CONFLITO
 if (canvas) {
     canvas.addEventListener("pointerdown", startPosition);
     canvas.addEventListener("pointerup", endPosition);
@@ -109,7 +108,6 @@ function iniciarPintura(d) {
     document.getElementById("container-pintura").classList.remove("escondido");
     ctx.clearRect(0,0, canvas.width, canvas.height);
     
-    // Imagem no fundo
     canvas.style.backgroundImage = `url('${d.img}')`;
     canvas.style.backgroundSize = "contain";
     canvas.style.backgroundPosition = "center";
@@ -124,7 +122,6 @@ function iniciarPintura(d) {
     mudarCor('#333333', false);
 }
 
-// MÁGICA CORRIGIDA AQUI: Lê o mouse com ou sem zoom perfeitamente!
 function getMousePos(e) {
     let rect = canvas.getBoundingClientRect();
     return {
@@ -161,10 +158,10 @@ function draw(e) {
     ctx.lineJoin = "round"; 
     
     if (isBorracha) {
-        ctx.globalCompositeOperation = "destination-out"; // Borracha apaga só a tinta
+        ctx.globalCompositeOperation = "destination-out";
         ctx.strokeStyle = "rgba(0,0,0,1)";
     } else {
-        ctx.globalCompositeOperation = "source-over"; // Tinta
+        ctx.globalCompositeOperation = "source-over";
         ctx.strokeStyle = corAtual;
     }
 
@@ -214,7 +211,7 @@ window.concluirFasePintura = function() {
 
 
 // ==========================================
-// 🎨 MÓDULO 1B: LIGAR OS PONTOS
+// 🎨 MÓDULO 1B: LIGAR OS PONTOS (CORRIGIDO PARA RESPONSIVO)
 // ==========================================
 let pontosAtivos =[];
 let pontoAtualIndex = 0;
@@ -227,6 +224,7 @@ function iniciarPontos(d) {
     infoAtual = d.info;
     document.getElementById("texto-enunciado").innerText = d.enunciado;
 
+    // Posições baseadas num canvas interno de 600x400
     pontosAtivos =[
         {l:'P', x:100, y:200}, {l:'R', x:200, y:100}, {l:'O', x:300, y:200},
         {l:'P', x:400, y:100}, {l:'A', x:500, y:200}, {l:'N', x:400, y:300}, {l:'O', x:200, y:300}
@@ -241,8 +239,9 @@ function iniciarPontos(d) {
         let div = document.createElement("div");
         div.className = "ponto-ligar";
         div.innerText = pt.l;
-        div.style.left = (pt.x - 20) + "px"; 
-        div.style.top = (pt.y - 20) + "px";
+        // Transforma as coordenadas absolutas em porcentagem para o celular!
+        div.style.left = ((pt.x / 600) * 100) + "%"; 
+        div.style.top = ((pt.y / 400) * 100) + "%";
         div.dataset.idx = i;
         div.style.userSelect = "none"; 
         wrapper.appendChild(div);
@@ -284,15 +283,8 @@ function iniciarPontos(d) {
         desenharLinhasPontos();
     };
 
-    wrapper.onpointerup = () => {
-        ligandoPontos = false;
-        desenharLinhasPontos();
-    };
-    
-    wrapper.onpointerleave = () => {
-        ligandoPontos = false;
-        desenharLinhasPontos();
-    };
+    wrapper.onpointerup = () => { ligandoPontos = false; desenharLinhasPontos(); };
+    wrapper.onpointerleave = () => { ligandoPontos = false; desenharLinhasPontos(); };
 
     wrapper.children[0].classList.add("ponto-ativo");
     pontoAtualIndex = 1;
@@ -331,9 +323,12 @@ function desenharLinhasPontos() {
 
 
 // ==========================================
-// 🧩 MÓDULO 2: LACUNAS (Arrastar Palavra)
+// 🧩 MÓDULO 2: LACUNAS E ARRASTAR PALAVRA (CORRIGIDO PARA MOBILE)
 // ==========================================
 let respostaLacunaAtual = "";
+let divSendoArrastadaMobile = null;
+let cloneDragMobile = null;
+let dragStartX = 0, dragStartY = 0;
 
 function iniciarLacunas(d) {
     document.getElementById("container-lacunas").classList.remove("escondido");
@@ -354,23 +349,91 @@ function iniciarLacunas(d) {
         div.className = "palavra-drag";
         div.innerText = op;
         div.draggable = true;
+        
+        // Desktop Drag and Drop
         div.ondragstart = (e) => { e.dataTransfer.setData("text", op); tocarSom(); };
+        
+        // Touch Drag and Drop (Mobile Fix)
+        div.addEventListener("touchstart", touchStartDrag, {passive: false});
+        div.addEventListener("touchmove", touchMoveDrag, {passive: false});
+        div.addEventListener("touchend", touchEndDrag);
+        
         banco.appendChild(div);
     });
 }
 
+// Suporte a Mouse (Desktop)
 window.allowDrop = function(e) { e.preventDefault(); e.target.classList.add("hover"); }
 window.leaveDrop = function(e) { e.target.classList.remove("hover"); }
-
 window.dropPalavra = function(e) {
     e.preventDefault();
     e.target.classList.remove("hover");
-    let arrastada = e.dataTransfer.getData("text");
+    verificarAcertoLacuna(e.target, e.dataTransfer.getData("text"));
+}
+
+// Suporte a Touch (Mobile)
+function touchStartDrag(e) {
+    e.preventDefault();
+    tocarSom();
+    divSendoArrastadaMobile = e.target;
+    let touch = e.touches[0];
+    let rect = divSendoArrastadaMobile.getBoundingClientRect();
     
+    cloneDragMobile = divSendoArrastadaMobile.cloneNode(true);
+    cloneDragMobile.style.position = "fixed";
+    cloneDragMobile.style.left = rect.left + "px";
+    cloneDragMobile.style.top = rect.top + "px";
+    cloneDragMobile.style.width = rect.width + "px";
+    cloneDragMobile.style.height = rect.height + "px";
+    cloneDragMobile.style.opacity = "0.8";
+    cloneDragMobile.style.pointerEvents = "none";
+    cloneDragMobile.style.zIndex = "99999";
+    cloneDragMobile.style.boxShadow = "0 10px 20px rgba(0,0,0,0.3)";
+    document.body.appendChild(cloneDragMobile);
+    
+    dragStartX = touch.clientX - rect.left;
+    dragStartY = touch.clientY - rect.top;
+}
+
+function touchMoveDrag(e) {
+    if(!cloneDragMobile) return;
+    e.preventDefault();
+    let touch = e.touches[0];
+    cloneDragMobile.style.left = (touch.clientX - dragStartX) + "px";
+    cloneDragMobile.style.top = (touch.clientY - dragStartY) + "px";
+    
+    let alvo = document.getElementById("alvo-lacuna");
+    let alvoRect = alvo.getBoundingClientRect();
+    if (touch.clientX > alvoRect.left && touch.clientX < alvoRect.right &&
+        touch.clientY > alvoRect.top && touch.clientY < alvoRect.bottom) {
+        alvo.classList.add("hover");
+    } else {
+        alvo.classList.remove("hover");
+    }
+}
+
+function touchEndDrag(e) {
+    if(!cloneDragMobile) return;
+    let touch = e.changedTouches[0];
+    document.body.removeChild(cloneDragMobile);
+    cloneDragMobile = null;
+    
+    let alvo = document.getElementById("alvo-lacuna");
+    alvo.classList.remove("hover");
+    let alvoRect = alvo.getBoundingClientRect();
+    
+    if (touch.clientX > alvoRect.left && touch.clientX < alvoRect.right &&
+        touch.clientY > alvoRect.top && touch.clientY < alvoRect.bottom) {
+        verificarAcertoLacuna(alvo, divSendoArrastadaMobile.innerText);
+    }
+    divSendoArrastadaMobile = null;
+}
+
+function verificarAcertoLacuna(alvoDrop, arrastada) {
     if(arrastada === respostaLacunaAtual) {
-        e.target.innerText = arrastada;
-        e.target.style.background = "#16a34a";
-        e.target.style.color = "white";
+        alvoDrop.innerText = arrastada;
+        alvoDrop.style.background = "#16a34a";
+        alvoDrop.style.color = "white";
         tocarSom(); 
         setTimeout(() => ganharEstrelaInclusiva(), 1000);
     } else {
@@ -380,7 +443,7 @@ window.dropPalavra = function(e) {
 
 
 // ==========================================
-// 🧩 MÓDULO 2B: CAÇA-PALAVRAS
+// 🧩 MÓDULO 2B: CAÇA-PALAVRAS (CORRIGIDO E RESPONSIVO)
 // ==========================================
 const gridCP =[
     "CARBONORTM",
@@ -398,7 +461,7 @@ let cpWordsEncontradas = 0;
 let cpTotalWords = 5;
 let cpIsDragging = false;
 let cpStartCell = null;
-let cpLines =[]; 
+let cpLines =[]; // Guardará as coordenadas de linha/coluna, e não pixels fixos!
 
 function iniciarCacaPalavras(d) {
     document.getElementById("container-caca-palavras").classList.remove("escondido");
@@ -427,44 +490,77 @@ function iniciarCacaPalavras(d) {
     }
 
     let canvasCP = document.getElementById("canvas-caca-palavras");
-    canvasCP.width = 420; canvasCP.height = 420; 
     let ctxCP = canvasCP.getContext("2d");
-    ctxCP.clearRect(0,0, canvasCP.width, canvasCP.height);
+
+    // Recalcula o canvas interno baseado no CSS final da tela
+    function atualizarTamanhoCanvas() {
+        canvasCP.width = gridDiv.offsetWidth;
+        canvasCP.height = gridDiv.offsetHeight;
+        desenharLinhasCP(ctxCP);
+    }
+    
+    // Aguarda montagem na tela para pegar tamanho real
+    setTimeout(atualizarTamanhoCanvas, 100);
+    window.addEventListener("resize", atualizarTamanhoCanvas);
 
     gridDiv.onpointerdown = (e) => {
+        e.preventDefault();
+        atualizarTamanhoCanvas(); // Garante o tamanho exato na hora do clique
         let cell = e.target.closest(".letra-celula");
         if(cell) { cpIsDragging = true; cpStartCell = cell; tocarSom(); }
     };
+    
     gridDiv.onpointermove = (e) => {
         if(!cpIsDragging || !cpStartCell) return;
+        e.preventDefault(); // Previne o scroll da tela no mobile enquanto arrasta
         let rect = canvasCP.getBoundingClientRect();
-        let mouseX = e.clientX - rect.left; let mouseY = e.clientY - rect.top;
+        let mouseX = (e.clientX - rect.left) * (canvasCP.width / rect.width);
+        let mouseY = (e.clientY - rect.top) * (canvasCP.height / rect.height);
         desenharLinhasCP(ctxCP, mouseX, mouseY); 
     };
+    
     gridDiv.onpointerup = (e) => {
         if(!cpIsDragging) return;
         cpIsDragging = false;
-        let endCell = document.elementFromPoint(e.clientX, e.clientY).closest(".letra-celula");
+        let endCell = document.elementFromPoint(e.clientX, e.clientY)?.closest(".letra-celula");
         if(endCell) checarPalavraCP(cpStartCell, endCell, d.palavras);
         desenharLinhasCP(ctxCP); 
     };
+    
     gridDiv.onpointerleave = () => { cpIsDragging = false; desenharLinhasCP(ctxCP); };
 }
 
 function desenharLinhasCP(ctxCP, mouseX, mouseY) {
-    ctxCP.clearRect(0,0, 420, 420);
-    ctxCP.lineWidth = 20; ctxCP.lineCap = "round";
+    let canvasCP = document.getElementById("canvas-caca-palavras");
+    let w = canvasCP.width;
+    let h = canvasCP.height;
     
+    // Calcula o tamanho exato de cada célula naquele momento
+    let cellW = w / 10;
+    let cellH = h / 10;
+    
+    ctxCP.clearRect(0,0, w, h);
+    ctxCP.lineWidth = cellH * 0.5; // Espessura se adapta ao tamanho do grid
+    ctxCP.lineCap = "round";
+    
+    // Desenha palavras fixadas (acertos)
     cpLines.forEach(l => {
         ctxCP.strokeStyle = "rgba(34, 197, 94, 0.4)";
-        ctxCP.beginPath(); ctxCP.moveTo(l.x1, l.y1); ctxCP.lineTo(l.x2, l.y2); ctxCP.stroke();
+        ctxCP.beginPath(); 
+        ctxCP.moveTo((l.c1 * cellW) + (cellW/2), (l.r1 * cellH) + (cellH/2)); 
+        ctxCP.lineTo((l.c2 * cellW) + (cellW/2), (l.r2 * cellH) + (cellH/2)); 
+        ctxCP.stroke();
     });
 
+    // Desenha a linha sendo arrastada
     if(cpIsDragging && cpStartCell && mouseX !== undefined) {
         ctxCP.strokeStyle = "rgba(2, 132, 199, 0.4)";
-        let x1 = (parseInt(cpStartCell.dataset.c) * 42) + 21;
-        let y1 = (parseInt(cpStartCell.dataset.r) * 42) + 21;
-        ctxCP.beginPath(); ctxCP.moveTo(x1, y1); ctxCP.lineTo(mouseX, mouseY); ctxCP.stroke();
+        let sc = parseInt(cpStartCell.dataset.c);
+        let sr = parseInt(cpStartCell.dataset.r);
+        ctxCP.beginPath(); 
+        ctxCP.moveTo((sc * cellW) + (cellW/2), (sr * cellH) + (cellH/2)); 
+        ctxCP.lineTo(mouseX, mouseY); 
+        ctxCP.stroke();
     }
 }
 
@@ -495,7 +591,8 @@ function checarPalavraCP(sCell, eCell, palavrasValidas) {
         if(!divP.classList.contains("palavra-encontrada")) {
             tocarSom();
             divP.classList.add("palavra-encontrada");
-            cpLines.push({ x1: (c1*42)+21, y1: (r1*42)+21, x2: (c2*42)+21, y2: (r2*42)+21 });
+            // Agora salva a linha/coluna e não os pixels. Assim é responsivo!
+            cpLines.push({ r1: r1, c1: c1, r2: r2, c2: c2 });
             cpWordsEncontradas++;
             if(cpWordsEncontradas === cpTotalWords) {
                 setTimeout(() => ganharEstrelaInclusiva(), 1000);
