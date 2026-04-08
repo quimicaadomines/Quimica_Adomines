@@ -140,7 +140,7 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
 }
 
 /* ==========================================
-   LANDSCAPE LAYOUT (DEITADO) - O tutorial fixado
+   LANDSCAPE LAYOUT (DEITADO)
    ========================================== */
 @media screen and (max-width: 950px) and (orientation: landscape) {
     .game-container { display: flex; flex-direction: row; flex-wrap: wrap; padding-top: 60px; }
@@ -150,12 +150,9 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
     .paineis-pecas > div:nth-child(2) { width: 120px; order: 3; margin: 0 10px 10px 10px; display: flex; flex-direction: column; align-items: center; }
     .paineis-pecas > div:nth-child(2) .lista-pecas { flex-direction: column; gap: 15px; }
     .paineis-pecas > div:nth-child(1) { width: calc(100% - 20px); order: 4; margin: 0 10px 20px 10px; }
-    
     .paineis-pecas > div:nth-child(1) .lista-pecas { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 15px; padding: 10px; }
-    
     .rodape { display: none !important; }
     
-    /* TUTORIAL GENSHIN LANDSCAPE */
     .tutorial-genshin-box { display: flex !important; flex-direction: column !important; flex-wrap: wrap !important; height: 85vh !important; padding: 0 !important; }
     .tutorial-media-container { width: 50% !important; height: 100% !important; border-bottom: none !important; border-right: 2px solid #cbd5e1 !important; box-sizing: border-box !important; }
     .tutorial-text-container { width: 50% !important; height: calc(100% - 70px) !important; align-items: flex-start !important; overflow-y: auto !important; box-sizing: border-box !important; }
@@ -163,63 +160,57 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
 }
 
 /* ==========================================
-   CELULAR EM PÉ (PORTRAIT)
+   CELULAR EM PÉ (PORTRAIT) - O ERRO FOI CORRIGIDO AQUI
    ========================================== */
 @media screen and (max-width: 600px) and (orientation: portrait) {
-    
     .game-container {
-        display: flex !important;
-        flex-direction: column !important;
-        height: 100vh !important; 
-        overflow-y: auto !important; 
-        padding-bottom: 50px !important; 
-    }
-
-    .header-modo, #texto-modo-livre, .hud-desafio { order: 1 !important; margin-bottom: 5px !important;}
-
-    .paineis-pecas { display: contents !important; }
-
-    /* 1. LIGAÇÕES EM CIMA DO QUADRO */
-    .paineis-pecas > div:nth-child(2) {
-        order: 2 !important;
-        margin: 5px 10px !important;
-        width: auto !important;
+        display: flex;
+        flex-direction: column;
     }
     
+    .header-modo, #texto-modo-livre, .hud-desafio { 
+        order: 1; 
+    }
+    
+    .paineis-pecas { 
+        display: contents; 
+    }
+    
+    /* 1. LIGAÇÕES (EM CIMA) */
+    .paineis-pecas > div:nth-child(2) {
+        order: 2;
+        margin: 0 10px 10px 10px !important;
+        flex: none !important; /* ISSO AQUI IMPEDE O MENU DE "ALARGAR" E ROUBAR ESPAÇO */
+    }
     .paineis-pecas > div:nth-child(2) .lista-pecas {
-        display: flex !important;
-        flex-direction: row !important;
-        flex-wrap: nowrap !important; 
-        overflow-x: auto !important;
-        gap: 15px !important;
-        padding: 10px !important;
-        justify-content: flex-start !important;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        gap: 15px;
+        padding: 10px;
     }
 
-    /* 2. QUADRO NO MEIO (VOLTOU AO TAMANHO EXATO DE 60VH) */
+    /* 2. O QUADRO DO JOGO (VOLTOU AO TAMANHO ORIGINAL) */
     .area-trabalho {
-        order: 3 !important;
-        min-height: 60vh !important; /* Tamanho original restaurado */
-        margin: 5px 10px !important;
-        flex-shrink: 0 !important; /* Impede que o quadro seja esmagado pelos menus */
+        order: 3;
+        min-height: 60vh !important; /* O tamanho exato que estava antes de eu mexer */
+        margin: 0 10px !important;
+        flex: none !important; /* IMPEDE QUE ELE SEJA ESMAGADO PELOS MENUS */
     }
 
-    /* 3. ÁTOMOS EMBAIXO DO QUADRO */
+    /* 3. ÁTOMOS (EMBAIXO) */
     .paineis-pecas > div:nth-child(1) {
-        order: 4 !important;
-        margin: 5px 10px 20px 10px !important;
-        width: auto !important;
+        order: 4;
+        margin: 10px 10px 20px 10px !important;
+        flex: none !important; /* IMPEDE O MENU DE "ALARGAR" E ROUBAR ESPAÇO */
     }
-
     .paineis-pecas > div:nth-child(1) .lista-pecas {
-        display: flex !important;
-        flex-direction: row !important;
-        flex-wrap: wrap !important; 
-        justify-content: center !important; 
-        gap: 12px !important;
-        padding: 10px !important;
-        overflow: visible !important;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap !important; /* Deixa os átomos descerem de linha */
+        justify-content: center !important; /* Centraliza eles embaixo */
+        gap: 12px;
+        padding: 10px;
     }
-
-    .atomo, .ligacao, .lig-vertical { flex-shrink: 0 !important; }
 }
