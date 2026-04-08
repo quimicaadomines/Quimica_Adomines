@@ -72,7 +72,7 @@ if (modoAtual === "livre") {
     document.getElementById("hud-desafio").classList.remove("escondido");
     document.getElementById("btn-verificar-desafio").classList.remove("escondido");
     if (modoAtual === "impossivel") { document.getElementById("cronometro-desafio").classList.remove("escondido"); }
-    iniciarRodadaDesafio(true); // true indica que é a rodada inicial (espera o tutorial checar)
+    iniciarRodadaDesafio(true);
 }
 
 function iniciarRodadaDesafio(isStart = false) {
@@ -80,8 +80,6 @@ function iniciarRodadaDesafio(isStart = false) {
     document.getElementById("nome-desafio-atual").innerText = desafiosDoModo[indexDesafioAtual].nome;
     atualizarHUD();
     
-    // Se for o modo impossível, resetamos o tempo, mas não iniciamos o cronômetro agora 
-    // se estivermos na inicialização da página. O cronômetro será iniciado no final do checkTutorialOnLoad.
     if (modoAtual === "impossivel") { 
         tempoRestante = tempoMaximo; 
         if (!isStart) { iniciarCronometro(); }
@@ -102,7 +100,6 @@ function iniciarCronometro() {
     let display = document.getElementById("cronometro-desafio");
     display.classList.remove("perigo");
     
-    // Atualiza a visualização no segundo 0 para já mostrar os "03:00" na tela
     let m = Math.floor(tempoRestante / 60).toString().padStart(2, '0');
     let s = (tempoRestante % 60).toString().padStart(2, '0');
     display.innerText = `${m}:${s}`;
@@ -523,22 +520,52 @@ function fecharTutorialGenshin() {
 setTimeout(checkTutorialOnLoad, 500);
 
 // ==========================================
-// DRAG & DROP FÍSICO COM TOUCH INTENT 
+// DRAG & DROP FÍSICO COM TOUCH INTENT (CORRIGIDO)
 // ==========================================
 let ultimoCliqueTempo = 0;
 let toqueEmEspera = null; 
-let intentArrastoCancelado = false; 
-let isToqueSimples = false; 
+let isDragging = false; 
+let startX = 0, startY = 0; 
+let pecaPotencial = null;
 
-// Evitar scrolling acidental SE a intenção foi pegar a peça
-document.addEventListener('touchmove', function(e) {
-    if (pecaEmMovimento && !intentArrastoCancelado) {
-        e.preventDefault(); 
+function iniciarArrastoReal(peca, clientX, clientY, isNovaPeca) {
+    if (isNovaPeca) {
+        salvarEstado(); 
+        pecaEmMovimento = peca.cloneNode(true);
+        pecaEmMovimento.classList.add("no-quadro");
+        pecaEmMovimento.dataset.id = Date.now();
+        pecaEmMovimento.dataset.recemCriada = "true"; 
+
+        quadroInner.appendChild(pecaEmMovimento);
+        grupoEmMovimento = [pecaEmMovimento];
+    } else {
+        salvarEstado(); 
+        pecaEmMovimento = peca;
+        let gid = peca.dataset.grupo;
+        grupoEmMovimento = gid ? Array.from(quadroInner.querySelectorAll(`[data-grupo="${gid}"]`)) : [peca];
     }
-}, { passive: false });
+
+    mouseStartX = clientX; 
+    mouseStartY = clientY;
+
+    grupoEmMovimento.forEach(p => {
+        let pRect = p.getBoundingClientRect();
+        let innerRect = quadroInner.getBoundingClientRect();
+        let pStartX = parseFloat(p.style.left) || ((pRect.left - innerRect.left) / zoomLevel);
+        let pStartY = parseFloat(p.style.top) || ((pRect.top - innerRect.top) / zoomLevel);
+        
+        if(isNovaPeca) {
+            pStartX = (clientX - innerRect.left - (p.offsetWidth/2)) / zoomLevel;
+            pStartY = (clientY - innerRect.top - (p.offsetHeight/2)) / zoomLevel;
+        }
+        p.dataset.startX = pStartX; p.dataset.startY = pStartY; p.style.zIndex = 1000;
+    });
+
+    isDragging = true;
+    moverGrupo(clientX, clientY);
+}
 
 document.addEventListener("pointerdown", (e) => {
-    
     if(e.button !== 2 && !e.target.closest("#menu-contexto")) { fecharMenuContexto(); }
     if(e.button === 2) return; 
 
@@ -549,7 +576,9 @@ document.addEventListener("pointerdown", (e) => {
     let tempoDesdeUltimo = agora - ultimoCliqueTempo;
     ultimoCliqueTempo = agora;
 
+    // Lógica do duplo clique
     if (tempoDesdeUltimo < 300) {
+        clearTimeout(toqueEmEspera); // Cancela o arrasto acidental
         if (e.target.closest('.retangulo-pecas') || (pecaEmMovimento && pecaEmMovimento.dataset.recemCriada === "true")) {
             let nova = pecaEmMovimento ? pecaEmMovimento : peca.cloneNode(true);
             if (!pecaEmMovimento) {
@@ -557,105 +586,65 @@ document.addEventListener("pointerdown", (e) => {
                 nova.dataset.id = Date.now();
                 quadroInner.appendChild(nova);
             }
-            
             let oRect = quadroOuter.getBoundingClientRect();
             let iRect = quadroInner.getBoundingClientRect();
-            let tgtX = (oRect.width/2 - iRect.left)/zoomLevel - 20;
-            let tgtY = (oRect.height/2 - iRect.top)/zoomLevel - 20;
+            nova.style.left = ((oRect.width/2 - iRect.left)/zoomLevel - 20) + "px"; 
+            nova.style.top = ((oRect.height/2 - iRect.top)/zoomLevel - 20) + "px";
+            nova.dataset.noQuadro = "true"; nova.style.position = "absolute"; nova.style.zIndex = 10;
             
-            nova.style.left = tgtX + "px"; 
-            nova.style.top = tgtY + "px";
-            nova.dataset.noQuadro = "true";
-            nova.style.position = "absolute";
-            nova.style.zIndex = 10;
-            
-            grupoEmMovimento =[]; pecaEmMovimento = null;
-            clearTimeout(toqueEmEspera); 
+            grupoEmMovimento = []; pecaEmMovimento = null; isDragging = false;
             resolverColisaoGlobal(); verificarLigacoesQuimicas(); atualizarContadores(); tocarSomClick();
             return; 
         }
-        
         if (peca.classList.contains("ligacao") && peca.dataset.noQuadro === "true") {
             if (!peca.dataset.grupo) { 
                 salvarEstado(); peca.style.transform = ""; peca.dataset.angle = 0; peca.classList.toggle("lig-vertical"); tocarSomClick();
-                grupoEmMovimento =[]; pecaEmMovimento = null;
-                clearTimeout(toqueEmEspera); 
+                grupoEmMovimento = []; pecaEmMovimento = null; isDragging = false;
             }
             return;
         }
     }
 
-    // SISTEMA DE INTENÇÃO DE TOQUE (TOUCH INTENT DELAY)
-    // Se o evento foi via touch (dedo), esperamos 150ms para ter certeza que não é scroll
-    isToqueSimples = e.pointerType === "touch";
-    intentArrastoCancelado = false;
-    mouseStartX = e.clientX; mouseStartY = e.clientY;
-    
-    let iniciarArrastoLogica = () => {
-        if (intentArrastoCancelado) return;
-        
-        if (!isToqueSimples) e.preventDefault(); 
-        let novaPeca = false;
+    startX = e.clientX; 
+    startY = e.clientY;
+    pecaPotencial = peca;
+    isDragging = false;
 
-        if (e.target.closest('.retangulo-pecas')) {
-            salvarEstado(); 
-            pecaEmMovimento = peca.cloneNode(true);
-            pecaEmMovimento.classList.add("no-quadro");
-            pecaEmMovimento.dataset.id = Date.now();
-            pecaEmMovimento.dataset.recemCriada = "true"; 
+    let isNoMenu = e.target.closest('.retangulo-pecas') !== null;
+    let isTouch = e.pointerType === "touch" || e.pointerType === "pen";
 
-            quadroInner.appendChild(pecaEmMovimento);
-            grupoEmMovimento = [pecaEmMovimento];
-            novaPeca = true;
-        } else {
-            salvarEstado(); 
-            pecaEmMovimento = peca;
-            let gid = peca.dataset.grupo;
-            grupoEmMovimento = gid ? Array.from(quadroInner.querySelectorAll(`[data-grupo="${gid}"]`)) : [peca];
-        }
-
-        grupoEmMovimento.forEach(p => {
-            let pRect = p.getBoundingClientRect();
-            let innerRect = quadroInner.getBoundingClientRect();
-            let startX = parseFloat(p.style.left) || ((pRect.left - innerRect.left) / zoomLevel);
-            let startY = parseFloat(p.style.top) || ((pRect.top - innerRect.top) / zoomLevel);
-            
-            if(novaPeca) {
-                startX = (e.clientX - innerRect.left - (p.offsetWidth/2)) / zoomLevel;
-                startY = (e.clientY - innerRect.top - (p.offsetHeight/2)) / zoomLevel;
-            }
-            p.dataset.startX = startX; p.dataset.startY = startY; p.style.zIndex = 1000;
-        });
-
-        moverGrupo(e.clientX, e.clientY);
-    };
-
-    if (isToqueSimples && e.target.closest('.retangulo-pecas')) {
-        // Atraso de 150ms para peças no menu inferior (evita pegar a peça ao rolar para os lados)
-        toqueEmEspera = setTimeout(iniciarArrastoLogica, 150);
+    if (isNoMenu && isTouch) {
+        // ESSA É A CHAVE DA CORREÇÃO:
+        // O jogo só cria a peça no quadro se você segurar o dedo nela por 250ms SEM mover.
+        toqueEmEspera = setTimeout(() => {
+            iniciarArrastoReal(peca, startX, startY, true);
+        }, 250); 
     } else {
-        // Se for mouse, ou peça já dentro do quadro, pega imediato
-        iniciarArrastoLogica();
+        iniciarArrastoReal(peca, e.clientX, e.clientY, isNoMenu);
     }
 });
 
 document.addEventListener("pointermove", (e) => {
-    // Se o dedo se mover mais de 10px antes de acabar os 150ms de atraso, CANCELA O ARRASTO (Foi scroll)
-    if (isToqueSimples && !pecaEmMovimento) {
-        if (Math.abs(e.clientX - mouseStartX) > 10 || Math.abs(e.clientY - mouseStartY) > 10) {
-            clearTimeout(toqueEmEspera);
-            intentArrastoCancelado = true;
+    // Se o dedo se mover mais de 10px antes de acabar os 250ms, É SCROLL! Cancela a criação da peça.
+    if (pecaPotencial && !isDragging) {
+        if (Math.abs(e.clientX - startX) > 10 || Math.abs(e.clientY - startY) > 10) {
+            clearTimeout(toqueEmEspera); 
+            pecaPotencial = null;
         }
+        return; 
     }
 
-    if (grupoEmMovimento.length === 0) return;
+    if (!isDragging || grupoEmMovimento.length === 0) return;
+    
+    e.preventDefault(); 
     moverGrupo(e.clientX, e.clientY);
 });
 
 document.addEventListener("pointerup", (e) => {
-    clearTimeout(toqueEmEspera); 
-    
-    if (grupoEmMovimento.length === 0) return;
+    clearTimeout(toqueEmEspera);
+    pecaPotencial = null;
+
+    if (!isDragging || grupoEmMovimento.length === 0) return;
 
     let isNoQuadro = pecaEmMovimento.dataset.noQuadro === "true";
 
@@ -677,7 +666,7 @@ document.addEventListener("pointerup", (e) => {
         } else {
             grupoEmMovimento.forEach(p => p.remove()); 
         }
-        atualizarContadores(); pecaEmMovimento = null; grupoEmMovimento =[]; return; 
+        atualizarContadores(); pecaEmMovimento = null; grupoEmMovimento = []; isDragging = false; return; 
     }
 
     let quadroRect = quadroOuter.getBoundingClientRect();
@@ -705,7 +694,7 @@ document.addEventListener("pointerup", (e) => {
         grupoEmMovimento.forEach(p => p.remove());
     }
 
-    atualizarContadores(); pecaEmMovimento = null; grupoEmMovimento =[];
+    atualizarContadores(); pecaEmMovimento = null; grupoEmMovimento = []; isDragging = false;
 });
 
 
