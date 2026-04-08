@@ -201,11 +201,38 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
     
     .rodape { display: none !important; }
     
-    /* TUTORIAL GENSHIN LANDSCAPE (Código original restaurado) */
-    .tutorial-genshin-box { height: 85vh; flex-direction: row; flex-wrap: wrap; }
-    .tutorial-media-container { width: 50%; height: 100%; border-bottom: none; border-right: 2px solid #cbd5e1;}
-    .tutorial-text-container { width: 50%; height: 80%; align-items: flex-start; overflow-y: auto;}
-    .tutorial-controls { width: 50%; height: 20%; margin-left: auto; border-top: none;}
+    /* TUTORIAL GENSHIN LANDSCAPE (CORRIGIDO COM GRID) */
+    .tutorial-genshin-box { 
+        height: 85vh; 
+        display: grid; 
+        grid-template-columns: 50% 50%; 
+        grid-template-rows: 1fr auto; 
+    }
+    .tutorial-media-container { 
+        width: 100%; 
+        height: 100%; 
+        grid-column: 1 / 2; 
+        grid-row: 1 / 3; 
+        border-bottom: none; 
+        border-right: 2px solid #cbd5e1;
+    }
+    .tutorial-text-container { 
+        width: 100%; 
+        height: 100%; 
+        grid-column: 2 / 3; 
+        grid-row: 1 / 2; 
+        align-items: flex-start; 
+        overflow-y: auto; 
+    }
+    .tutorial-controls { 
+        width: 100%; 
+        height: auto; 
+        grid-column: 2 / 3; 
+        grid-row: 2 / 3; 
+        margin-left: 0; 
+        border-top: 1px solid #cbd5e1; 
+        box-sizing: border-box; 
+    }
 }
 
 /* ==========================================
