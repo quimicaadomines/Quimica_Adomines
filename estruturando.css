@@ -35,7 +35,6 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
 .btn-verificar { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); background: #16a34a; color: white; padding: 12px 30px; border-radius: 30px; border: 3px solid white; font-size: 18px; font-weight: bold; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.4); z-index: 50; transition: 0.2s; }
 .btn-verificar:hover { background: #15803d; transform: translateX(-50%) scale(1.05); }
 
-/* SEUS BOTÕES ORIGINAIS REFORÇADOS PARA NÃO SUMIREM */
 .btn-ajuda { position: absolute; top: 10px; right: 10px; width: 40px; height: 40px; background: #ffffff; color: #0284c7; border: 2px solid #0284c7; border-radius: 50%; font-size: 20px; font-weight: bold; cursor: pointer; z-index: 999; box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: 0.2s; }
 .btn-ajuda:hover { transform: scale(1.1); background: #e0f2fe; }
 
@@ -66,7 +65,6 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
 .peca-draggable:hover { transform: scale(1.1); }
 .peca-draggable:active { cursor: grabbing; }
 
-/* REGRAS ANTI-OVAL E DE TAMANHO MÍNIMO ADICIONADAS AQUI */
 .atomo { width: 40px; height: 40px; min-width: 40px; min-height: 40px; flex-shrink: 0; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 16px; font-weight: 900; color: white; box-shadow: inset -4px -4px 8px rgba(0,0,0,0.3), 0 3px 5px rgba(0,0,0,0.3); text-shadow: 1px 1px 2px black; z-index: 50 !important; position: relative;}
 .ligacao { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 4px; padding: 0; width: 40px; height: 20px; min-width: 40px; flex-shrink: 0; z-index: 10 !important;}
 .ligacao .linha { width: 40px; height: 4px; background-color: #334155; border-radius: 2px; box-shadow: 0 1px 2px rgba(0,0,0,0.3); pointer-events: none;}
@@ -110,7 +108,7 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
 .item-catalogo p { font-size: 12px; opacity: 0.8; }
 .icone-lock { font-size: 24px; opacity: 0.5; float: right; }
 
-/* SEU TUTORIAL GENSHIN IMPACT INTACTO E ORIGINAL (Modo Normal/Retrato) */
+/* BASE TUTORIAL GENSHIN IMPACT (Portrait/Normal View) */
 .tutorial-genshin-box { background: #ffffff; width: 90%; max-width: 650px; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 3px solid #0284c7; display: flex; flex-direction: column; animation: fadeInTutorial 0.4s ease-out; }
 @keyframes fadeInTutorial { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
 .tutorial-media-container { width: 100%; height: 300px; background: #e2e8f0; display: flex; justify-content: center; align-items: center; overflow: hidden; border-bottom: 2px solid #cbd5e1; }
@@ -127,8 +125,6 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
 /* ==========================================
    SUPER RESPONSIVIDADE (CELULARES E TABLETS)
    ========================================== */
-
-/* REGRAS GERAIS PARA QUALQUER TELA MENOR QUE 950px */
 @media screen and (max-width: 950px) {
     .atomo { width: 50px !important; height: 50px !important; min-width: 50px !important; min-height: 50px !important; font-size: 20px !important; flex-shrink: 0 !important; }
     .ligacao { width: 50px !important; height: 25px !important; min-width: 50px !important; flex-shrink: 0 !important;}
@@ -145,7 +141,7 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
 }
 
 /* ==========================================
-   O LAYOUT LANDSCAPE (EXATAMENTE COMO VOCÊ PEDIU)
+   LANDSCAPE LAYOUT
    ========================================== */
 @media screen and (max-width: 950px) and (orientation: landscape) {
     .game-container {
@@ -157,9 +153,8 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
     
     .header-modo, #texto-modo-livre, .hud-desafio { width: 100%; order: 1; margin: 0 10px 10px 10px; }
     
-    /* QUADRO DO JOGO (Deixa o buraco na direita) */
     .area-trabalho {
-        width: calc(100% - 140px); /* Tira o espaço exato pro menu das ligações */
+        width: calc(100% - 140px);
         flex: none; 
         min-height: 380px;
         margin: 0 0 10px 10px;
@@ -168,7 +163,6 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
 
     .paineis-pecas { display: contents; }
 
-    /* LIGAÇÕES (Ficam na direita, no buraco) */
     .paineis-pecas > div:nth-child(2) {
         width: 120px;
         order: 3;
@@ -182,64 +176,63 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
         gap: 15px;
     }
 
-    /* ÁTOMOS (Ficam embaixo, pegando a tela inteira) */
     .paineis-pecas > div:nth-child(1) {
         width: calc(100% - 20px);
         order: 4;
         margin: 0 10px 20px 10px;
     }
     
-    /* Isso aqui garante que o átomo não corte a sombra e deslize pra os lados */
     .paineis-pecas > div:nth-child(1) .lista-pecas {
         display: flex;
         flex-direction: row;
         flex-wrap: nowrap;
         overflow-x: auto;
         gap: 15px;
-        padding: 10px; /* Resolve o corte do átomo */
+        padding: 10px;
     }
     
     .rodape { display: none !important; }
     
     /* ==========================================
-       TUTORIAL GENSHIN LANDSCAPE (FORÇA BRUTA)
+       TUTORIAL GENSHIN LANDSCAPE - THE PROPER FIX
        ========================================== */
     .tutorial-genshin-box { 
-        position: relative !important; 
-        height: 85vh !important; 
-        display: flex !important; 
-        flex-direction: row !important; 
-        flex-wrap: nowrap !important; /* Proíbe de quebrar a linha */
-        align-items: stretch !important;
+        display: flex !important;
+        flex-direction: column !important; /* Forces vertical stacking to make columns */
+        flex-wrap: wrap !important; /* Pushes text and controls to the right column */
+        height: 85vh !important;
+        padding: 0 !important;
     }
     .tutorial-media-container { 
         width: 50% !important; 
-        height: 100% !important; 
+        height: 100% !important; /* Takes full left side */
         border-bottom: none !important; 
         border-right: 2px solid #cbd5e1 !important;
+        box-sizing: border-box !important;
     }
     .tutorial-text-container { 
         width: 50% !important; 
-        height: 100% !important; 
+        height: calc(100% - 70px) !important; /* Takes upper right side */
         align-items: flex-start !important; 
-        padding-bottom: 80px !important; /* Deixa um buraco pro botão não ficar em cima do texto */
-        overflow-y: auto !important; /* O texto rola se for grande */
+        overflow-y: auto !important; 
+        box-sizing: border-box !important;
     }
     .tutorial-controls { 
-        position: absolute !important; /* PREGA O BOTÃO NA CAIXA */
-        bottom: 0 !important; 
-        right: 0 !important; 
-        width: 50% !important; /* Ocupa só a metade direita */
-        height: 70px !important; 
-        background: #f8fafc !important; /* Fundo sólido pro texto não aparecer vazado atrás */
-        border-top: 1px solid #cbd5e1 !important; 
+        width: 50% !important; 
+        height: 70px !important; /* Takes bottom right side */
+        margin: 0 !important;
+        display: flex !important; /* Guarantees the flex layout for buttons */
+        justify-content: space-between !important;
+        align-items: center !important;
+        visibility: visible !important; /* Forces visibility */
+        opacity: 1 !important;
         box-sizing: border-box !important;
-        z-index: 100 !important; /* Garante que fica na frente de tudo */
+        z-index: 9999 !important;
     }
 }
 
 /* ==========================================
-   CELULAR EM PÉ (PORTRAIT)
+   PORTRAIT LAYOUT
    ========================================== */
 @media screen and (max-width: 600px) and (orientation: portrait) {
     .area-trabalho { min-height: 60vh; margin: 0 10px; }
