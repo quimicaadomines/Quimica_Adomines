@@ -150,7 +150,10 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
     .paineis-pecas > div:nth-child(2) { width: 120px; order: 3; margin: 0 10px 10px 10px; display: flex; flex-direction: column; align-items: center; }
     .paineis-pecas > div:nth-child(2) .lista-pecas { flex-direction: column; gap: 15px; }
     .paineis-pecas > div:nth-child(1) { width: calc(100% - 20px); order: 4; margin: 0 10px 20px 10px; }
-    .paineis-pecas > div:nth-child(1) .lista-pecas { display: flex; flex-direction: row; flex-wrap: nowrap; overflow-x: auto; gap: 15px; padding: 10px; }
+    
+    /* APLICADO WRAP TAMBÉM NO LANDSCAPE PARA GARANTIR QUE NENHUM ÁTOMO SUMA */
+    .paineis-pecas > div:nth-child(1) .lista-pecas { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 15px; padding: 10px; }
+    
     .rodape { display: none !important; }
     
     /* TUTORIAL GENSHIN LANDSCAPE */
@@ -161,7 +164,7 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
 }
 
 /* ==========================================
-   CELULAR EM PÉ (PORTRAIT) - FORÇA BRUTA (NOVA LÓGICA)
+   CELULAR EM PÉ (PORTRAIT) - CORREÇÃO DOS ÁTOMOS (WRAP E CENTER)
    ========================================== */
 @media screen and (max-width: 600px) and (orientation: portrait) {
     /* 1. Transforma o fundo inteiro no controlador de tudo */
@@ -178,37 +181,36 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
         display: contents !important;
     }
 
-    /* 3. PEGA A CAIXA DAS LIGAÇÕES E JOGA PRA CIMA DO QUADRO NA MARRA (Order 2) */
+    /* 3. LIGAÇÕES NO TOPO (Order 2) */
     .paineis-pecas > .retangulo-pecas:last-child {
         order: 2 !important;
         margin: 5px 10px !important;
         width: auto !important;
     }
 
-    /* 4. O QUADRO FICA ESTRITAMENTE NO MEIO (Order 3) */
+    /* 4. QUADRO NO MEIO (Order 3) */
     .area-trabalho {
         order: 3 !important;
         min-height: 45vh !important;
         margin: 5px 10px !important;
     }
 
-    /* 5. PEGA A CAIXA DOS ÁTOMOS E JOGA PRA DEBAIXO DO QUADRO NA MARRA (Order 4) */
+    /* 5. ÁTOMOS EMBAIXO (Order 4) */
     .paineis-pecas > .retangulo-pecas:first-child {
         order: 4 !important;
         margin: 5px 10px 20px 10px !important;
         width: auto !important;
     }
 
-    /* 6. GARANTE 100% DE CERTEZA QUE NÃO VAI QUEBRAR LINHA, NÃO VAI ESCORREGAR E VAI ROLAR DE LADO */
+    /* 6. GARANTE QUE ELES QUEBREM DE LINHA PARA NÃO SUMIR E FIQUEM CENTRALIZADOS */
     .paineis-pecas .lista-pecas {
         display: flex !important;
         flex-direction: row !important;
-        flex-wrap: nowrap !important; /* PROÍBE DE DESCER DE LINHA */
-        overflow-x: auto !important; /* CRIA A BARRA DE DESLIZAR LATERAL */
-        -webkit-overflow-scrolling: touch !important; /* FAZ O TOQUE DESLIZAR SUAVE NO IPHONE/ANDROID */
+        flex-wrap: wrap !important; /* AGORA ELES PODEM IR PRA LINHA DE BAIXO SE NÃO COUBEREM */
+        justify-content: center !important; /* CENTRALIZA ELES BONITINHOS */
         gap: 15px !important;
         padding: 10px !important;
-        justify-content: flex-start !important;
+        overflow: visible !important; /* Garante que a caixa mostre tudo */
     }
 
     /* Blinda as peças para o navegador não tentar encolhê-las */
