@@ -108,7 +108,6 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
 .item-catalogo p { font-size: 12px; opacity: 0.8; }
 .icone-lock { font-size: 24px; opacity: 0.5; float: right; }
 
-/* BASE TUTORIAL GENSHIN IMPACT */
 .tutorial-genshin-box { background: #ffffff; width: 90%; max-width: 650px; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 3px solid #0284c7; display: flex; flex-direction: column; animation: fadeInTutorial 0.4s ease-out; }
 @keyframes fadeInTutorial { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
 .tutorial-media-container { width: 100%; height: 300px; background: #e2e8f0; display: flex; justify-content: center; align-items: center; overflow: hidden; border-bottom: 2px solid #cbd5e1; }
@@ -123,7 +122,7 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
 .btn-prosseguir:hover { background: #0369a1; transform: translateY(-2px); }
 
 /* ==========================================
-   SUPER RESPONSIVIDADE (CELULARES E TABLETS)
+   SUPER RESPONSIVIDADE (GERAL)
    ========================================== */
 @media screen and (max-width: 950px) {
     .atomo { width: 50px !important; height: 50px !important; min-width: 50px !important; min-height: 50px !important; font-size: 20px !important; flex-shrink: 0 !important; }
@@ -141,144 +140,79 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
 }
 
 /* ==========================================
-   LANDSCAPE LAYOUT (RESTORED TO ORIGINAL)
+   LANDSCAPE LAYOUT (DEITADO) - O tutorial fixado
    ========================================== */
 @media screen and (max-width: 950px) and (orientation: landscape) {
-    .game-container {
-        display: flex;
-        flex-direction: row;
-        flex-wrap: wrap;
-        padding-top: 60px;
-    }
-    
+    .game-container { display: flex; flex-direction: row; flex-wrap: wrap; padding-top: 60px; }
     .header-modo, #texto-modo-livre, .hud-desafio { width: 100%; order: 1; margin: 0 10px 10px 10px; }
-    
-    .area-trabalho {
-        width: calc(100% - 140px);
-        flex: none; 
-        min-height: 380px;
-        margin: 0 0 10px 10px;
-        order: 2;
-    }
-
+    .area-trabalho { width: calc(100% - 140px); flex: none; min-height: 380px; margin: 0 0 10px 10px; order: 2; }
     .paineis-pecas { display: contents; }
-
-    .paineis-pecas > div:nth-child(2) {
-        width: 120px;
-        order: 3;
-        margin: 0 10px 10px 10px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-    .paineis-pecas > div:nth-child(2) .lista-pecas {
-        flex-direction: column;
-        gap: 15px;
-    }
-
-    .paineis-pecas > div:nth-child(1) {
-        width: calc(100% - 20px);
-        order: 4;
-        margin: 0 10px 20px 10px;
-    }
-    
-    .paineis-pecas > div:nth-child(1) .lista-pecas {
-        display: flex;
-        flex-direction: row;
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        gap: 15px;
-        padding: 10px;
-    }
-    
+    .paineis-pecas > div:nth-child(2) { width: 120px; order: 3; margin: 0 10px 10px 10px; display: flex; flex-direction: column; align-items: center; }
+    .paineis-pecas > div:nth-child(2) .lista-pecas { flex-direction: column; gap: 15px; }
+    .paineis-pecas > div:nth-child(1) { width: calc(100% - 20px); order: 4; margin: 0 10px 20px 10px; }
+    .paineis-pecas > div:nth-child(1) .lista-pecas { display: flex; flex-direction: row; flex-wrap: nowrap; overflow-x: auto; gap: 15px; padding: 10px; }
     .rodape { display: none !important; }
     
-    /* TUTORIAL GENSHIN LANDSCAPE - FIXED */
-    .tutorial-genshin-box { 
-        display: flex !important;
-        flex-direction: column !important; 
-        flex-wrap: wrap !important; 
-        height: 85vh !important;
-        padding: 0 !important;
-    }
-    .tutorial-media-container { 
-        width: 50% !important; 
-        height: 100% !important; 
-        border-bottom: none !important; 
-        border-right: 2px solid #cbd5e1 !important;
-        box-sizing: border-box !important;
-    }
-    .tutorial-text-container { 
-        width: 50% !important; 
-        height: calc(100% - 70px) !important; 
-        align-items: flex-start !important; 
-        overflow-y: auto !important; 
-        box-sizing: border-box !important;
-    }
-    .tutorial-controls { 
-        width: 50% !important; 
-        height: 70px !important; 
-        margin: 0 !important;
-        display: flex !important; 
-        justify-content: space-between !important;
-        align-items: center !important;
-        visibility: visible !important; 
-        opacity: 1 !important;
-        box-sizing: border-box !important;
-        z-index: 9999 !important;
-    }
+    /* TUTORIAL GENSHIN LANDSCAPE */
+    .tutorial-genshin-box { display: flex !important; flex-direction: column !important; flex-wrap: wrap !important; height: 85vh !important; padding: 0 !important; }
+    .tutorial-media-container { width: 50% !important; height: 100% !important; border-bottom: none !important; border-right: 2px solid #cbd5e1 !important; box-sizing: border-box !important; }
+    .tutorial-text-container { width: 50% !important; height: calc(100% - 70px) !important; align-items: flex-start !important; overflow-y: auto !important; box-sizing: border-box !important; }
+    .tutorial-controls { width: 50% !important; height: 70px !important; margin: 0 !important; display: flex !important; justify-content: space-between !important; align-items: center !important; visibility: visible !important; opacity: 1 !important; box-sizing: border-box !important; z-index: 9999 !important; }
 }
 
 /* ==========================================
-   PORTRAIT (VERTICAL PHONE) - YOUR EXACT REQUEST
+   CELULAR EM PÉ (PORTRAIT) - FORÇA BRUTA (NOVA LÓGICA)
    ========================================== */
 @media screen and (max-width: 600px) and (orientation: portrait) {
+    /* 1. Transforma o fundo inteiro no controlador de tudo */
     .game-container {
-        display: flex;
-        flex-direction: column;
-    }
-    
-    .header-modo, #texto-modo-livre, .hud-desafio { 
-        order: 1; 
-    }
-    
-    /* This unpackages the container so we can separate Atoms and Connections */
-    .paineis-pecas { 
-        display: contents; 
-    }
-    
-    /* TOP (Above the board): Connections (Child 2) */
-    .paineis-pecas > div:nth-child(2) {
-        order: 2;
-        margin: 0 10px 10px 10px;
-    }
-    
-    /* MIDDLE: The Board */
-    .area-trabalho { 
-        order: 3;
-        min-height: 50vh; 
-        margin: 0 10px; 
-    }
-    
-    /* BOTTOM (Below the board): Atoms (Child 1) */
-    .paineis-pecas > div:nth-child(1) {
-        order: 4;
-        margin: 10px 10px 20px 10px;
+        display: flex !important;
+        flex-direction: column !important;
     }
 
-    /* THE RULE FOR BOTH ITEMS (Single line, scrollable horizontally) */
-    .paineis-pecas > div .lista-pecas {
-        display: flex;
-        flex-direction: row;
-        flex-wrap: nowrap !important; /* Prohibits dropping to the next line */
-        overflow-x: auto; /* Adds horizontal scroll */
-        gap: 15px;
-        padding: 10px;
-        justify-content: flex-start;
+    /* Garante que cabeçalhos fiquem estritamente no topo */
+    .header-modo, #texto-modo-livre, .hud-desafio { order: 1 !important; margin-bottom: 5px !important;}
+
+    /* 2. Destrói a caixa agrupador das peças. Agora as Caixas de Átomo e Ligação respondem direto à tela */
+    .paineis-pecas {
+        display: contents !important;
     }
-    
-    .retangulo-pecas { 
-        width: auto; 
-        flex: none; 
+
+    /* 3. PEGA A CAIXA DAS LIGAÇÕES E JOGA PRA CIMA DO QUADRO NA MARRA (Order 2) */
+    .paineis-pecas > .retangulo-pecas:last-child {
+        order: 2 !important;
+        margin: 5px 10px !important;
+        width: auto !important;
+    }
+
+    /* 4. O QUADRO FICA ESTRITAMENTE NO MEIO (Order 3) */
+    .area-trabalho {
+        order: 3 !important;
+        min-height: 45vh !important;
+        margin: 5px 10px !important;
+    }
+
+    /* 5. PEGA A CAIXA DOS ÁTOMOS E JOGA PRA DEBAIXO DO QUADRO NA MARRA (Order 4) */
+    .paineis-pecas > .retangulo-pecas:first-child {
+        order: 4 !important;
+        margin: 5px 10px 20px 10px !important;
+        width: auto !important;
+    }
+
+    /* 6. GARANTE 100% DE CERTEZA QUE NÃO VAI QUEBRAR LINHA, NÃO VAI ESCORREGAR E VAI ROLAR DE LADO */
+    .paineis-pecas .lista-pecas {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important; /* PROÍBE DE DESCER DE LINHA */
+        overflow-x: auto !important; /* CRIA A BARRA DE DESLIZAR LATERAL */
+        -webkit-overflow-scrolling: touch !important; /* FAZ O TOQUE DESLIZAR SUAVE NO IPHONE/ANDROID */
+        gap: 15px !important;
+        padding: 10px !important;
+        justify-content: flex-start !important;
+    }
+
+    /* Blinda as peças para o navegador não tentar encolhê-las */
+    .atomo, .ligacao, .lig-vertical {
+        flex-shrink: 0 !important;
     }
 }
