@@ -150,7 +150,9 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
     .paineis-pecas > div:nth-child(2) { width: 120px; order: 3; margin: 0 10px 10px 10px; display: flex; flex-direction: column; align-items: center; }
     .paineis-pecas > div:nth-child(2) .lista-pecas { flex-direction: column; gap: 15px; }
     .paineis-pecas > div:nth-child(1) { width: calc(100% - 20px); order: 4; margin: 0 10px 20px 10px; }
+    
     .paineis-pecas > div:nth-child(1) .lista-pecas { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 15px; padding: 10px; }
+    
     .rodape { display: none !important; }
     
     /* TUTORIAL GENSHIN LANDSCAPE */
@@ -161,17 +163,16 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
 }
 
 /* ==========================================
-   CELULAR EM PÉ (PORTRAIT) - RESOLVIDO O SUMIÇO DOS ÁTOMOS
+   CELULAR EM PÉ (PORTRAIT)
    ========================================== */
 @media screen and (max-width: 600px) and (orientation: portrait) {
     
-    /* O SEGREDO AQUI: DESTRAVA A TELA PARA DEIXAR VOCÊ DESCER E VER OS ÁTOMOS */
     .game-container {
         display: flex !important;
         flex-direction: column !important;
-        height: 100vh !important; /* Fixa o tamanho */
-        overflow-y: auto !important; /* PERMITE ROLAR A TELA PARA BAIXO */
-        padding-bottom: 50px !important; /* Dá um respiro pro final da tela */
+        height: 100vh !important; 
+        overflow-y: auto !important; 
+        padding-bottom: 50px !important; 
     }
 
     .header-modo, #texto-modo-livre, .hud-desafio { order: 1 !important; margin-bottom: 5px !important;}
@@ -185,7 +186,6 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
         width: auto !important;
     }
     
-    /* Ligações não quebram linha (só arrastar pro lado) */
     .paineis-pecas > div:nth-child(2) .lista-pecas {
         display: flex !important;
         flex-direction: row !important;
@@ -196,11 +196,12 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
         justify-content: flex-start !important;
     }
 
-    /* 2. QUADRO NO MEIO */
+    /* 2. QUADRO NO MEIO (VOLTOU AO TAMANHO EXATO DE 60VH) */
     .area-trabalho {
         order: 3 !important;
-        min-height: 40vh !important;
+        min-height: 60vh !important; /* Tamanho original restaurado */
         margin: 5px 10px !important;
+        flex-shrink: 0 !important; /* Impede que o quadro seja esmagado pelos menus */
     }
 
     /* 3. ÁTOMOS EMBAIXO DO QUADRO */
@@ -210,17 +211,15 @@ body.no-scroll { overflow: hidden !important; touch-action: none; }
         width: auto !important;
     }
 
-    /* O QUE VOCÊ PEDIU: ÁTOMOS QUEBRAM A LINHA E FICAM CENTRALIZADOS (WRAP E CENTER) */
     .paineis-pecas > div:nth-child(1) .lista-pecas {
         display: flex !important;
         flex-direction: row !important;
-        flex-wrap: wrap !important; /* Forma fileiras debaixo da outra */
-        justify-content: center !important; /* Centraliza tudo */
+        flex-wrap: wrap !important; 
+        justify-content: center !important; 
         gap: 12px !important;
         padding: 10px !important;
         overflow: visible !important;
     }
 
-    /* Blinda o tamanho das peças */
     .atomo, .ligacao, .lig-vertical { flex-shrink: 0 !important; }
 }
