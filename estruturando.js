@@ -520,7 +520,7 @@ function fecharTutorialGenshin() {
 setTimeout(checkTutorialOnLoad, 500);
 
 // ==========================================
-// DRAG & DROP FÍSICO COM TOUCH INTENT (CORRIGIDO)
+// DRAG & DROP FÍSICO COM TOUCH INTENT E ZOOM FIX
 // ==========================================
 let ultimoCliqueTempo = 0;
 let toqueEmEspera = null; 
@@ -576,9 +576,9 @@ document.addEventListener("pointerdown", (e) => {
     let tempoDesdeUltimo = agora - ultimoCliqueTempo;
     ultimoCliqueTempo = agora;
 
-    // Lógica do duplo clique
+    // Lógica do duplo clique (Spawn centralizado corrigido para lidar perfeitamente com zoom)
     if (tempoDesdeUltimo < 300) {
-        clearTimeout(toqueEmEspera); // Cancela o arrasto acidental
+        clearTimeout(toqueEmEspera); 
         if (e.target.closest('.retangulo-pecas') || (pecaEmMovimento && pecaEmMovimento.dataset.recemCriada === "true")) {
             let nova = pecaEmMovimento ? pecaEmMovimento : peca.cloneNode(true);
             if (!pecaEmMovimento) {
@@ -588,8 +588,10 @@ document.addEventListener("pointerdown", (e) => {
             }
             let oRect = quadroOuter.getBoundingClientRect();
             let iRect = quadroInner.getBoundingClientRect();
-            nova.style.left = ((oRect.width/2 - iRect.left)/zoomLevel - 20) + "px"; 
-            nova.style.top = ((oRect.height/2 - iRect.top)/zoomLevel - 20) + "px";
+            
+            // O centro da tela visual, mapeado matematicamente para as coordenadas do quadro interno
+            nova.style.left = ((oRect.left + oRect.width/2 - iRect.left)/zoomLevel - 20) + "px"; 
+            nova.style.top = ((oRect.top + oRect.height/2 - iRect.top)/zoomLevel - 20) + "px";
             nova.dataset.noQuadro = "true"; nova.style.position = "absolute"; nova.style.zIndex = 10;
             
             grupoEmMovimento = []; pecaEmMovimento = null; isDragging = false;
@@ -614,8 +616,6 @@ document.addEventListener("pointerdown", (e) => {
     let isTouch = e.pointerType === "touch" || e.pointerType === "pen";
 
     if (isNoMenu && isTouch) {
-        // ESSA É A CHAVE DA CORREÇÃO:
-        // O jogo só cria a peça no quadro se você segurar o dedo nela por 250ms SEM mover.
         toqueEmEspera = setTimeout(() => {
             iniciarArrastoReal(peca, startX, startY, true);
         }, 250); 
@@ -625,7 +625,6 @@ document.addEventListener("pointerdown", (e) => {
 });
 
 document.addEventListener("pointermove", (e) => {
-    // Se o dedo se mover mais de 10px antes de acabar os 250ms, É SCROLL! Cancela a criação da peça.
     if (pecaPotencial && !isDragging) {
         if (Math.abs(e.clientX - startX) > 10 || Math.abs(e.clientY - startY) > 10) {
             clearTimeout(toqueEmEspera); 
@@ -831,25 +830,44 @@ window.cmDesvincular = function() {
 function fecharMenuContexto() { document.getElementById("menu-contexto").classList.add("escondido"); pecaAlvoMenu = null; }
 
 // ==========================================
-// MOVIMENTO, FÍSICA E ÍMÃ
+// MOVIMENTO, FÍSICA E ÍMÃ (CORRIGIDO PARA ZOOM)
 // ==========================================
 function moverGrupo(mouseX, mouseY) {
-    let rawDx = (mouseX - mouseStartX) / zoomLevel; let rawDy = (mouseY - mouseStartY) / zoomLevel;
+    let rawDx = (mouseX - mouseStartX) / zoomLevel; 
+    let rawDy = (mouseY - mouseStartY) / zoomLevel;
     let isNoQuadro = grupoEmMovimento[0].dataset.noQuadro === "true";
 
     if (isNoQuadro) {
-        let boardW = quadroInner.clientWidth / zoomLevel; let boardH = quadroInner.clientHeight / zoomLevel;
+        // Pega as bordas exatas visualizadas na tela neste exato segundo
+        let oRect = quadroOuter.getBoundingClientRect();
+        let iRect = quadroInner.getBoundingClientRect();
+        
+        // Mapeia essas bordas para o sistema de coordenadas de dentro do quadro (onde a peça mora)
+        let limMinX = (oRect.left - iRect.left) / zoomLevel;
+        let limMinY = (oRect.top - iRect.top) / zoomLevel;
+        let limMaxX = (oRect.right - iRect.left) / zoomLevel;
+        let limMaxY = (oRect.bottom - iRect.top) / zoomLevel;
+
         let minDx = -Infinity, maxDx = Infinity, minDy = -Infinity, maxDy = Infinity;
+        
         grupoEmMovimento.forEach(p => {
-            let sX = parseFloat(p.dataset.startX); let sY = parseFloat(p.dataset.startY);
-            if (-sX > minDx) minDx = -sX;
-            if (boardW - p.offsetWidth - sX < maxDx) maxDx = boardW - p.offsetWidth - sX;
-            if (-sY > minDy) minDy = -sY;
-            if (boardH - p.offsetHeight - sY < maxDy) maxDy = boardH - p.offsetHeight - sY;
+            let sX = parseFloat(p.dataset.startX); 
+            let sY = parseFloat(p.dataset.startY);
+            
+            if (limMinX - sX > minDx) minDx = limMinX - sX;
+            if (limMaxX - p.offsetWidth - sX < maxDx) maxDx = limMaxX - p.offsetWidth - sX;
+            if (limMinY - sY > minDy) minDy = limMinY - sY;
+            if (limMaxY - p.offsetHeight - sY < maxDy) maxDy = limMaxY - p.offsetHeight - sY;
         });
-        rawDx = Math.max(minDx, Math.min(rawDx, maxDx)); rawDy = Math.max(minDy, Math.min(rawDy, maxDy));
+        
+        rawDx = Math.max(minDx, Math.min(rawDx, maxDx)); 
+        rawDy = Math.max(minDy, Math.min(rawDy, maxDy));
     }
-    grupoEmMovimento.forEach(p => { p.style.left = (parseFloat(p.dataset.startX) + rawDx) + "px"; p.style.top = (parseFloat(p.dataset.startY) + rawDy) + "px"; });
+    
+    grupoEmMovimento.forEach(p => { 
+        p.style.left = (parseFloat(p.dataset.startX) + rawDx) + "px"; 
+        p.style.top = (parseFloat(p.dataset.startY) + rawDy) + "px"; 
+    });
 }
 
 const oppos = { 'R':'L', 'L':'R', 'T':'B', 'B':'T' };
@@ -928,7 +946,15 @@ function resolverColisaoGlobal() {
     let all = Array.from(quadroInner.querySelectorAll('.peca-draggable.no-quadro'));
     if(all.length === 0) return;
     
-    let boardW = quadroOuter.clientWidth / zoomLevel; let boardH = quadroOuter.clientHeight / zoomLevel;
+    let oRect = quadroOuter.getBoundingClientRect();
+    let iRect = quadroInner.getBoundingClientRect();
+    
+    // Projeta as bordas visuais para o espaço 2D interno da tela
+    let limMinX = (oRect.left - iRect.left) / zoomLevel;
+    let limMinY = (oRect.top - iRect.top) / zoomLevel;
+    let limMaxX = (oRect.right - iRect.left) / zoomLevel;
+    let limMaxY = (oRect.bottom - iRect.top) / zoomLevel;
+
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     
     all.forEach(p => {
@@ -939,8 +965,12 @@ function resolverColisaoGlobal() {
     });
 
     let shiftX = 0, shiftY = 0;
-    if (minX < 0) shiftX = -minX; else if (maxX > boardW) shiftX = boardW - maxX;
-    if (minY < 0) shiftY = -minY; else if (maxY > boardH) shiftY = boardH - maxY;
+    
+    if (minX < limMinX) shiftX = limMinX - minX; 
+    else if (maxX > limMaxX) shiftX = limMaxX - maxX;
+    
+    if (minY < limMinY) shiftY = limMinY - minY; 
+    else if (maxY > limMaxY) shiftY = limMaxY - maxY;
 
     if (shiftX !== 0 || shiftY !== 0) {
         all.forEach(p => { p.style.left = (parseFloat(p.style.left) + shiftX) + "px"; p.style.top = (parseFloat(p.style.top) + shiftY) + "px"; });
