@@ -96,16 +96,11 @@ function desbloquearConquista(id, silencioso=false) {
         concluidas.push(id);
         localStorage.setItem("conquistasDesbloqueadas", JSON.stringify(concluidas));
         if(!silencioso) {
-            if(somConquistaGlob) { 
-                somConquistaGlob.volume = 1.0;
-                somConquistaGlob.currentTime = 0; 
-                somConquistaGlob.play().catch(()=>{}); 
-            }
+            if(somConquistaGlob) { somConquistaGlob.volume = 1.0; somConquistaGlob.currentTime = 0; somConquistaGlob.play().catch(()=>{}); }
             let c = listaDeConquistas.find(x => x.id === id);
             mostrarMensagemGlob(`🏆 CONQUISTA DESBLOQUEADA:\n${c.texto}`);
         }
-        renderizarConquistas();
-        verificarPlatina();
+        renderizarConquistas(); verificarPlatina();
     }
 }
 
@@ -149,17 +144,12 @@ function celebrar(tipo) {
     let titulo = tela.querySelector("#titulo-comemoracao");
 
     if(tipo === 'platina') {
-        icone.innerText = "🏆"; 
-        icone.className = "trofeu-gigante";
-        titulo.innerText = "PLATINA ALCANÇADA!"; 
-        titulo.style.textShadow = "0 0 10px gold";
+        icone.innerText = "🏆"; icone.className = "trofeu-gigante";
+        titulo.innerText = "PLATINA ALCANÇADA!"; titulo.style.textShadow = "0 0 10px gold";
     } else {
-        icone.innerText = "🏆"; 
-        icone.className = "trofeu-gigante prata-brilho";
-        titulo.innerText = "MOLÉCULAS CATALOGADAS!"; 
-        titulo.style.textShadow = "0 0 10px silver";
+        icone.innerText = "🏆"; icone.className = "trofeu-gigante prata-brilho";
+        titulo.innerText = "MOLÉCULAS CATALOGADAS!"; titulo.style.textShadow = "0 0 10px silver";
     }
-
     tela.classList.add("ativa");
     if(somAplausos) { somAplausos.currentTime=0; somAplausos.play().catch(()=>{}); }
 
@@ -173,7 +163,6 @@ function celebrar(tipo) {
     setTimeout(() => { tela.classList.remove("ativa"); tela.querySelectorAll(".confete").forEach(c => c.remove()); }, 6000);
 }
 
-// CHAT ADM CHEATS
 function abrirChat() { tocarSomClick(); document.getElementById("chat-overlay").style.display = "block"; }
 function fecharChatBtn() { tocarSomClick(); document.getElementById("chat-overlay").style.display = "none"; }
 function abrirConquistas() { tocarSomClick(); document.getElementById("conquistas-overlay").style.display = "block"; }
@@ -187,49 +176,34 @@ function processarChat(e) {
         if(!input || !div) return;
         let cmd = input.value.trim().toLowerCase();
         input.value = "";
-        
         div.innerHTML += `<div style="margin-bottom:5px;"><b>Você:</b> ${cmd}</div>`;
         
         if(cmd === "\\platinar") {
-            listaDeConquistas.forEach(c => desbloquearConquista(c.id, true));
-            verificarPlatina();
+            listaDeConquistas.forEach(c => desbloquearConquista(c.id, true)); verificarPlatina();
             div.innerHTML += `<div style="color:#16a34a; margin-bottom:5px;"><b>Sistema:</b> Todas as conquistas ativadas!</div>`;
         } else if (cmd === "\\catalogador") {
             let dbIds =[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20];
-            localStorage.setItem("catalogoDesbloqueado", JSON.stringify(dbIds));
-            window.verificarCatalogador();
+            localStorage.setItem("catalogoDesbloqueado", JSON.stringify(dbIds)); window.verificarCatalogador();
             div.innerHTML += `<div style="color:#16a34a; margin-bottom:5px;"><b>Sistema:</b> Catálogo completo ativado!</div>`;
         } else if (cmd === "\\limpar") {
-            localStorage.removeItem("conquistasDesbloqueadas");
-            localStorage.removeItem("catalogoDesbloqueado");
-            localStorage.removeItem("platinado");
-            localStorage.removeItem("catalogador");
+            localStorage.removeItem("conquistasDesbloqueadas"); localStorage.removeItem("catalogoDesbloqueado");
+            localStorage.removeItem("platinado"); localStorage.removeItem("catalogador");
             renderizarTrofeus(); renderizarConquistas();
             div.innerHTML += `<div style="color:#ef4444; margin-bottom:5px;"><b>Sistema:</b> Dados resetados! Recarregue a página.</div>`;
         } else if (cmd === "\\completar") {
             if(typeof window.cheatCompletarFase === "function") { 
-                window.cheatCompletarFase(); 
-                div.innerHTML += `<div style="color:#16a34a; margin-bottom:5px;"><b>Sistema:</b> Fase completada automaticamente!</div>`; 
-            } else { 
-                div.innerHTML += `<div style="color:#ef4444; margin-bottom:5px;"><b>Sistema:</b> Você precisa estar dentro de um Modo Desafio!</div>`; 
-            }
+                window.cheatCompletarFase(); div.innerHTML += `<div style="color:#16a34a; margin-bottom:5px;"><b>Sistema:</b> Fase completada!</div>`; 
+            } else { div.innerHTML += `<div style="color:#ef4444; margin-bottom:5px;"><b>Sistema:</b> Você precisa estar dentro de um Modo Desafio!</div>`; }
         } else if (cmd.startsWith("\\estrela")) {
             let num = parseInt(cmd.replace("\\estrela", ""));
             if(num >= 1 && num <= 5) {
                 if(typeof window.cheatEstrelas === "function") { 
-                    window.cheatEstrelas(num); 
-                    div.innerHTML += `<div style="color:#16a34a; margin-bottom:5px;"><b>Sistema:</b> Você recebeu ${num} estrela(s)!</div>`; 
-                } else { 
-                    div.innerHTML += `<div style="color:#ef4444; margin-bottom:5px;"><b>Sistema:</b> Você precisa estar dentro de um Modo Desafio!</div>`; 
-                }
-            } else {
-                div.innerHTML += `<div style="color:#ef4444; margin-bottom:5px;"><b>Sistema:</b> Comando inválido. Use \\estrela1 a \\estrela5.</div>`;
-            }
+                    window.cheatEstrelas(num); div.innerHTML += `<div style="color:#16a34a; margin-bottom:5px;"><b>Sistema:</b> ${num} estrela(s) ganha(s)!</div>`; 
+                } else { div.innerHTML += `<div style="color:#ef4444; margin-bottom:5px;"><b>Sistema:</b> Apenas no Modo Desafio!</div>`; }
+            } else { div.innerHTML += `<div style="color:#ef4444; margin-bottom:5px;"><b>Sistema:</b> Comando inválido.</div>`; }
         } else if (cmd === "\\help") {
-            div.innerHTML += `<div style="color:#0284c7; margin-bottom:5px;"><b>Comandos ADM:</b><br>\\platinar - Platina o jogo<br>\\catalogador - Completa o catálogo<br>\\limpar - Reseta todas as conquistas e troféus<br>\\completar - Completa o desafio e vence a fase<br>\\estrela[1 a 5] - Dá a quantidade de estrelas na fase<br>\\help - Mostra esta lista</div>`;
-        } else {
-            div.innerHTML += `<div style="color:#64748b; margin-bottom:5px;"><b>Sistema:</b> Comando '${cmd}' não reconhecido. Digite \\help</div>`;
-        }
+            div.innerHTML += `<div style="color:#0284c7; margin-bottom:5px;"><b>Comandos:</b> \\platinar, \\catalogador, \\limpar, \\completar, \\estrela[1-5]</div>`;
+        } else { div.innerHTML += `<div style="color:#64748b; margin-bottom:5px;"><b>Sistema:</b> Comando não reconhecido.</div>`; }
         div.scrollTop = div.scrollHeight;
     }
 }
@@ -248,38 +222,37 @@ function renderizarConquistas() {
   });
 }
 
-
 // ==========================================
-// ASSISTENTE DE VOZ (ADICIONADO DE FORMA SEGURA)
+// ASSISTENTE DE VOZ (À PROVA DE FALHAS E RECARREGAMENTOS)
 // ==========================================
 let assistenteAtivo = localStorage.getItem("assistenteAtivo") === "true";
 let assistenteReconhecimento = null;
-let assistenteSintese = window.speechSynthesis;
 
-// Inicializa a Voz de forma simples e infalível
+// Garante que a voz é procurada toda vez que vai falar, impedindo de ficar muda!
 function falarAssistente(texto) {
-    assistenteSintese.cancel(); 
+    window.speechSynthesis.cancel(); // Previne travamentos antigos do navegador
     let fala = new SpeechSynthesisUtterance(texto);
     fala.lang = "pt-BR";
     
-    let vozes = assistenteSintese.getVoices();
-    // Tenta pegar voz feminina/online do BR
-    let vozBR = vozes.find(v => v.lang.includes('pt-BR') && (v.name.includes('Feminina') || v.name.includes('Google') || v.name.includes('Luciana') || v.name.includes('Maria')));
-    // Se não achar, pega a primeira voz BR que existir
-    if(!vozBR) vozBR = vozes.find(v => v.lang.includes('pt-BR'));
+    let vozes = window.speechSynthesis.getVoices();
+    let vozBR = vozes.find(v => v.lang && v.lang.includes('pt-BR') && (v.name.includes('Online') || v.name.includes('Google') || v.name.includes('Feminina') || v.name.includes('Neural')));
+    
+    // Se não achar a feminina online, pega a primeira voz pt-BR disponível
+    if(!vozBR) vozBR = vozes.find(v => v.lang && v.lang.includes('pt-BR'));
     
     if(vozBR) fala.voice = vozBR;
-    fala.pitch = 1.2; 
+    fala.pitch = 1.1; 
+    fala.rate = 1.0;
     
-    assistenteSintese.speak(fala);
+    window.speechSynthesis.speak(fala);
 }
 
-// Força o carregamento das vozes caso o navegador seja lento
+// Pede ao navegador para preparar as vozes assim que ligar
 if (speechSynthesis.onvoiceschanged !== undefined) {
-    speechSynthesis.onvoiceschanged = () => { assistenteSintese.getVoices(); };
+    speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
 }
 
-// Inicializa o Microfone de forma segura
+// Inicia o microfone
 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     assistenteReconhecimento = new SpeechRecognition();
@@ -300,7 +273,6 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
 
     assistenteReconhecimento.onerror = function(event) {
         if(event.error === 'not-allowed') {
-            mostrarMensagemGlob("Permissão do microfone negada.");
             assistenteAtivo = false;
             localStorage.setItem("assistenteAtivo", "false");
             let btn = document.getElementById("btnAssistente");
@@ -318,15 +290,10 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     };
 }
 
-// Ligar/Desligar sem mexer na navegação do jogo
+// Liga e Desliga a Escuta
 window.toggleAssistenteVoz = function(silencioso = false) {
     if(!silencioso) tocarSomClick();
-    
-    if (!assistenteReconhecimento) {
-        mostrarMensagemGlob("Seu navegador não suporta voz.");
-        falarAssistente("Desculpe, seu navegador não suporta o assistente de voz.");
-        return;
-    }
+    if (!assistenteReconhecimento) return;
 
     if (assistenteAtivo) {
         assistenteAtivo = false;
@@ -349,7 +316,6 @@ window.toggleAssistenteVoz = function(silencioso = false) {
     }
 }
 
-// Tecla Espaço global
 document.addEventListener("keydown", (e) => {
     if(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")) return;
     if (e.code === "Space") {
@@ -358,65 +324,62 @@ document.addEventListener("keydown", (e) => {
     }
 });
 
-// Religamento automático limpo (executado apenas 1x no final do carregamento)
+// Religa o microfone quando muda de tela (silencioso)
 setTimeout(() => {
     if(assistenteAtivo && assistenteReconhecimento) {
         try { assistenteReconhecimento.start(); } catch(e){}
     }
 }, 1000);
 
-// Processamento de Comandos simples, diretos e com várias palavras-chave
+// CÉREBRO: Busca pelas palavras isoladas perfeitamente
 function processarComandoVozSeguro(comando) {
+    comando = comando.replace(/[.,!?]/g, "").trim();
     
-    // Desligar
-    if (comando.includes("desativar") || comando.includes("desligar") || comando.includes("parar")) {
+    // Função mágica que acha palavras separadas ("bora jogar", acha o "bora")
+    const tem = (...palavras) => palavras.some(p => new RegExp(`\\b${p}\\b`, 'i').test(comando));
+
+    if (tem("desativar", "desligar", "parar", "encerrar")) {
         toggleAssistenteVoz();
         return;
     }
-
-    // Voltar (Index)
-    if (comando.includes("voltar") || comando.includes("início") || comando.includes("principal")) {
-        falarAssistente("Voltando");
+    
+    if (tem("voltar", "início", "inicio", "principal")) {
+        falarAssistente("Voltando.");
         mudarTela('index.html');
         return;
     }
-
-    // Mutar/Desmutar
-    if (comando.includes("mutar") || comando.includes("silêncio") || comando.includes("tirar som")) {
+    
+    if (tem("mutar", "silêncio", "silencio") || comando.includes("tirar som")) {
         if(!mutado) toggleMute();
         falarAssistente("Mudo.");
         return;
     }
-    if (comando.includes("desmutar") || comando.includes("ligar som") || comando.includes("com som")) {
+    
+    if (tem("desmutar", "áudio", "audio") || comando.includes("ligar som")) {
         if(mutado) toggleMute();
         falarAssistente("Som ligado.");
         return;
     }
-
-    // Iniciar Jogo
-    if (comando.includes("iniciar") || comando.includes("começar") || comando.includes("jogar") || comando.includes("bora") || comando.includes("vamos") || comando.includes("entrar") || comando.includes("play")) {
-        let urlAtual = window.location.pathname;
-        if (urlAtual.includes('modos.html') || urlAtual.includes('estruturando.html') || urlAtual.includes('inclusao.html')) {
-            falarAssistente("Você já está no jogo.");
+    
+    if (tem("iniciar", "começar", "jogar", "bora", "vamos", "entrar", "play")) {
+        if (window.location.pathname.includes('modos.html') || window.location.pathname.includes('estruturando.html') || window.location.pathname.includes('inclusao.html')) {
+            falarAssistente("Você já está no jogo ou no menu de modos.");
         } else {
             falarAssistente("Iniciando.");
-            // Usa a sua função original se existir (tela index), se não, chama mudarTela direto
             if (typeof iniciar === "function") { iniciar(); } else { mudarTela('modos.html'); }
         }
         return;
     }
-
-    // Escolher modo Estruturando (na tela de modos)
+    
     if (window.location.href.includes('modos.html')) {
-        if (comando.includes("estruturando") || comando.includes("clássico") || comando.includes("primeiro")) {
-            falarAssistente("Estruturando.");
+        if (tem("estruturando", "clássico", "primeiro")) {
+            falarAssistente("Iniciando Estruturando.");
             localStorage.setItem("modoAtual", "livre");
             mudarTela('estruturando.html');
             return;
         }
-        // Escolher modo Acessível (na tela de modos)
-        if (comando.includes("acessível") || comando.includes("inclusão") || comando.includes("segundo")) {
-            falarAssistente("Acessível.");
+        if (tem("acessível", "inclusão", "inclusivo", "segundo")) {
+            falarAssistente("Iniciando Acessível.");
             localStorage.setItem("modoAtual", "inclusao-reconhecer");
             mudarTela('inclusao.html');
             return;

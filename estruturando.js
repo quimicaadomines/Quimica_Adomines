@@ -576,7 +576,7 @@ document.addEventListener("pointerdown", (e) => {
     let tempoDesdeUltimo = agora - ultimoCliqueTempo;
     ultimoCliqueTempo = agora;
 
-    // Lógica do duplo clique (Spawn centralizado corrigido para lidar perfeitamente com zoom)
+    // Lógica do duplo clique (Spawn centralizado)
     if (tempoDesdeUltimo < 300) {
         clearTimeout(toqueEmEspera); 
         if (e.target.closest('.retangulo-pecas') || (pecaEmMovimento && pecaEmMovimento.dataset.recemCriada === "true")) {
@@ -589,7 +589,6 @@ document.addEventListener("pointerdown", (e) => {
             let oRect = quadroOuter.getBoundingClientRect();
             let iRect = quadroInner.getBoundingClientRect();
             
-            // O centro da tela visual, mapeado matematicamente para as coordenadas do quadro interno
             nova.style.left = ((oRect.left + oRect.width/2 - iRect.left)/zoomLevel - 20) + "px"; 
             nova.style.top = ((oRect.top + oRect.height/2 - iRect.top)/zoomLevel - 20) + "px";
             nova.dataset.noQuadro = "true"; nova.style.position = "absolute"; nova.style.zIndex = 10;
@@ -830,7 +829,7 @@ window.cmDesvincular = function() {
 function fecharMenuContexto() { document.getElementById("menu-contexto").classList.add("escondido"); pecaAlvoMenu = null; }
 
 // ==========================================
-// MOVIMENTO, FÍSICA E ÍMÃ (CORRIGIDO PARA ZOOM)
+// MOVIMENTO, FÍSICA E ÍMÃ 
 // ==========================================
 function moverGrupo(mouseX, mouseY) {
     let rawDx = (mouseX - mouseStartX) / zoomLevel; 
@@ -838,11 +837,9 @@ function moverGrupo(mouseX, mouseY) {
     let isNoQuadro = grupoEmMovimento[0].dataset.noQuadro === "true";
 
     if (isNoQuadro) {
-        // Pega as bordas exatas visualizadas na tela neste exato segundo
         let oRect = quadroOuter.getBoundingClientRect();
         let iRect = quadroInner.getBoundingClientRect();
         
-        // Mapeia essas bordas para o sistema de coordenadas de dentro do quadro (onde a peça mora)
         let limMinX = (oRect.left - iRect.left) / zoomLevel;
         let limMinY = (oRect.top - iRect.top) / zoomLevel;
         let limMaxX = (oRect.right - iRect.left) / zoomLevel;
@@ -949,7 +946,6 @@ function resolverColisaoGlobal() {
     let oRect = quadroOuter.getBoundingClientRect();
     let iRect = quadroInner.getBoundingClientRect();
     
-    // Projeta as bordas visuais para o espaço 2D interno da tela
     let limMinX = (oRect.left - iRect.left) / zoomLevel;
     let limMinY = (oRect.top - iRect.top) / zoomLevel;
     let limMaxX = (oRect.right - iRect.left) / zoomLevel;
