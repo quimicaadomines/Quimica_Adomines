@@ -41,12 +41,12 @@ function carregarConfiguracoes() {
   renderizarConquistas();
   renderizarTrofeus();
   
-  // Se o assistente foi deixado ativado na página anterior, religa automaticamente
+  // Religamento automático do Assistente se mudar de tela
   if (localStorage.getItem("assistenteAtivo") === "true") {
       setTimeout(() => {
-         assistenteAtivo = false; // Força a função toggle a ligar corretamente
-         toggleAssistenteVoz(true);
-      }, 1000); // Pequeno atraso para a página carregar a voz
+         assistenteAtivo = false; 
+         toggleAssistenteVoz(true); // "true" significa ligar sem falar novamente
+      }, 1000); 
   }
 }
 window.onload = carregarConfiguracoes;
@@ -96,32 +96,28 @@ function mostrarMensagemGlob(texto) {
 }
 
 // ==========================================
-// ASSISTENTE DE VOZ INTELIGENTE (FEMININA E PERSISTENTE)
+// ASSISTENTE DE VOZ INTELIGENTE (ATUALIZADA)
 // ==========================================
 let assistenteAtivo = false;
 let assistenteReconhecimento = null;
 let assistenteSintese = window.speechSynthesis;
 let vozAssistente = null;
 
-// Função para buscar e carregar uma voz Feminina Brasileira
 function carregarVozes() {
     let vozes = assistenteSintese.getVoices();
     if(vozes.length === 0) return;
     
-    // Tenta encontrar vozes femininas específicas do Windows/Android/Google
-    vozAssistente = vozes.find(v => v.lang.includes('pt-BR') && (v.name.includes('Feminina') || v.name.includes('Google') || v.name.includes('Luciana') || v.name.includes('Maria') || v.name.includes('Zira')));
+    // Procura ativamente por vozes online/Google para evitar a voz robótica do Windows
+    vozAssistente = vozes.find(v => v.lang.includes('pt-BR') && (v.name.includes('Online') || v.name.includes('Google') || v.name.includes('Neural') || v.name.includes('Feminina')));
     
-    // Se não achar nome feminino, pega a primeira em pt-BR disponível
     if(!vozAssistente) {
         vozAssistente = vozes.find(v => v.lang.includes('pt-BR'));
     }
 }
-// Alguns navegadores carregam as vozes depois, então precisamos desse evento
 if (speechSynthesis.onvoiceschanged !== undefined) {
     speechSynthesis.onvoiceschanged = carregarVozes;
 }
 
-// Inicializa a API de audição
 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     assistenteReconhecimento = new SpeechRecognition();
@@ -138,17 +134,13 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
 
     assistenteReconhecimento.onresult = function(event) {
         let comando = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
-        
-        // Feedback visual para o jogador saber o que a IA ouviu
         mostrarMensagemGlob('🎤 Eu ouvi: "' + comando + '"');
-        
         processarComandoVoz(comando);
     };
 
     assistenteReconhecimento.onerror = function(event) {
-        console.log("Erro no assistente: " + event.error);
         if(event.error === 'not-allowed') {
-            mostrarMensagemGlob("Permissão do microfone negada.");
+            mostrarMensagemGlob("Permissão do microfone negada. Hospede o jogo na internet para funcionar corretamente.");
             assistenteAtivo = false;
             localStorage.setItem("assistenteAtivo", "false");
             let btn = document.getElementById("btnAssistente");
@@ -157,7 +149,6 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     };
 
     assistenteReconhecimento.onend = function() {
-        // Se o assistente deve continuar ligado, ele se reinicia sozinho
         if (assistenteAtivo) {
             try { assistenteReconhecimento.start(); } catch(e){}
         } else {
@@ -167,13 +158,8 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     };
 }
 
-// Função para a Assistente falar (com a nova voz)
 function falarAssistente(texto) {
-    if(assistenteSintese.speaking) {
-        assistenteSintese.cancel(); // Corta a fala anterior se mandar outra por cima
-    }
-    
-    // Garante que a voz foi carregada
+    if(assistenteSintese.speaking) assistenteSintese.cancel(); 
     if(!vozAssistente) carregarVozes();
 
     let fala = new SpeechSynthesisUtterance(texto);
@@ -181,12 +167,10 @@ function falarAssistente(texto) {
     if(vozAssistente) fala.voice = vozAssistente;
     
     fala.rate = 1.0; 
-    fala.pitch = 1.2; // Aumenta levemente o tom para soar mais carismática e feminina
-
+    fala.pitch = 1.2; 
     assistenteSintese.speak(fala);
 }
 
-// Liga/Desliga Assistente (Pelo Botão ou Tecla)
 window.toggleAssistenteVoz = function(silencioso = false) {
     if(!silencioso) tocarSomClick();
     
@@ -206,42 +190,37 @@ window.toggleAssistenteVoz = function(silencioso = false) {
         }
     } else {
         try {
-            assistenteAtivo = true; // Setamos true logo para evitar bugs de timing
+            assistenteAtivo = true; 
             localStorage.setItem("assistenteAtivo", "true");
             assistenteReconhecimento.start();
             if(!silencioso) {
                 falarAssistente("Assistente de voz ativado. Como posso ajudar?");
                 mostrarMensagemGlob("🎤 Assistente Ouvindo...");
             }
-        } catch(e) {
-            console.log("Erro ao iniciar microfone", e);
-        }
+        } catch(e) { }
     }
 }
 
-// Evento de Teclado (Liga e Desliga no Espaço)
 document.addEventListener("keydown", (e) => {
-    // Impede que a barra de espaço acione o assistente se o usuário estiver digitando no Chat
     if(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")) return;
-
     if (e.code === "Space") {
-        e.preventDefault(); // Impede a tela de rolar para baixo
+        e.preventDefault(); 
         toggleAssistenteVoz();
     }
 });
 
-// O Cérebro: Analisa o texto e executa funções (Comandos Aprimorados)
+// O CÉREBRO: Agora escuta apenas palavras-chave em qualquer lugar da frase!
 function processarComandoVoz(comando) {
     comando = comando.replace(/[.,!?]/g, ""); // Limpa o texto
 
     // 1. Desligar assistente
-    if (comando.includes("desativar") || comando.includes("desligar") || comando.includes("parar assistente")) {
+    if (comando.includes("desativar") || comando.includes("desligar") || comando.includes("parar")) {
         toggleAssistenteVoz();
         return;
     }
 
     // 2. Iniciar Jogo / Menu de Modos
-    if (comando.includes("iniciar jogo") || comando.includes("começar") || comando.includes("jogar") || comando.includes("entrar no jogo")) {
+    if (comando.includes("iniciar") || comando.includes("começar") || comando.includes("jogar") || comando.includes("play")) {
         falarAssistente("Entrando no menu de modos de jogo.");
         if (typeof iniciar === "function") { iniciar(); } 
         else { mudarTela('modos.html'); }
@@ -249,26 +228,26 @@ function processarComandoVoz(comando) {
     }
 
     // 3. Voltar
-    if (comando.includes("voltar") || comando.includes("menu principal") || comando.includes("início") || comando.includes("tela inicial")) {
+    if (comando.includes("voltar") || comando.includes("principal") || comando.includes("início")) {
         falarAssistente("Voltando para a tela principal.");
         mudarTela('index.html');
         return;
     }
 
     // 4. Som e Música
-    if (comando.includes("mutar") || comando.includes("tirar o som") || comando.includes("desligar o som") || comando.includes("silêncio")) {
+    if (comando.includes("mutar") || comando.includes("silêncio") || (comando.includes("tirar") && comando.includes("som"))) {
         if(!mutado) toggleMute();
         falarAssistente("Volume desativado.");
         return;
     }
-    if (comando.includes("desmutar") || comando.includes("ligar o som") || comando.includes("colocar som")) {
+    if (comando.includes("desmutar") || comando.includes("áudio") || (comando.includes("colocar") && comando.includes("som"))) {
         if(mutado) toggleMute();
         falarAssistente("Volume ativado.");
         return;
     }
 
     // 5. Ajuda básica
-    if (comando.includes("quais são os modos") || comando.includes("modos de jogo") || comando.includes("o que eu posso fazer")) {
+    if (comando.includes("ajuda") || comando.includes("modos") || comando.includes("fazer")) {
         falarAssistente("Você pode pedir para Iniciar o Jogo, Voltar ao Menu, Desligar o Som, ou Desativar o Assistente.");
         return;
     }

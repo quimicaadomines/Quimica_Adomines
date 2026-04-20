@@ -27,6 +27,10 @@
     <button class="icon-btn" onclick="toggleMenu(event)">⚙️</button>
     <button class="icon-btn" onclick="toggleMute()" id="muteBtn">🔊</button>
     <button class="icon-btn" onclick="abrirConquistas()">🏅</button>
+    
+    <!-- BOTÃO DO ASSISTENTE DE VOZ ADICIONADO AQUI -->
+    <button class="icon-btn" onclick="toggleAssistenteVoz()" id="btnAssistente" title="Assistente de Voz">🎤</button>
+    
     <div id="trofeus-globais" class="trofeus-container"></div>
 
     <div id="menu" class="menu">
@@ -128,19 +132,12 @@
   <ul id="lista-menu-contexto"></ul>
 </div>
 
-<!-- NOVO MODAL DE TUTORIAL ESTILO GENSHIN IMPACT -->
 <div id="tutorial-genshin-overlay" class="modal-overlay escondido" style="z-index: 1000000; background: rgba(0,0,0,0.8);">
     <div class="tutorial-genshin-box">
-        <div class="tutorial-media-container" id="tutorial-media-container">
-            <!-- Vídeo ou Imagem será injetado aqui via JS -->
-        </div>
-        <div class="tutorial-text-container">
-            <p id="tutorial-genshin-texto"></p>
-        </div>
+        <div class="tutorial-media-container" id="tutorial-media-container"></div>
+        <div class="tutorial-text-container"><p id="tutorial-genshin-texto"></p></div>
         <div class="tutorial-controls">
-            <div class="carousel-dots" id="tutorial-dots">
-                <!-- Bolinhas injetadas via JS -->
-            </div>
+            <div class="carousel-dots" id="tutorial-dots"></div>
             <button id="btn-tutorial-prosseguir" class="btn-prosseguir" onclick="avancarTutorialGenshin()">Prosseguir ➡</button>
         </div>
     </div>
@@ -169,9 +166,7 @@
 
 <div id="modal-classificacao" class="modal-overlay" style="z-index: 99990;">
     <div class="modal-box">
-        <div class="modal-header" style="background: #f97316;">
-            <h3>📋 Classifique a Molécula!</h3>
-        </div>
+        <div class="modal-header" style="background: #f97316;"><h3>📋 Classifique a Molécula!</h3></div>
         <div class="modal-body" style="text-align: left; font-size: 16px;">
             <p style="margin-bottom: 15px;">A estrutura está correta! Agora classifique-a para ganhar a estrela:</p>
             <div style="margin-bottom: 10px;"><strong>Cadeia:</strong> <label><input type="radio" name="classCadeia" value="Aberta"> Aberta</label> <label><input type="radio" name="classCadeia" value="Fechada"> Fechada</label></div>
@@ -197,7 +192,6 @@
     </div>
 </div>
 
-<!-- MANUAL DE FERRAMENTAS ATUALIZADO COM BOTÃO DE REVER TUTORIAL -->
 <div id="ajuda-overlay" class="modal-overlay" onclick="fecharModais(event)">
     <div class="modal-box" style="max-width: 600px;">
         <div class="modal-header" style="background: #0284c7;">
@@ -213,7 +207,6 @@
             <p><strong>🗑️ Exclusão Rápida:</strong> Soltar uma peça exatamente em cima de outra igual a exclui.</p>
             <p><strong>🚨 Valência Excedida:</strong> O átomo pisca Vermelho e emite um erro.</p>
             <p><strong>✅ Valência Correta:</strong> O átomo pisca Verde e emite um som de acerto!</p>
-            
             <div style="text-align: center; margin-top: 20px; padding-top: 15px; border-top: 1px solid #ccc;">
                 <button onclick="abrirTutorialManual()" style="background: #0284c7; color: white; padding: 10px 20px; border: none; border-radius: 20px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.3); font-size: 16px;">▶ Rever Tutorial do Modo</button>
             </div>
