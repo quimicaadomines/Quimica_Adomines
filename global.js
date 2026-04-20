@@ -8,7 +8,8 @@ let somConquistaGlob = document.getElementById("somConquista");
 let mutado = false; 
 let efeitosVisuaisAtivos = true; 
 let musicaIniciada = false;
-let isNavegando = false; // Trava para impedir a tela de bugar mudando várias vezes
+let isNavegando = false; 
+let contextoAssistente = null; // Memória da assistente para diálogos de múltiplas etapas
 
 const listaDeConquistas =[
   { id: "c1", texto: "Complete o nível fácil do modo de jogo estruturando pela primeira vez." },
@@ -19,6 +20,20 @@ const listaDeConquistas =[
   { id: "c6", texto: "Conclua o catálogo do modo livre do jogo estruturando." }, 
   { id: "c7", texto: "Complete um nível inclusivo do modo de jogo estruturando." }
 ];
+
+// Banco de dados fictício para nomes do catálogo (ajuste os nomes reais do seu jogo depois)
+const nomesCatalogoDemo = [
+    "Água", "Gás Carbônico", "Amônia", "Metano", "Monóxido de Carbono", "Ácido Clorídrico", "Cloreto de Sódio", 
+    "Etanol", "Ácido Sulfúrico", "Gás Oxigênio", "Gás Nitrogênio", "Gás Hidrogênio", "Ozônio", "Dióxido de Enxofre",
+    "Ácido Nítrico", "Benzeno", "Glicose", "Ureia", "Acetona", "Ácido Acético"
+];
+
+// Banco de moléculas para dúvidas específicas da assistente
+const enciclopediaMoleculas = {
+    "monoxido de carbono": { ligacoes: "No monóxido de carbono, o carbono e o oxigênio compartilham uma ligação tripla, sendo uma delas covalente dativa. Portanto, faz três ligações no total." },
+    "agua": { ligacoes: "A água faz duas ligações simples, conectando o oxigênio a dois hidrogênios." },
+    "gas carbonico": { ligacoes: "No gás carbônico, o carbono faz quatro ligações, através de duas ligações duplas com os oxigênios." }
+};
 
 function carregarConfiguracoes() {
   if (localStorage.getItem("tema") === "escuro") { document.body.classList.add("dark"); document.getElementById("temaBtn").innerText = "☀️"; }
@@ -43,12 +58,12 @@ function carregarConfiguracoes() {
 
   renderizarConquistas();
   renderizarTrofeus();
+  injetarTabelaGlobalmente();
   
-  // Religamento automático do Assistente se mudar de tela
   if (localStorage.getItem("assistenteAtivo") === "true") {
       setTimeout(() => {
          assistenteAtivo = false; 
-         toggleAssistenteVoz(true); // "true" significa ligar silenciosamente
+         toggleAssistenteVoz(true); 
       }, 1000); 
   }
 }
@@ -59,12 +74,10 @@ window.addEventListener("beforeunload", () => {
   localStorage.setItem("musicaTocando", !musica.paused);
 });
 
-// FUNÇÃO MUDAR TELA (AGORA COM TRAVA ANTI-BUG)
 function mudarTela(url) {
-  if (isNavegando) return; // Se já estiver mudando de tela, ignora comandos repetidos
+  if (isNavegando) return; 
   isNavegando = true;
 
-  // Desliga o microfone durante a transição para não acumular comandos e quebrar o jogo
   if (assistenteReconhecimento) {
       assistenteReconhecimento.onend = null; 
       assistenteReconhecimento.stop();
@@ -109,7 +122,7 @@ function mostrarMensagemGlob(texto) {
 }
 
 // ==========================================
-// ASSISTENTE DE VOZ INTELIGENTE 
+// ASSISTENTE DE VOZ INTELIGENTE (O "CÉREBRO")
 // ==========================================
 let assistenteAtivo = false;
 let assistenteReconhecimento = null;
@@ -119,17 +132,10 @@ let vozAssistente = null;
 function carregarVozes() {
     let vozes = assistenteSintese.getVoices();
     if(vozes.length === 0) return;
-    
-    // Procura ativamente por vozes online/Google para evitar a voz robótica do Windows
     vozAssistente = vozes.find(v => v.lang.includes('pt-BR') && (v.name.includes('Online') || v.name.includes('Google') || v.name.includes('Neural') || v.name.includes('Feminina')));
-    
-    if(!vozAssistente) {
-        vozAssistente = vozes.find(v => v.lang.includes('pt-BR'));
-    }
+    if(!vozAssistente) { vozAssistente = vozes.find(v => v.lang.includes('pt-BR')); }
 }
-if (speechSynthesis.onvoiceschanged !== undefined) {
-    speechSynthesis.onvoiceschanged = carregarVozes;
-}
+if (speechSynthesis.onvoiceschanged !== undefined) { speechSynthesis.onvoiceschanged = carregarVozes; }
 
 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -146,15 +152,15 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     };
 
     assistenteReconhecimento.onresult = function(event) {
-        if(isNavegando) return; // Se estiver mudando de tela, não processa nada
+        if(isNavegando) return;
         let comando = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
-        mostrarMensagemGlob('🎤 Eu ouvi: "' + comando + '"');
+        mostrarMensagemGlob('🎤 Você: "' + comando + '"');
         processarComandoVoz(comando);
     };
 
     assistenteReconhecimento.onerror = function(event) {
         if(event.error === 'not-allowed') {
-            mostrarMensagemGlob("Permissão do microfone negada. Hospede o jogo na internet para funcionar corretamente.");
+            mostrarMensagemGlob("Permissão do microfone negada.");
             assistenteAtivo = false;
             localStorage.setItem("assistenteAtivo", "false");
             let btn = document.getElementById("btnAssistente");
@@ -163,7 +169,7 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     };
 
     assistenteReconhecimento.onend = function() {
-        if (assistenteAtivo && !isNavegando) {
+        if (assistenteAtivo && !isNavegando && !assistenteSintese.speaking) {
             try { assistenteReconhecimento.start(); } catch(e){}
         } else {
             let btn = document.getElementById("btnAssistente");
@@ -172,134 +178,212 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     };
 }
 
+// Pausa o microfone enquanto ela fala para não ouvir a própria voz
+assistenteSintese.onstart = function() { if(assistenteReconhecimento) assistenteReconhecimento.stop(); }
+assistenteSintese.onend = function() { if(assistenteAtivo && !isNavegando) { try { assistenteReconhecimento.start(); } catch(e){} } }
+
 function falarAssistente(texto) {
     if(assistenteSintese.speaking) assistenteSintese.cancel(); 
     if(!vozAssistente) carregarVozes();
-
     let fala = new SpeechSynthesisUtterance(texto);
     fala.lang = "pt-BR";
     if(vozAssistente) fala.voice = vozAssistente;
+    fala.rate = 1.0; fala.pitch = 1.2; 
     
-    fala.rate = 1.0; 
-    fala.pitch = 1.2; 
+    // Mostra o que ela está falando na tela também
+    mostrarMensagemGlob('🤖 Adômines: "' + texto + '"');
     assistenteSintese.speak(fala);
 }
 
 window.toggleAssistenteVoz = function(silencioso = false) {
     if(!silencioso) tocarSomClick();
-    
     if (!assistenteReconhecimento) {
         mostrarMensagemGlob("Seu navegador não suporta o Assistente de Voz.");
         falarAssistente("Desculpe, seu navegador não suporta o assistente de voz.");
         return;
     }
-
     if (assistenteAtivo) {
-        assistenteAtivo = false;
+        assistenteAtivo = false; contextoAssistente = null;
         localStorage.setItem("assistenteAtivo", "false");
         assistenteReconhecimento.stop();
-        if(!silencioso) {
-            falarAssistente("Assistente desativado.");
-            mostrarMensagemGlob("🎤 Assistente Desativado");
-        }
+        if(!silencioso) { falarAssistente("Assistente desativada."); }
     } else {
         try {
-            assistenteAtivo = true; 
+            assistenteAtivo = true; contextoAssistente = null;
             localStorage.setItem("assistenteAtivo", "true");
             assistenteReconhecimento.start();
-            if(!silencioso) {
-                falarAssistente("Assistente de voz ativado. Como posso ajudar?");
-                mostrarMensagemGlob("🎤 Assistente Ouvindo...");
-            }
+            if(!silencioso) { falarAssistente("Assistente ativada. Pode falar!"); }
         } catch(e) { }
     }
 }
 
 document.addEventListener("keydown", (e) => {
     if(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")) return;
-    if (e.code === "Space") {
-        e.preventDefault(); 
-        toggleAssistenteVoz();
-    }
+    if (e.code === "Space") { e.preventDefault(); toggleAssistenteVoz(); }
 });
 
-// O CÉREBRO NOVO: Mais inteligente, aceita sinônimos e impede bugs.
-function processarComandoVoz(comando) {
-    comando = comando.replace(/[.,!?]/g, "").trim();
+// REMOVEDOR DE ACENTOS PARA FACILITAR A COMPREENSÃO
+const normalizar = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+function processarComandoVoz(comandoRaw) {
+    let comando = normalizar(comandoRaw.replace(/[.,!?]/g, "").trim());
+    const contem = (...palavras) => palavras.some(p => comando.includes(normalizar(p)));
+
+    // 1. CHECAGEM DE MEMÓRIA/CONTEXTO (Para diálogos que precisam de resposta)
+    if (contextoAssistente === "escolher_modo_inclusivo") {
+        if (contem("reconhecer", "primeiro")) {
+            falarAssistente("Entrando no modo inclusivo reconhecer.");
+            contextoAssistente = null;
+            localStorage.setItem("modoAtual", "inclusao-reconhecer");
+            mudarTela('inclusao.html');
+            return;
+        } else if (contem("estruturar", "segundo", "dois")) {
+            falarAssistente("Entrando no modo inclusivo estruturar.");
+            contextoAssistente = null;
+            localStorage.setItem("modoAtual", "inclusao-estruturar");
+            mudarTela('inclusao.html'); // Ajuste a URL se houver outra tela
+            return;
+        } else if (contem("cancelar", "voltar", "esquece")) {
+            falarAssistente("Tudo bem, cancelando.");
+            contextoAssistente = null;
+            return;
+        } else {
+            falarAssistente("Por favor, responda Reconhecer ou Estruturar. Ou diga cancelar.");
+            return;
+        }
+    }
+
+    // 2. FUNÇÕES BÁSICAS E DE MÍDIA
+    if (contem("desativar", "desligar assistente", "parar assistente")) { toggleAssistenteVoz(); return; }
+    if (contem("voltar ao inicio", "menu principal", "tela inicial")) { falarAssistente("Voltando para a tela principal."); mudarTela('index.html'); return; }
+    if (contem("mutar", "silencio", "tirar som", "sem som")) { if(!mutado) toggleMute(); falarAssistente("Som desativado."); return; }
+    if (contem("desmutar", "audio", "colocar som", "com som")) { if(mutado) toggleMute(); falarAssistente("Som ativado."); return; }
     
-    // Função auxiliar: Checa se a frase dita contém alguma das palavras da lista
-    const contem = (...palavras) => palavras.some(p => comando.includes(p));
-
-    // 1. Desligar assistente
-    if (contem("desativar", "desligar", "parar", "encerrar")) {
-        toggleAssistenteVoz();
-        return;
-    }
-
-    // 2. Voltar (Menu Principal)
-    if (contem("voltar", "principal", "início", "início")) {
-        falarAssistente("Voltando para a tela principal.");
-        mudarTela('index.html');
-        return;
-    }
-
-    // 3. Som e Música
-    if (contem("mutar", "silêncio", "tirar som", "desligar som", "sem som")) {
-        if(!mutado) toggleMute();
-        falarAssistente("Volume desativado.");
-        return;
-    }
-    if (contem("desmutar", "áudio", "colocar som", "ligar som", "com som")) {
-        if(mutado) toggleMute();
-        falarAssistente("Volume ativado.");
-        return;
-    }
-
-    // 4. Iniciar Jogo / Navegação entre telas
-    if (contem("iniciar", "começar", "jogar", "play", "bora", "vamos", "entrar")) {
-        
-        let urlAtual = window.location.pathname;
-
-        // Se o usuário já estiver na tela de modos
-        if (urlAtual.includes('modos.html')) {
-            falarAssistente("Você já está na tela de modos. Diga 'Modo Estruturando' ou 'Modo Acessível' para entrar.");
-        } 
-        // Se o usuário já estiver dentro do jogo (Quadro ou Pokedex)
-        else if (urlAtual.includes('estruturando.html') || urlAtual.includes('inclusao.html')) {
-            falarAssistente("Você já está jogando! Diga 'voltar' se quiser sair.");
-        } 
-        // Se estiver na tela inicial (index)
-        else {
-            falarAssistente("Entrando no menu de modos de jogo.");
-            if (typeof iniciar === "function") { iniciar(); } 
-            else { mudarTela('modos.html'); }
+    // 3. CONSULTAS SOBRE O JOGO (Conquistas e Catálogo)
+    if (contem("quais as conquistas", "minhas conquistas", "trofeus", "o que eu conquistei")) {
+        let concluidas = JSON.parse(localStorage.getItem("conquistasDesbloqueadas")) || [];
+        if (concluidas.length === 0) {
+            falarAssistente("Você ainda não desbloqueou nenhuma conquista. Continue jogando!");
+        } else {
+            falarAssistente(`Você já desbloqueou ${concluidas.length} de ${listaDeConquistas.length} conquistas. Pressione o botão de conquistas no menu para ver todas.`);
         }
         return;
     }
 
-    // 5. Entrar direto nos Modos (A partir da tela Modos.html)
-    if (window.location.pathname.includes('modos.html')) {
-        if (contem("estruturando", "clássico", "primeiro")) {
-            falarAssistente("Iniciando o modo estruturando.");
+    if (contem("quais moleculas", "catalogo", "cataloguei", "modo livre")) {
+        let cat = JSON.parse(localStorage.getItem("catalogoDesbloqueado")) || [];
+        if (cat.length === 0) {
+            falarAssistente("Você ainda não catalogou nenhuma molécula no modo livre.");
+        } else {
+            let texto = `Você já catalogou ${cat.length} moléculas de 20. Algumas delas são: `;
+            // Lê até 3 moléculas que ele tem
+            for(let i=0; i < Math.min(3, cat.length); i++) {
+                texto += nomesCatalogoDemo[cat[i]-1] + ", ";
+            }
+            texto += "Continue descobrindo!";
+            falarAssistente(texto);
+        }
+        return;
+    }
+
+    // 4. LEITOR DE TELA (Acessibilidade nas Fases)
+    // Para funcionar, garanta que no seu HTML as tags tenham id="enunciado", id="item-a", etc.
+    if (contem("leia", "ler", "le", "repetir", "repita", "o que diz")) {
+        if (contem("enunciado", "pergunta", "questao")) {
+            let el = document.getElementById("enunciado") || document.querySelector(".enunciado");
+            if (el) falarAssistente("O enunciado diz: " + el.innerText);
+            else falarAssistente("Não encontrei nenhum enunciado na tela atual.");
+            return;
+        }
+        if (contem("item a", "alternativa a", "opcao a", "letra a")) {
+            let el = document.getElementById("item-a") || document.querySelector(".item-a");
+            if (el) falarAssistente("A alternativa A é: " + el.innerText);
+            else falarAssistente("Não encontrei a alternativa A.");
+            return;
+        }
+        if (contem("item b", "alternativa b", "opcao b", "letra b")) {
+            let el = document.getElementById("item-b") || document.querySelector(".item-b");
+            if (el) falarAssistente("A alternativa B é: " + el.innerText);
+            else falarAssistente("Não encontrei a alternativa B.");
+            return;
+        }
+        if (contem("item c", "alternativa c", "opcao c", "letra c")) {
+            let el = document.getElementById("item-c") || document.querySelector(".item-c");
+            if (el) falarAssistente("A alternativa C é: " + el.innerText);
+            else falarAssistente("Não encontrei a alternativa C.");
+            return;
+        }
+        if (contem("item d", "alternativa d", "opcao d", "letra d")) {
+            let el = document.getElementById("item-d") || document.querySelector(".item-d");
+            if (el) falarAssistente("A alternativa D é: " + el.innerText);
+            else falarAssistente("Não encontrei a alternativa D.");
+            return;
+        }
+    }
+
+    // 5. ENCICLOPÉDIA QUÍMICA (Integração com Tabela e Moléculas)
+    if (contem("ligacoes", "valencia", "numero atomico", "massa", "peso")) {
+        // Checa moléculas fixas primeiro (ex: "Quantas ligações o monóxido de carbono faz?")
+        for (let mol in enciclopediaMoleculas) {
+            if (comando.includes(mol)) {
+                if(contem("ligacoes", "ligacao")) {
+                    falarAssistente(enciclopediaMoleculas[mol].ligacoes);
+                    return;
+                }
+            }
+        }
+
+        // Se não for molécula fixa, checa na Tabela Periódica os Elementos
+        let elementoEncontrado = elementosTabela.find(el => comando.includes(normalizar(el.nome)));
+        
+        if (elementoEncontrado) {
+            if (contem("numero atomico", "atomico", "protons")) {
+                falarAssistente(`O número atômico do ${elementoEncontrado.nome} é ${elementoEncontrado.n}.`);
+            } else if (contem("massa", "peso")) {
+                falarAssistente(`A massa atômica do ${elementoEncontrado.nome} é ${elementoEncontrado.m}.`);
+            } else if (contem("ligacoes", "ligacao", "valencia", "familia")) {
+                falarAssistente(`Seguindo a regra geral, o ${elementoEncontrado.nome} faz ${elementoEncontrado.l} ligações.`);
+            }
+            return;
+        }
+    }
+
+    // 6. NAVEGAÇÃO COMPLEXA ENTRE MODOS
+    if (contem("iniciar", "comecar", "jogar", "bora", "vamos", "entrar no modo", "acessar")) {
+        
+        // Vai direto para o Estruturando Livre
+        if (contem("livre", "estruturando", "classico")) {
+            falarAssistente("Entrando no modo livre do jogo estruturando.");
             localStorage.setItem("modoAtual", "livre");
             mudarTela('estruturando.html');
             return;
         }
-        if (contem("acessível", "inclusão", "inclusivo", "segundo")) {
-            falarAssistente("Iniciando o modo acessível.");
-            localStorage.setItem("modoAtual", "inclusao-reconhecer");
-            mudarTela('inclusao.html');
+
+        // Vai para o Inclusivo, mas pergunta qual sub-modo
+        if (contem("inclusivo", "inclusao", "acessibilidade")) {
+            falarAssistente("Entrar em qual modo inclusivo? Reconhecer ou Estruturar?");
+            contextoAssistente = "escolher_modo_inclusivo"; // Grava na memória para o próximo comando
+            return;
+        }
+
+        // Comando genérico para ir para a tela de Modos
+        let urlAtual = window.location.pathname;
+        if (!urlAtual.includes('modos.html') && !urlAtual.includes('estruturando') && !urlAtual.includes('inclusao')) {
+            falarAssistente("Indo para o menu de modos.");
+            if (typeof iniciar === "function") iniciar(); else mudarTela('modos.html');
+            return;
+        } else {
+            falarAssistente("Especifique o modo. Diga: Entrar no modo livre, ou Entrar no modo inclusivo.");
             return;
         }
     }
 
-    // 6. Ajuda básica
-    if (contem("ajuda", "fazer", "opções")) {
-        falarAssistente("Você pode pedir para Iniciar o Jogo, Voltar ao Menu, ou dizer o nome de um modo de jogo.");
-        return;
+    // 7. COMANDOS GENÉRICOS (Ajuda)
+    if (contem("ajuda", "o que fazer", "opcoes", "socorro")) { 
+        falarAssistente("Você pode dizer: Entrar no modo livre, Leia o enunciado, Quais minhas conquistas, ou perguntar o número atômico de algum elemento."); 
+        return; 
     }
 }
-
 
 // ==========================================
 // TROFÉUS E CONQUISTAS GLOBAIS
@@ -310,11 +394,7 @@ function desbloquearConquista(id, silencioso=false) {
         concluidas.push(id);
         localStorage.setItem("conquistasDesbloqueadas", JSON.stringify(concluidas));
         if(!silencioso) {
-            if(somConquistaGlob) { 
-                somConquistaGlob.volume = 1.0;
-                somConquistaGlob.currentTime = 0; 
-                somConquistaGlob.play().catch(()=>{}); 
-            }
+            if(somConquistaGlob) { somConquistaGlob.volume = 1.0; somConquistaGlob.currentTime = 0; somConquistaGlob.play().catch(()=>{}); }
             let c = listaDeConquistas.find(x => x.id === id);
             mostrarMensagemGlob(`🏆 CONQUISTA DESBLOQUEADA:\n${c.texto}`);
         }
@@ -363,15 +443,11 @@ function celebrar(tipo) {
     let titulo = tela.querySelector("#titulo-comemoracao");
 
     if(tipo === 'platina') {
-        icone.innerText = "🏆"; 
-        icone.className = "trofeu-gigante";
-        titulo.innerText = "PLATINA ALCANÇADA!"; 
-        titulo.style.textShadow = "0 0 10px gold";
+        icone.innerText = "🏆"; icone.className = "trofeu-gigante";
+        titulo.innerText = "PLATINA ALCANÇADA!"; titulo.style.textShadow = "0 0 10px gold";
     } else {
-        icone.innerText = "🏆"; 
-        icone.className = "trofeu-gigante prata-brilho";
-        titulo.innerText = "MOLÉCULAS CATALOGADAS!"; 
-        titulo.style.textShadow = "0 0 10px silver";
+        icone.innerText = "🏆"; icone.className = "trofeu-gigante prata-brilho";
+        titulo.innerText = "MOLÉCULAS CATALOGADAS!"; titulo.style.textShadow = "0 0 10px silver";
     }
 
     tela.classList.add("ativa");
@@ -387,7 +463,6 @@ function celebrar(tipo) {
     setTimeout(() => { tela.classList.remove("ativa"); tela.querySelectorAll(".confete").forEach(c => c.remove()); }, 6000);
 }
 
-// CHAT ADM CHEATS
 function abrirChat() { tocarSomClick(); document.getElementById("chat-overlay").style.display = "block"; }
 function fecharChatBtn() { tocarSomClick(); document.getElementById("chat-overlay").style.display = "none"; }
 function abrirConquistas() { tocarSomClick(); document.getElementById("conquistas-overlay").style.display = "block"; }
@@ -399,51 +474,32 @@ function processarChat(e) {
         let input = document.getElementById("chat-input");
         let div = document.getElementById("chat-mensagens");
         if(!input || !div) return;
-        let cmd = input.value.trim().toLowerCase();
-        input.value = "";
-        
+        let cmd = input.value.trim().toLowerCase(); input.value = "";
         div.innerHTML += `<div style="margin-bottom:5px;"><b>Você:</b> ${cmd}</div>`;
         
         if(cmd === "\\platinar") {
-            listaDeConquistas.forEach(c => desbloquearConquista(c.id, true));
-            verificarPlatina();
+            listaDeConquistas.forEach(c => desbloquearConquista(c.id, true)); verificarPlatina();
             div.innerHTML += `<div style="color:#16a34a; margin-bottom:5px;"><b>Sistema:</b> Todas as conquistas ativadas!</div>`;
         } else if (cmd === "\\catalogador") {
             let dbIds =[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20];
-            localStorage.setItem("catalogoDesbloqueado", JSON.stringify(dbIds));
-            window.verificarCatalogador();
+            localStorage.setItem("catalogoDesbloqueado", JSON.stringify(dbIds)); window.verificarCatalogador();
             div.innerHTML += `<div style="color:#16a34a; margin-bottom:5px;"><b>Sistema:</b> Catálogo completo ativado!</div>`;
         } else if (cmd === "\\limpar") {
-            localStorage.removeItem("conquistasDesbloqueadas");
-            localStorage.removeItem("catalogoDesbloqueado");
-            localStorage.removeItem("platinado");
-            localStorage.removeItem("catalogador");
+            localStorage.removeItem("conquistasDesbloqueadas"); localStorage.removeItem("catalogoDesbloqueado");
+            localStorage.removeItem("platinado"); localStorage.removeItem("catalogador");
             renderizarTrofeus(); renderizarConquistas();
             div.innerHTML += `<div style="color:#ef4444; margin-bottom:5px;"><b>Sistema:</b> Dados resetados! Recarregue a página.</div>`;
         } else if (cmd === "\\completar") {
-            if(typeof window.cheatCompletarFase === "function") { 
-                window.cheatCompletarFase(); 
-                div.innerHTML += `<div style="color:#16a34a; margin-bottom:5px;"><b>Sistema:</b> Fase completada automaticamente!</div>`; 
-            } else { 
-                div.innerHTML += `<div style="color:#ef4444; margin-bottom:5px;"><b>Sistema:</b> Você precisa estar dentro de um Modo Desafio!</div>`; 
-            }
+            if(typeof window.cheatCompletarFase === "function") { window.cheatCompletarFase(); div.innerHTML += `<div style="color:#16a34a; margin-bottom:5px;"><b>Sistema:</b> Fase completada automaticamente!</div>`; } 
+            else { div.innerHTML += `<div style="color:#ef4444; margin-bottom:5px;"><b>Sistema:</b> Você precisa estar dentro de um Modo Desafio!</div>`; }
         } else if (cmd.startsWith("\\estrela")) {
             let num = parseInt(cmd.replace("\\estrela", ""));
             if(num >= 1 && num <= 5) {
-                if(typeof window.cheatEstrelas === "function") { 
-                    window.cheatEstrelas(num); 
-                    div.innerHTML += `<div style="color:#16a34a; margin-bottom:5px;"><b>Sistema:</b> Você recebeu ${num} estrela(s)!</div>`; 
-                } else { 
-                    div.innerHTML += `<div style="color:#ef4444; margin-bottom:5px;"><b>Sistema:</b> Você precisa estar dentro de um Modo Desafio!</div>`; 
-                }
-            } else {
-                div.innerHTML += `<div style="color:#ef4444; margin-bottom:5px;"><b>Sistema:</b> Comando inválido. Use \\estrela1 a \\estrela5.</div>`;
-            }
-        } else if (cmd === "\\help") {
-            div.innerHTML += `<div style="color:#0284c7; margin-bottom:5px;"><b>Comandos ADM:</b><br>\\platinar - Platina o jogo<br>\\catalogador - Completa o catálogo<br>\\limpar - Reseta todas as conquistas e troféus<br>\\completar - Completa o desafio e vence a fase<br>\\estrela[1 a 5] - Dá a quantidade de estrelas na fase<br>\\help - Mostra esta lista</div>`;
-        } else {
-            div.innerHTML += `<div style="color:#64748b; margin-bottom:5px;"><b>Sistema:</b> Comando '${cmd}' não reconhecido. Digite \\help</div>`;
-        }
+                if(typeof window.cheatEstrelas === "function") { window.cheatEstrelas(num); div.innerHTML += `<div style="color:#16a34a; margin-bottom:5px;"><b>Sistema:</b> Você recebeu ${num} estrela(s)!</div>`; } 
+                else { div.innerHTML += `<div style="color:#ef4444; margin-bottom:5px;"><b>Sistema:</b> Você precisa estar dentro de um Modo Desafio!</div>`; }
+            } else { div.innerHTML += `<div style="color:#ef4444; margin-bottom:5px;"><b>Sistema:</b> Comando inválido. Use \\estrela1 a \\estrela5.</div>`; }
+        } else if (cmd === "\\help") { div.innerHTML += `<div style="color:#0284c7; margin-bottom:5px;"><b>Comandos ADM:</b><br>\\platinar<br>\\catalogador<br>\\limpar<br>\\completar<br>\\estrela[1 a 5]<br>\\help</div>`; } 
+        else { div.innerHTML += `<div style="color:#64748b; margin-bottom:5px;"><b>Sistema:</b> Comando '${cmd}' não reconhecido. Digite \\help</div>`; }
         div.scrollTop = div.scrollHeight;
     }
 }
@@ -454,10 +510,112 @@ function renderizarConquistas() {
   container.innerHTML = ""; 
   let conquistadas = JSON.parse(localStorage.getItem("conquistasDesbloqueadas")) ||[];
   listaDeConquistas.forEach(conq => {
-    let div = document.createElement("div");
-    let desbloqueada = conquistadas.includes(conq.id);
+    let div = document.createElement("div"); let desbloqueada = conquistadas.includes(conq.id);
     div.className = `conquista-item ${desbloqueada ? 'conquista-desbloqueada' : ''}`;
     div.innerHTML = `<div class="conquista-icone">${desbloqueada ? '🏆' : '🔒'}</div><div class="conquista-texto">${conq.texto}</div>`;
     container.appendChild(div);
   });
 }
+
+// ==========================================
+// SISTEMA DA TABELA PERIÓDICA E INJEÇÃO GLOBAL
+// ==========================================
+
+const elementosTabela = [
+    { n: 1, s: 'H', nome: 'Hidrogênio', l: '1', m: '1.008', c: 1, r: 1 }, { n: 2, s: 'He', nome: 'Hélio', l: '0', m: '4.002', c: 18, r: 1 },
+    { n: 3, s: 'Li', nome: 'Lítio', l: '1', m: '6.94', c: 1, r: 2 }, { n: 4, s: 'Be', nome: 'Berílio', l: '2', m: '9.012', c: 2, r: 2 },
+    { n: 5, s: 'B', nome: 'Boro', l: '3', m: '10.81', c: 13, r: 2 }, { n: 6, s: 'C', nome: 'Carbono', l: '4', m: '12.011', c: 14, r: 2 },
+    { n: 7, s: 'N', nome: 'Nitrogênio', l: '3', m: '14.007', c: 15, r: 2 }, { n: 8, s: 'O', nome: 'Oxigênio', l: '2', m: '15.999', c: 16, r: 2 },
+    { n: 9, s: 'F', nome: 'Flúor', l: '1', m: '18.998', c: 17, r: 2 }, { n: 10, s: 'Ne', nome: 'Neônio', l: '0', m: '20.180', c: 18, r: 2 },
+    { n: 11, s: 'Na', nome: 'Sódio', l: '1', m: '22.990', c: 1, r: 3 }, { n: 12, s: 'Mg', nome: 'Magnésio', l: '2', m: '24.305', c: 2, r: 3 },
+    { n: 13, s: 'Al', nome: 'Alumínio', l: '3', m: '26.982', c: 13, r: 3 }, { n: 14, s: 'Si', nome: 'Silício', l: '4', m: '28.085', c: 14, r: 3 },
+    { n: 15, s: 'P', nome: 'Fósforo', l: '3 ou 5', m: '30.974', c: 15, r: 3 }, { n: 16, s: 'S', nome: 'Enxofre', l: '2, 4 ou 6', m: '32.06', c: 16, r: 3 },
+    { n: 17, s: 'Cl', nome: 'Cloro', l: '1', m: '35.45', c: 17, r: 3 }, { n: 18, s: 'Ar', nome: 'Argônio', l: '0', m: '39.948', c: 18, r: 3 },
+    { n: 19, s: 'K', nome: 'Potássio', l: '1', m: '39.098', c: 1, r: 4 }, { n: 20, s: 'Ca', nome: 'Cálcio', l: '2', m: '40.078', c: 2, r: 4 },
+    { n: 21, s: 'Sc', nome: 'Escândio', l: 'Variável', m: '44.956', c: 3, r: 4 }, { n: 22, s: 'Ti', nome: 'Titânio', l: 'Variável', m: '47.867', c: 4, r: 4 },
+    { n: 23, s: 'V', nome: 'Vanádio', l: 'Variável', m: '50.942', c: 5, r: 4 }, { n: 24, s: 'Cr', nome: 'Cromo', l: 'Variável', m: '51.996', c: 6, r: 4 },
+    { n: 25, s: 'Mn', nome: 'Manganês', l: 'Variável', m: '54.938', c: 7, r: 4 }, { n: 26, s: 'Fe', nome: 'Ferro', l: '2 ou 3', m: '55.845', c: 8, r: 4 },
+    { n: 27, s: 'Co', nome: 'Cobalto', l: 'Variável', m: '58.933', c: 9, r: 4 }, { n: 28, s: 'Ni', nome: 'Níquel', l: 'Variável', m: '58.693', c: 10, r: 4 },
+    { n: 29, s: 'Cu', nome: 'Cobre', l: '1 ou 2', m: '63.546', c: 11, r: 4 }, { n: 30, s: 'Zn', nome: 'Zinco', l: '2', m: '65.38', c: 12, r: 4 },
+    { n: 31, s: 'Ga', nome: 'Gálio', l: '3', m: '69.723', c: 13, r: 4 }, { n: 32, s: 'Ge', nome: 'Germânio', l: '4', m: '72.630', c: 14, r: 4 },
+    { n: 33, s: 'As', nome: 'Arsênio', l: '3 ou 5', m: '74.922', c: 15, r: 4 }, { n: 34, s: 'Se', nome: 'Selênio', l: '2', m: '78.971', c: 16, r: 4 },
+    { n: 35, s: 'Br', nome: 'Bromo', l: '1', m: '79.904', c: 17, r: 4 }, { n: 36, s: 'Kr', nome: 'Criptônio', l: '0', m: '83.798', c: 18, r: 4 },
+    { n: 37, s: 'Rb', nome: 'Rubídio', l: '1', m: '85.468', c: 1, r: 5 }, { n: 38, s: 'Sr', nome: 'Estrôncio', l: '2', m: '87.62', c: 2, r: 5 },
+    { n: 39, s: 'Y', nome: 'Ítrio', l: 'Variável', m: '88.906', c: 3, r: 5 }, { n: 40, s: 'Zr', nome: 'Zircônio', l: 'Variável', m: '91.224', c: 4, r: 5 },
+    { n: 41, s: 'Nb', nome: 'Nióbio', l: 'Variável', m: '92.906', c: 5, r: 5 }, { n: 42, s: 'Mo', nome: 'Molibdênio', l: 'Variável', m: '95.95', c: 6, r: 5 },
+    { n: 43, s: 'Tc', nome: 'Tecnécio', l: 'Variável', m: '[98]', c: 7, r: 5 }, { n: 44, s: 'Ru', nome: 'Rutênio', l: 'Variável', m: '101.07', c: 8, r: 5 },
+    { n: 45, s: 'Rh', nome: 'Ródio', l: 'Variável', m: '102.91', c: 9, r: 5 }, { n: 46, s: 'Pd', nome: 'Paládio', l: 'Variável', m: '106.42', c: 10, r: 5 },
+    { n: 47, s: 'Ag', nome: 'Prata', l: '1', m: '107.87', c: 11, r: 5 }, { n: 48, s: 'Cd', nome: 'Cádmio', l: '2', m: '112.41', c: 12, r: 5 },
+    { n: 49, s: 'In', nome: 'Índio', l: '3', m: '114.82', c: 13, r: 5 }, { n: 50, s: 'Sn', nome: 'Estanho', l: '4', m: '118.71', c: 14, r: 5 },
+    { n: 51, s: 'Sb', nome: 'Antimônio', l: '3 ou 5', m: '121.76', c: 15, r: 5 }, { n: 52, s: 'Te', nome: 'Telúrio', l: '2', m: '127.60', c: 16, r: 5 },
+    { n: 53, s: 'I', nome: 'Iodo', l: '1', m: '126.90', c: 17, r: 5 }, { n: 54, s: 'Xe', nome: 'Xenônio', l: '0', m: '131.29', c: 18, r: 5 },
+    { n: 55, s: 'Cs', nome: 'Césio', l: '1', m: '132.91', c: 1, r: 6 }, { n: 56, s: 'Ba', nome: 'Bário', l: '2', m: '137.33', c: 2, r: 6 },
+    { n: 57, s: 'La', nome: 'Lantânio', l: 'Variável', m: '138.91', c: 4, r: 8 }, { n: 58, s: 'Ce', nome: 'Cério', l: 'Variável', m: '140.12', c: 5, r: 8 },
+    { n: 59, s: 'Pr', nome: 'Praseodímio', l: 'Variável', m: '140.91', c: 6, r: 8 }, { n: 60, s: 'Nd', nome: 'Neodímio', l: 'Variável', m: '144.24', c: 7, r: 8 },
+    { n: 61, s: 'Pm', nome: 'Promécio', l: 'Variável', m: '[145]', c: 8, r: 8 }, { n: 62, s: 'Sm', nome: 'Samário', l: 'Variável', m: '150.36', c: 9, r: 8 },
+    { n: 63, s: 'Eu', nome: 'Európio', l: 'Variável', m: '151.96', c: 10, r: 8 }, { n: 64, s: 'Gd', nome: 'Gadolínio', l: 'Variável', m: '157.25', c: 11, r: 8 },
+    { n: 65, s: 'Tb', nome: 'Térbio', l: 'Variável', m: '158.93', c: 12, r: 8 }, { n: 66, s: 'Dy', nome: 'Disprósio', l: 'Variável', m: '162.50', c: 13, r: 8 },
+    { n: 67, s: 'Ho', nome: 'Hólmio', l: 'Variável', m: '164.93', c: 14, r: 8 }, { n: 68, s: 'Er', nome: 'Érbio', l: 'Variável', m: '167.26', c: 15, r: 8 },
+    { n: 69, s: 'Tm', nome: 'Túlio', l: 'Variável', m: '168.93', c: 16, r: 8 }, { n: 70, s: 'Yb', nome: 'Itérbio', l: 'Variável', m: '173.05', c: 17, r: 8 },
+    { n: 71, s: 'Lu', nome: 'Lutécio', l: 'Variável', m: '174.97', c: 18, r: 8 },
+    { n: 72, s: 'Hf', nome: 'Háfnio', l: 'Variável', m: '178.49', c: 4, r: 6 }, { n: 73, s: 'Ta', nome: 'Tântalo', l: 'Variável', m: '180.95', c: 5, r: 6 },
+    { n: 74, s: 'W', nome: 'Tungstênio', l: 'Variável', m: '183.84', c: 6, r: 6 }, { n: 75, s: 'Re', nome: 'Rênio', l: 'Variável', m: '186.21', c: 7, r: 6 },
+    { n: 76, s: 'Os', nome: 'Ósmio', l: 'Variável', m: '190.23', c: 8, r: 6 }, { n: 77, s: 'Ir', nome: 'Irídio', l: 'Variável', m: '192.22', c: 9, r: 6 },
+    { n: 78, s: 'Pt', nome: 'Platina', l: 'Variável', m: '195.08', c: 10, r: 6 }, { n: 79, s: 'Au', nome: 'Ouro', l: 'Variável', m: '196.97', c: 11, r: 6 },
+    { n: 80, s: 'Hg', nome: 'Mercúrio', l: 'Variável', m: '200.59', c: 12, r: 6 }, { n: 81, s: 'Tl', nome: 'Tálio', l: '3', m: '204.38', c: 13, r: 6 },
+    { n: 82, s: 'Pb', nome: 'Chumbo', l: '4', m: '207.2', c: 14, r: 6 }, { n: 83, s: 'Bi', nome: 'Bismuto', l: '3', m: '208.98', c: 15, r: 6 },
+    { n: 84, s: 'Po', nome: 'Polônio', l: '2', m: '[209]', c: 16, r: 6 }, { n: 85, s: 'At', nome: 'Astato', l: '1', m: '[210]', c: 17, r: 6 },
+    { n: 86, s: 'Rn', nome: 'Radônio', l: '0', m: '[222]', c: 18, r: 6 }, { n: 87, s: 'Fr', nome: 'Frâncio', l: '1', m: '[223]', c: 1, r: 7 },
+    { n: 88, s: 'Ra', nome: 'Rádio', l: '2', m: '[226]', c: 2, r: 7 },
+    { n: 89, s: 'Ac', nome: 'Actínio', l: 'Variável', m: '[227]', c: 4, r: 9 }, { n: 90, s: 'Th', nome: 'Tório', l: 'Variável', m: '232.04', c: 5, r: 9 },
+    { n: 91, s: 'Pa', nome: 'Protactínio', l: 'Variável', m: '231.04', c: 6, r: 9 }, { n: 92, s: 'U', nome: 'Urânio', l: 'Variável', m: '238.03', c: 7, r: 9 },
+    { n: 93, s: 'Np', nome: 'Netúnio', l: 'Variável', m: '[237]', c: 8, r: 9 }, { n: 94, s: 'Pu', nome: 'Plutônio', l: 'Variável', m: '[244]', c: 9, r: 9 },
+    { n: 95, s: 'Am', nome: 'Amerício', l: 'Variável', m: '[243]', c: 10, r: 9 }, { n: 96, s: 'Cm', nome: 'Cúrio', l: 'Variável', m: '[247]', c: 11, r: 9 },
+    { n: 97, s: 'Bk', nome: 'Berquélio', l: 'Variável', m: '[247]', c: 12, r: 9 }, { n: 98, s: 'Cf', nome: 'Califórnio', l: 'Variável', m: '[251]', c: 13, r: 9 },
+    { n: 99, s: 'Es', nome: 'Einstênio', l: 'Variável', m: '[252]', c: 14, r: 9 }, { n: 100, s: 'Fm', nome: 'Férmio', l: 'Variável', m: '[257]', c: 15, r: 9 },
+    { n: 101, s: 'Md', nome: 'Mendelévio', l: 'Variável', m: '[258]', c: 16, r: 9 }, { n: 102, s: 'No', nome: 'Nobélio', l: 'Variável', m: '[259]', c: 17, r: 9 },
+    { n: 103, s: 'Lr', nome: 'Laurêncio', l: 'Variável', m: '[266]', c: 18, r: 9 },
+    { n: 104, s: 'Rf', nome: 'Rutherfórdio', l: 'Variável', m: '[267]', c: 4, r: 7 }, { n: 105, s: 'Db', nome: 'Dúbnio', l: 'Variável', m: '[268]', c: 5, r: 7 },
+    { n: 106, s: 'Sg', nome: 'Seabórgio', l: 'Variável', m: '[269]', c: 6, r: 7 }, { n: 107, s: 'Bh', nome: 'Bóhrio', l: 'Variável', m: '[270]', c: 7, r: 7 },
+    { n: 108, s: 'Hs', nome: 'Hássio', l: 'Variável', m: '[269]', c: 8, r: 7 }, { n: 109, s: 'Mt', nome: 'Meitnério', l: 'Variável', m: '[278]', c: 9, r: 7 },
+    { n: 110, s: 'Ds', nome: 'Darmstádio', l: 'Variável', m: '[281]', c: 10, r: 7 }, { n: 111, s: 'Rg', nome: 'Roentgênio', l: 'Variável', m: '[282]', c: 11, r: 7 },
+    { n: 112, s: 'Cn', nome: 'Copernício', l: 'Variável', m: '[285]', c: 12, r: 7 }, { n: 113, s: 'Nh', nome: 'Nihônio', l: 'Variável', m: '[286]', c: 13, r: 7 },
+    { n: 114, s: 'Fl', nome: 'Fleróvio', l: 'Variável', m: '[289]', c: 14, r: 7 }, { n: 115, s: 'Mc', nome: 'Moscóvio', l: 'Variável', m: '[290]', c: 15, r: 7 },
+    { n: 116, s: 'Lv', nome: 'Livermório', l: 'Variável', m: '[293]', c: 16, r: 7 }, { n: 117, s: 'Ts', nome: 'Tenessino', l: 'Variável', m: '[294]', c: 17, r: 7 },
+    { n: 118, s: 'Og', nome: 'Oganessônio', l: '0', m: '[294]', c: 18, r: 7 }
+];
+
+function injetarTabelaGlobalmente() {
+    if (!document.getElementById('tabela-overlay')) {
+        const modalHTML = `
+        <div id="tabela-overlay" class="modal-overlay" onclick="fecharModais(event)">
+          <div class="modal-box modal-tabela">
+            <div class="modal-header" style="background: var(--btn-bg);">
+              <h3>📊 Tabela Periódica</h3>
+              <button onclick="fecharTabelaPeriodica()">✖</button>
+            </div>
+            <div class="modal-body tabela-body">
+              <div class="info-painel" id="info-painel-elemento">
+                <h3 id="el-nome" style="width: 100%; text-align: center; margin-bottom: 10px; color: #0284c7;">Selecione um elemento</h3>
+                <p><strong>Símbolo:</strong> <span id="el-simbolo">-</span></p>
+                <p><strong>Número Atômico:</strong> <span id="el-numero">-</span></p>
+                <p><strong>Massa Atômica:</strong> <span id="el-massa">-</span> u</p>
+                <p><strong>Ligações:</strong> <span id="el-ligacoes">-</span></p>
+              </div>
+              <div id="grade-tabela" class="grade-tabela"></div>
+            </div>
+          </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+    }
+    const headerDireita = document.querySelector('.topo .direita');
+    const temBotaoTabela = document.querySelector('.btn-tabela-global');
+    if (headerDireita && !temBotaoTabela) {
+        headerDireita.insertAdjacentHTML('afterbegin', `<button class="icon-btn btn-tabela-global" onclick="abrirTabelaPeriodica()" title="Tabela Periódica">📊</button>`);
+    }
+}
+
+function abrirTabelaPeriodica() { tocarSomClick(); document.getElementById("tabela-overlay").style.display = "block"; let grade = document.getElementById("grade-tabela"); if(grade && grade.innerHTML === "") { renderizarTabelaPeriodica(); } }
+function fecharTabelaPeriodica() { tocarSomClick(); document.getElementById("tabela-overlay").style.display = "none"; }
+function renderizarTabelaPeriodica() { let grade = document.getElementById("grade-tabela"); grade.innerHTML = ""; elementosTabela.forEach(el => { let div = document.createElement("div"); div.className = "elemento-tabela"; div.style.gridColumn = el.c; div.style.gridRow = el.r; div.innerHTML = `<span class="el-num">${el.n}</span><span class="el-sim">${el.s}</span>`; div.onclick = () => mostrarInfoElemento(el); grade.appendChild(div); }); }
+function mostrarInfoElemento(el) { tocarSomClick(); document.getElementById("el-nome").innerText = el.nome; document.getElementById("el-simbolo").innerText = el.s; document.getElementById("el-numero").innerText = el.n; document.getElementById("el-massa").innerText = el.m; document.getElementById("el-ligacoes").innerText = el.l; }
