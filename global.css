@@ -13,6 +13,17 @@ body.saindo { animation: sairTela 0.5s ease forwards; }
 .topo { position: fixed; top: 0; width: 100%; display: flex; justify-content: space-between; padding: 15px 30px; background: var(--header-bg); backdrop-filter: blur(10px); z-index: 1000; box-shadow: var(--shadow); }
 .icon-btn { background: none; border: none; font-size: 24px; cursor: pointer; margin-right: 15px; transition: transform 0.2s; padding: 5px;}
 .icon-btn:hover { transform: scale(1.2); }
+
+/* CLASSE NOVA: ANIMAÇÃO DO MICROFONE OUVINDO */
+.mic-ouvindo {
+    animation: piscarMic 1s infinite alternate;
+    color: #ef4444 !important; /* Fica vermelho para mostrar gravação */
+}
+@keyframes piscarMic {
+    0% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(239,68,68,0.5)); }
+    100% { transform: scale(1.3); filter: drop-shadow(0 0 15px rgba(239,68,68,1)); }
+}
+
 .menu { display: none; position: absolute; top: 60px; left: 30px; background: #ffffff; color: #1e293b; padding: 20px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 250px; z-index: 1000;}
 .menu-item { margin-bottom: 15px; }
 .menu-item p { font-size: 14px; font-weight: bold; margin-bottom: 5px; }
@@ -48,15 +59,12 @@ body.saindo { animation: sairTela 0.5s ease forwards; }
 /* TROFÉUS E CELEBRAÇÃO */
 .trofeus-container { display: inline-flex; gap: 5px; align-items: center; margin-right: 15px; }
 .trofeu-mini { font-size: 20px; animation: flutuar 3s infinite ease-in-out; cursor: help; }
-
-/* FILTRO PRATA PARA O TROFÉU DE CATALOGADOR */
 .trofeu-prata { filter: grayscale(100%) brightness(1.2); }
 
 .tela-comemoracao { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 100000; display: flex; flex-direction: column; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.5s; text-align: center; }
 .tela-comemoracao.ativa { opacity: 1; pointer-events: all; }
 .trofeu-gigante { font-size: 180px; animation: flutuarGigante 2s infinite ease-in-out, brilhoOuro 2s alternate infinite; }
 
-/* ANIMAÇÃO DE BRILHO PRATEADO */
 @keyframes brilhoPrata { 0% { filter: grayscale(100%) brightness(1.2) drop-shadow(0 0 20px silver); } 100% { filter: grayscale(100%) brightness(1.2) drop-shadow(0 0 60px silver); } }
 .prata-brilho { animation: flutuarGigante 2s infinite ease-in-out, brilhoPrata 2s alternate infinite !important; }
 
@@ -74,17 +82,14 @@ body.saindo { animation: sairTela 0.5s ease forwards; }
     .trofeus-container { margin-right: 5px; }
     .trofeu-mini { font-size: 16px; }
     
-    /* O menu suspenso não pode vazar da tela */
     .menu { left: 10px; right: 10px; width: auto; max-width: 300px; top: 55px; }
     
     .modal-box { margin: 5vh auto; width: 95%; max-height: 90vh; }
     .modal-body { padding: 20px; }
     
-    /* Ajustes no Rodapé */
     .rodape { padding: 15px 10px; }
     .logos img { height: 40px; margin: 0 5px; }
     
-    /* Efeitos de Título / Comemoração adaptados */
     .trofeu-gigante { font-size: 120px; }
     #titulo-comemoracao { font-size: 28px !important; }
     
