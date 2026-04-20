@@ -152,6 +152,20 @@
 .btn-laranja { background-color: #f97316; }
 .btn-vermelho { background-color: #ef4444; }
 
+/* Responsividade para celular */
+@media (max-width: 768px) {
+  .card-topo {
+    flex-direction: column;
+    text-align: center;
+  }
+  .card-esquerda {
+    flex-direction: column;
+    text-align: center;
+  }
+  .textos-modo {
+    text-align: center;
+  }
+}
 /* ================= EFEITO DE TRANSIÇÃO E BOTÃO VOLTAR ================= */
 body {
   animation: entrarTela 0.5s ease forwards;
@@ -183,33 +197,9 @@ body.saindo {
   margin-bottom: 20px;
   transition: transform 0.2s, opacity 0.2s;
   opacity: 0.7;
-  padding: 5px 0;
 }
 
 .btn-voltar:hover {
-  transform: scale(1.1) translateX(-5px);
+  transform: scale(1.1) translateX(-5px); /* Dá um efeitinho indo para a esquerda */
   opacity: 1;
-}
-
-/* ==========================================
-   RESPONSIVIDADE (MOBILE) - TELA DE MODOS
-   ========================================== */
-@media (max-width: 768px) {
-  .modos-container { padding-top: 70px; padding-left: 15px; padding-right: 15px; }
-  .titulo-modos { font-size: 24px; text-align: center; margin-bottom: 20px; }
-  
-  .card-topo { flex-direction: column; gap: 15px; }
-  .card-esquerda { flex-direction: column; text-align: center; }
-  
-  .img-modo { width: 120px; height: 120px; margin-bottom: 5px; }
-  .textos-modo h2 { font-size: 22px; }
-  .textos-modo { text-align: center; }
-  
-  /* Alinhando botões de play e inclusão */
-  .card-direita { width: 100%; justify-content: center; margin-top: 10px;}
-  .btn-acao { width: 50px; height: 50px; font-size: 20px; }
-
-  /* Submenus viram listas verticais para facilitar clique */
-  .linha-botoes { flex-direction: column; gap: 10px; width: 100%; }
-  .btn-nivel { width: 100%; padding: 15px; font-size: 18px; }
 }

@@ -1,5 +1,5 @@
 function abrirSubmenu(tipo) {
-  tocarSomClick(); 
+  tocarSomClick();
   let menuNormal = document.getElementById("submenu-normal");
   let menuInclusao = document.getElementById("submenu-inclusao");
   let menuDificuldades = document.getElementById("submenu-dificuldades");
@@ -27,7 +27,7 @@ function mostrarDificuldades() {
 
 function iniciarModo(modoEscolhido) {
   tocarSomClick();
-  
+ 
   localStorage.setItem("modoAtual", modoEscolhido);
 
   // Se for o modo inclusivo, vai pra tela nova. Se não, vai pro Estruturando!
