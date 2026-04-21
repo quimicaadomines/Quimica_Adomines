@@ -20,8 +20,8 @@ module.exports = async function (req, res) {
     let promptCompleto = "REGRA: Você é a Adômines, assistente de química de um jogo. Responda APENAS perguntas sobre química de forma simples, direta e para jovens estudantes. Se a pergunta NÃO for sobre química, responda EXATAMENTE: 'Desculpe, eu só posso responder a perguntas relacionadas à química.'\n\nPERGUNTA DO JOGADOR: " + pergunta;
 
     try {
-        // 5. O servidor da Vercel faz a requisição pro Google
-        const respostaGoogle = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+        // 5. O servidor da Vercel faz a requisição pro Google (MODELO ATUALIZADO AQUI)
+        const respostaGoogle = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
