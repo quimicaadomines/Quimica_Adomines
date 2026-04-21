@@ -56,7 +56,7 @@ function carregarConfiguracoes() {
 
   renderizarConquistas();
   renderizarTrofeus();
-  injetarTabelaGlobalmente();
+  injetarElementosGlobais(); // NOVA INJEÇÃO GLOBAL (Tabela + Microfone)
   
   if (localStorage.getItem("assistenteAtivo") === "true") {
       setTimeout(() => {
@@ -125,7 +125,7 @@ function toggleMute(forcarEstado = null) {
 function toggleMenu(event) { if (event) event.stopPropagation(); tocarSomClick(); let menu = document.getElementById("menu"); menu.style.display = (menu.style.display === "block") ? "none" : "block"; }
 
 function volumeMusica(v) { 
-    v = Math.max(0, Math.min(1, v)); // Garante que fica entre 0 e 1
+    v = Math.max(0, Math.min(1, v)); 
     musica.volume = v; 
     localStorage.setItem("volumeMusica", v); 
     let rg = document.getElementById("rangeMusica"); if(rg) rg.value = v;
@@ -141,7 +141,7 @@ function volumeEfeitos(v) {
 function toggleEfeitos(forcarEstado = null) { 
     if(forcarEstado === "ativar") efeitosVisuaisAtivos = true;
     else if(forcarEstado === "desativar") efeitosVisuaisAtivos = false;
-    else if(typeof forcarEstado === "object") efeitosVisuaisAtivos = !forcarEstado.checked; // Chamado pelo checkbox original
+    else if(typeof forcarEstado === "object") efeitosVisuaisAtivos = !forcarEstado.checked; 
     
     localStorage.setItem("efeitosVisuais", efeitosVisuaisAtivos); 
     let chk = document.getElementById("checkEfeitos"); if(chk) chk.checked = !efeitosVisuaisAtivos;
@@ -253,12 +253,11 @@ document.addEventListener("keydown", (e) => {
 
 const normalizar = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
-// FUNÇÃO PARA LER A TELA ATUAL INTEIRA (Títulos e Parágrafos)
+// FUNÇÃO PARA LER A TELA ATUAL INTEIRA (Títulos, Parágrafos e Sugestões)
 function lerTelaInteira() {
     let textos = [];
-    let elementos = document.querySelectorAll("h1, h2, h3, p:not(.escondido), .descricao");
+    let elementos = document.querySelectorAll("h1, h2, h3, p:not(.escondido), .descricao, .sugestao, .enunciado");
     elementos.forEach(el => {
-        // Evita ler coisas de modais ocultos ou do painel da tabela se estiverem fechados
         if(el.offsetParent !== null && el.innerText.trim().length > 0) {
             textos.push(el.innerText);
         }
@@ -278,8 +277,6 @@ function processarComandoVoz(comandoRaw) {
     // ==============================================
     // 1. CHECAGEM DE MEMÓRIA/CONTEXTO
     // ==============================================
-    
-    // Cancela qualquer contexto se o usuário pedir
     if (contem("cancelar", "esquece", "deixa pra la")) {
         if(contextoAssistente) { falarAssistente("Tudo bem, cancelando."); contextoAssistente = null; return; }
     }
@@ -314,16 +311,16 @@ function processarComandoVoz(comandoRaw) {
     if (contextoAssistente === "escolher_nivel_desafio") {
         if (contem("facil")) {
             falarAssistente("Iniciando desafio nível fácil. Boa sorte!"); contextoAssistente = null;
-            localStorage.setItem("modoAtual", "desafio-facil"); mudarTela('estruturando.html'); return;
+            localStorage.setItem("modoAtual", "desafio"); localStorage.setItem("nivel", "facil"); mudarTela('estruturando.html'); return;
         } else if (contem("medio", "media")) {
             falarAssistente("Iniciando desafio nível médio. Boa sorte!"); contextoAssistente = null;
-            localStorage.setItem("modoAtual", "desafio-medio"); mudarTela('estruturando.html'); return;
+            localStorage.setItem("modoAtual", "desafio"); localStorage.setItem("nivel", "medio"); mudarTela('estruturando.html'); return;
         } else if (contem("dificil")) {
             falarAssistente("Iniciando desafio nível difícil. Boa sorte!"); contextoAssistente = null;
-            localStorage.setItem("modoAtual", "desafio-dificil"); mudarTela('estruturando.html'); return;
+            localStorage.setItem("modoAtual", "desafio"); localStorage.setItem("nivel", "dificil"); mudarTela('estruturando.html'); return;
         } else if (contem("impossivel")) {
             falarAssistente("Iniciando desafio nível impossível! Se prepare!"); contextoAssistente = null;
-            localStorage.setItem("modoAtual", "desafio-impossivel"); mudarTela('estruturando.html'); return;
+            localStorage.setItem("modoAtual", "desafio"); localStorage.setItem("nivel", "impossivel"); mudarTela('estruturando.html'); return;
         } else {
             falarAssistente("Por favor, responda com: Fácil, Médio, Difícil ou Impossível."); return;
         }
@@ -334,7 +331,7 @@ function processarComandoVoz(comandoRaw) {
     // ==============================================
     if (contem("desativar assistente", "desligar assistente", "parar assistente")) { toggleAssistenteVoz(); return; }
     
-    // VOLTAR TELA (Agora volta pro histórico anterior de verdade)
+    // VOLTAR TELA
     if (contem("voltar pra tela anterior", "voltar para a tela anterior", "retornar", "voltar tela", "voltar")) { 
         falarAssistente("Voltando.");
         if (window.history.length > 1 && document.referrer.includes(window.location.host)) { window.history.back(); } 
@@ -347,7 +344,7 @@ function processarComandoVoz(comandoRaw) {
         lerTelaInteira(); return;
     }
 
-    // TEMA (Escuro / Claro)
+    // TEMA
     if (contem("ativar modo escuro", "colocar modo escuro", "tema escuro", "noturno")) {
         if(!document.body.classList.contains("dark")) toggleModo("escuro");
         falarAssistente("Modo escuro ativado."); return;
@@ -406,9 +403,12 @@ function processarComandoVoz(comandoRaw) {
         return;
     }
 
-    // Leitor específico das fases (se as tags estiverem prontas)
-    if (contem("leia", "ler", "repetir", "o que diz")) {
-        if (contem("enunciado", "pergunta", "questao")) { let el = document.getElementById("enunciado") || document.querySelector(".enunciado"); if(el) falarAssistente(el.innerText); else falarAssistente("Não encontrei enunciado."); return; }
+    // Leitor específico de ENUNCIADO e SUGESTÃO (Atualizado!)
+    if (contem("leia", "ler", "repetir", "o que diz", "qual e o", "qual a")) {
+        if (contem("enunciado", "pergunta", "questao", "sugestao", "dica")) { 
+            let el = document.getElementById("enunciado") || document.querySelector(".enunciado") || document.getElementById("sugestao") || document.querySelector(".sugestao"); 
+            if(el) falarAssistente(el.innerText); else falarAssistente("Não encontrei nenhum enunciado ou sugestão na tela."); return; 
+        }
         if (contem("item a", "alternativa a")) { let el = document.getElementById("item-a") || document.querySelector(".item-a"); if(el) falarAssistente(el.innerText); else falarAssistente("Não encontrei alternativa A."); return; }
         if (contem("item b", "alternativa b")) { let el = document.getElementById("item-b") || document.querySelector(".item-b"); if(el) falarAssistente(el.innerText); else falarAssistente("Não encontrei alternativa B."); return; }
         if (contem("item c", "alternativa c")) { let el = document.getElementById("item-c") || document.querySelector(".item-c"); if(el) falarAssistente(el.innerText); else falarAssistente("Não encontrei alternativa C."); return; }
@@ -430,16 +430,16 @@ function processarComandoVoz(comandoRaw) {
     }
 
     // ==============================================
-    // 4. NAVEGAÇÃO COMPLEXA ENTRE MODOS
+    // 4. NAVEGAÇÃO COMPLEXA ENTRE MODOS (ATUALIZADA)
     // ==============================================
     if (contem("iniciar", "comecar", "jogar", "bora", "vamos", "entrar no modo", "acessar", "entrar")) {
         
-        // Atalhos Diretos Mágicos (ex: "Entrar no modo difícil do modo desafio")
-        if (contem("desafio") && contem("estruturando")) {
-            if(contem("facil")) { falarAssistente("Indo para o Desafio Fácil."); localStorage.setItem("modoAtual", "desafio-facil"); mudarTela('estruturando.html'); return; }
-            if(contem("medio")) { falarAssistente("Indo para o Desafio Médio."); localStorage.setItem("modoAtual", "desafio-medio"); mudarTela('estruturando.html'); return; }
-            if(contem("dificil")) { falarAssistente("Indo para o Desafio Difícil."); localStorage.setItem("modoAtual", "desafio-dificil"); mudarTela('estruturando.html'); return; }
-            if(contem("impossivel")) { falarAssistente("Indo para o Desafio Impossível."); localStorage.setItem("modoAtual", "desafio-impossivel"); mudarTela('estruturando.html'); return; }
+        // Atalhos Diretos Mágicos (ex: "Entrar no modo difícil do modo estruturando")
+        if (contem("estruturando") || contem("desafio")) {
+            if(contem("facil")) { falarAssistente("Indo para o nível Fácil."); localStorage.setItem("modoAtual", "desafio"); localStorage.setItem("nivel", "facil"); mudarTela('estruturando.html'); return; }
+            if(contem("medio")) { falarAssistente("Indo para o nível Médio."); localStorage.setItem("modoAtual", "desafio"); localStorage.setItem("nivel", "medio"); mudarTela('estruturando.html'); return; }
+            if(contem("dificil")) { falarAssistente("Indo para o nível Difícil."); localStorage.setItem("modoAtual", "desafio"); localStorage.setItem("nivel", "dificil"); mudarTela('estruturando.html'); return; }
+            if(contem("impossivel")) { falarAssistente("Indo para o nível Impossível."); localStorage.setItem("modoAtual", "desafio"); localStorage.setItem("nivel", "impossivel"); mudarTela('estruturando.html'); return; }
         }
 
         // Fluxo conversacional Estruturando
@@ -449,7 +449,7 @@ function processarComandoVoz(comandoRaw) {
             return;
         }
 
-        // Fluxo conversacional Inclusivo
+        // Fluxo conversacional Inclusivo (ATUALIZADO!)
         if (contem("inclusivo", "inclusao", "acessibilidade")) {
             falarAssistente("Entrar em qual modo inclusivo? Reconhecer, Relacionar ou Interpretar?");
             contextoAssistente = "escolher_modo_inclusivo";
@@ -470,7 +470,7 @@ function processarComandoVoz(comandoRaw) {
 
     // Ajuda Genérica
     if (contem("ajuda", "o que fazer", "opcoes", "socorro")) { 
-        falarAssistente("Experimente dizer: Entrar no modo estruturando, Ativar modo escuro, Ler o que está na tela, ou perguntar o número atômico do Carbono."); 
+        falarAssistente("Experimente dizer: Entrar no modo estruturando, Ativar modo escuro, Ler o que está na tela, Leia a sugestão, ou perguntar o número atômico do Carbono."); 
         return; 
     }
 }
@@ -642,7 +642,7 @@ const elementosTabela = [
     { n: 55, s: 'Cs', nome: 'Césio', l: '1', m: '132.91', c: 1, r: 6 }, { n: 56, s: 'Ba', nome: 'Bário', l: '2', m: '137.33', c: 2, r: 6 },
     { n: 57, s: 'La', nome: 'Lantânio', l: 'Variável', m: '138.91', c: 4, r: 8 }, { n: 58, s: 'Ce', nome: 'Cério', l: 'Variável', m: '140.12', c: 5, r: 8 },
     { n: 59, s: 'Pr', nome: 'Praseodímio', l: 'Variável', m: '140.91', c: 6, r: 8 }, { n: 60, s: 'Nd', nome: 'Neodímio', l: 'Variável', m: '144.24', c: 7, r: 8 },
-    { n: 61, s: 'Pm', nome: 'Promécio', l: 'Variável', m: '[145]', c: 8, r: 8 }, { n: 62, s: 'Sm', nome: 'Samário', l: 'Variável', m: '150.36', c: 9, r: 8 },
+    { n: 61, s: 'Pm', nome: 'Promécio', l: 'Variável', m: '[145]', c: 8, r: 8 }, { n: 62, s: 'Sm', sm: 'Samário', l: 'Variável', m: '150.36', c: 9, r: 8 },
     { n: 63, s: 'Eu', nome: 'Európio', l: 'Variável', m: '151.96', c: 10, r: 8 }, { n: 64, s: 'Gd', nome: 'Gadolínio', l: 'Variável', m: '157.25', c: 11, r: 8 },
     { n: 65, s: 'Tb', nome: 'Térbio', l: 'Variável', m: '158.93', c: 12, r: 8 }, { n: 66, s: 'Dy', nome: 'Disprósio', l: 'Variável', m: '162.50', c: 13, r: 8 },
     { n: 67, s: 'Ho', nome: 'Hólmio', l: 'Variável', m: '164.93', c: 14, r: 8 }, { n: 68, s: 'Er', nome: 'Érbio', l: 'Variável', m: '167.26', c: 15, r: 8 },
@@ -675,7 +675,8 @@ const elementosTabela = [
     { n: 118, s: 'Og', nome: 'Oganessônio', l: '0', m: '[294]', c: 18, r: 7 }
 ];
 
-function injetarTabelaGlobalmente() {
+function injetarElementosGlobais() {
+    // 1. Injeta o Modal da Tabela Periódica
     if (!document.getElementById('tabela-overlay')) {
         const modalHTML = `
         <div id="tabela-overlay" class="modal-overlay" onclick="fecharModais(event)">
@@ -698,10 +699,23 @@ function injetarTabelaGlobalmente() {
         </div>`;
         document.body.insertAdjacentHTML('beforeend', modalHTML);
     }
+    
+    // 2. Injeta o Botão da Tabela na Direita
     const headerDireita = document.querySelector('.topo .direita');
     const temBotaoTabela = document.querySelector('.btn-tabela-global');
     if (headerDireita && !temBotaoTabela) {
         headerDireita.insertAdjacentHTML('afterbegin', `<button class="icon-btn btn-tabela-global" onclick="abrirTabelaPeriodica()" title="Tabela Periódica">📊</button>`);
+    }
+
+    // 3. Injeta o Botão do Microfone na Esquerda (Caso o HTML da fase não tenha)
+    const headerEsquerda = document.querySelector('.topo .esquerda');
+    const temBotaoMic = document.getElementById('btnAssistente');
+    if (headerEsquerda && !temBotaoMic) {
+        const micHTML = `<button class="icon-btn" onclick="toggleAssistenteVoz()" id="btnAssistente" title="Assistente de Voz">🎤</button>`;
+        const trofeus = document.getElementById('trofeus-globais');
+        // Coloca antes dos troféus, se os troféus existirem, senão no final da esquerda.
+        if (trofeus) { trofeus.insertAdjacentHTML('beforebegin', micHTML); } 
+        else { headerEsquerda.insertAdjacentHTML('beforeend', micHTML); }
     }
 }
 
