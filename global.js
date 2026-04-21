@@ -753,13 +753,12 @@ async function enviarPerguntaQuimiChat(pergunta, lerVozAlta) {
     try {
         let promptCompleto = "REGRA: Você é a Adômines, assistente de química de um jogo. Responda APENAS perguntas sobre química de forma simples, direta e para jovens estudantes. Se a pergunta NÃO for sobre química, responda EXATAMENTE: 'Desculpe, eu só posso responder a perguntas relacionadas à química.'\n\nPERGUNTA DO JOGADOR: " + pergunta;
         
-        // ROTA EXATA SOLICITADA (gemini-1.5-flash)
-        const respostaApi = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY_GEMINI}`, {
+        // ROTA COM O MODELO QUE VOCÊ ESCOLHEU
+        const respostaApi = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${API_KEY_GEMINI}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 contents: [{ 
-                    role: "user",
                     parts: [{ text: promptCompleto }] 
                 }]
             })
