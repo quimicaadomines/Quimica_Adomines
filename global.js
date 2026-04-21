@@ -9,7 +9,23 @@ let mutado = false;
 let efeitosVisuaisAtivos = true; 
 let musicaIniciada = false;
 let isNavegando = false; 
-let contextoAssistente = null; // Memória da assistente para diálogos de múltiplas etapas
+let contextoAssistente = null; 
+
+// ==========================================
+// CONFIGURAÇÃO DO QUIMICHAT (IA)
+// ==========================================
+const API_KEY_GEMINI = "gen-lang-client-0377558002"; // <-- Cole sua chave do Google Gemini aqui
+const MAX_PERGUNTAS = 20;
+
+function gerenciarBateriaQuimiChat() {
+    let dados = JSON.parse(localStorage.getItem("quimiChatBateria")) || { dia: new Date().toLocaleDateString(), restantes: MAX_PERGUNTAS };
+    // Se mudou de dia (meia-noite), recarrega a bateria
+    if (dados.dia !== new Date().toLocaleDateString()) {
+        dados = { dia: new Date().toLocaleDateString(), restantes: MAX_PERGUNTAS };
+        localStorage.setItem("quimiChatBateria", JSON.stringify(dados));
+    }
+    return dados;
+}
 
 const listaDeConquistas =[
   { id: "c1", texto: "Complete o nível fácil do modo de jogo estruturando pela primeira vez." },
@@ -56,13 +72,11 @@ function carregarConfiguracoes() {
 
   renderizarConquistas();
   renderizarTrofeus();
-  injetarElementosGlobais(); // NOVA INJEÇÃO GLOBAL (Tabela + Microfone)
+  gerenciarBateriaQuimiChat(); // Inicializa a bateria do dia
+  injetarElementosGlobais(); // Injeta Tabela, Microfone e QuimiChat
   
   if (localStorage.getItem("assistenteAtivo") === "true") {
-      setTimeout(() => {
-         assistenteAtivo = false; 
-         toggleAssistenteVoz(true); 
-      }, 1000); 
+      setTimeout(() => { assistenteAtivo = false; toggleAssistenteVoz(true); }, 1000); 
   }
 }
 window.onload = carregarConfiguracoes;
@@ -160,7 +174,7 @@ function mostrarMensagemGlob(texto) {
 }
 
 // ==========================================
-// ASSISTENTE DE VOZ INTELIGENTE (O "CÉREBRO")
+// ASSISTENTE DE VOZ INTELIGENTE E QUIMICHAT
 // ==========================================
 let assistenteAtivo = false;
 let assistenteReconhecimento = null;
@@ -227,10 +241,11 @@ function falarAssistente(texto) {
     assistenteSintese.speak(fala);
 }
 
+// NOVA INTRODUÇÃO DA ASSISTENTE
 window.toggleAssistenteVoz = function(silencioso = false) {
     if(!silencioso) tocarSomClick();
     if (!assistenteReconhecimento) {
-        mostrarMensagemGlob("Seu navegador não suporta o Assistente.");
+        mostrarMensagemGlob("Seu navegador não suporta a Assistente.");
         falarAssistente("Desculpe, seu navegador não suporta o assistente de voz."); return;
     }
     if (assistenteAtivo) {
@@ -241,7 +256,9 @@ window.toggleAssistenteVoz = function(silencioso = false) {
         try {
             assistenteAtivo = true; contextoAssistente = null;
             localStorage.setItem("assistenteAtivo", "true"); assistenteReconhecimento.start();
-            if(!silencioso) { falarAssistente("Assistente ativada. Pode falar!"); }
+            if(!silencioso) { 
+                falarAssistente("Assistente ativada. Pode falar! Caso queira fazer alguma pergunta sobre a química é só falar Adômines e logo em seguida fazer a pergunta, mas lembre-se, você tem um limite diário de 20 perguntas."); 
+            }
         } catch(e) { }
     }
 }
@@ -253,26 +270,33 @@ document.addEventListener("keydown", (e) => {
 
 const normalizar = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
-// FUNÇÃO PARA LER A TELA ATUAL INTEIRA (Títulos, Parágrafos e Sugestões)
 function lerTelaInteira() {
     let textos = [];
     let elementos = document.querySelectorAll("h1, h2, h3, p:not(.escondido), .descricao, .sugestao, .enunciado");
     elementos.forEach(el => {
-        if(el.offsetParent !== null && el.innerText.trim().length > 0) {
-            textos.push(el.innerText);
-        }
+        if(el.offsetParent !== null && el.innerText.trim().length > 0) { textos.push(el.innerText); }
     });
-    
-    if(textos.length > 0) {
-        falarAssistente("Na tela diz o seguinte: " + textos.join(". "));
-    } else {
-        falarAssistente("Não encontrei nenhum texto principal nesta tela para ler.");
-    }
+    if(textos.length > 0) { falarAssistente("Na tela diz o seguinte: " + textos.join(". ")); } 
+    else { falarAssistente("Não encontrei nenhum texto principal nesta tela para ler."); }
 }
 
 function processarComandoVoz(comandoRaw) {
     let comando = normalizar(comandoRaw.replace(/[.,!?]/g, "").trim());
     const contem = (...palavras) => palavras.some(p => comando.includes(normalizar(p)));
+
+    // ==============================================
+    // IA QUIMICHAT (NOVIDADE)
+    // ==============================================
+    if (comando.startsWith("adomines")) {
+        let pergunta = comandoRaw.replace(/ad[ôo]mines/i, "").trim();
+        if (pergunta.length > 2) {
+            abrirQuimiChat();
+            enviarPerguntaQuimiChat(pergunta, true); // O "true" indica que foi por voz (vai ler a resposta em voz alta)
+        } else {
+            falarAssistente("Estou ouvindo. Pode fazer sua pergunta de química.");
+        }
+        return;
+    }
 
     // ==============================================
     // 1. CHECAGEM DE MEMÓRIA/CONTEXTO
@@ -330,39 +354,17 @@ function processarComandoVoz(comandoRaw) {
     // 2. FUNÇÕES GLOBAIS E CONFIGURAÇÕES
     // ==============================================
     if (contem("desativar assistente", "desligar assistente", "parar assistente")) { toggleAssistenteVoz(); return; }
-    
-    // VOLTAR TELA
     if (contem("voltar pra tela anterior", "voltar para a tela anterior", "retornar", "voltar tela", "voltar")) { 
         falarAssistente("Voltando.");
         if (window.history.length > 1 && document.referrer.includes(window.location.host)) { window.history.back(); } 
         else { mudarTela('index.html'); }
         return; 
     }
-
-    // LEITOR DE TELA GLOBAL
-    if (contem("ler o que ta na tela", "ler a tela", "leia a tela", "o que tem na tela", "o que diz na tela")) {
-        lerTelaInteira(); return;
-    }
-
-    // TEMA
-    if (contem("ativar modo escuro", "colocar modo escuro", "tema escuro", "noturno")) {
-        if(!document.body.classList.contains("dark")) toggleModo("escuro");
-        falarAssistente("Modo escuro ativado."); return;
-    }
-    if (contem("ativar modo claro", "colocar modo claro", "tema claro", "dia", "tirar modo escuro")) {
-        if(document.body.classList.contains("dark")) toggleModo("claro");
-        falarAssistente("Modo claro ativado."); return;
-    }
-
-    // SOM E MUTAR
-    if (contem("tirar musica", "mutar", "silencio", "tirar som", "sem som", "desativar som")) { 
-        if(!mutado) toggleMute("mutar"); falarAssistente("Som desativado."); return; 
-    }
-    if (contem("colocar musica", "desmutar", "audio", "colocar som", "com som", "ativar som", "ligar som")) { 
-        if(mutado) toggleMute("desmutar"); falarAssistente("Som ativado."); return; 
-    }
-
-    // AJUSTAR VOLUMES
+    if (contem("ler o que ta na tela", "ler a tela", "leia a tela", "o que tem na tela", "o que diz na tela")) { lerTelaInteira(); return; }
+    if (contem("ativar modo escuro", "colocar modo escuro", "tema escuro", "noturno")) { if(!document.body.classList.contains("dark")) toggleModo("escuro"); falarAssistente("Modo escuro ativado."); return; }
+    if (contem("ativar modo claro", "colocar modo claro", "tema claro", "dia", "tirar modo escuro")) { if(document.body.classList.contains("dark")) toggleModo("claro"); falarAssistente("Modo claro ativado."); return; }
+    if (contem("tirar musica", "mutar", "silencio", "tirar som", "sem som", "desativar som")) { if(!mutado) toggleMute("mutar"); falarAssistente("Som desativado."); return; }
+    if (contem("colocar musica", "desmutar", "audio", "colocar som", "com som", "ativar som", "ligar som")) { if(mutado) toggleMute("desmutar"); falarAssistente("Som ativado."); return; }
     if (contem("abaixar", "diminuir", "reduzir") && contem("volume", "musica", "som")) {
         if(contem("efeito", "efeitos")) { volumeEfeitos(clickAudio.volume - 0.2); falarAssistente("Volume dos efeitos reduzido."); }
         else { volumeMusica(musica.volume - 0.2); falarAssistente("Volume da música reduzido."); }
@@ -373,17 +375,11 @@ function processarComandoVoz(comandoRaw) {
         else { volumeMusica(musica.volume + 0.2); falarAssistente("Volume da música aumentado."); }
         return;
     }
-
-    // EFEITOS VISUAIS
-    if (contem("tirar efeitos visuais", "desativar efeitos visuais", "sem efeitos", "remover efeitos")) {
-        toggleEfeitos("desativar"); falarAssistente("Efeitos visuais desativados."); return;
-    }
-    if (contem("colocar efeitos visuais", "ativar efeitos visuais", "ligar efeitos visuais", "com efeitos")) {
-        toggleEfeitos("ativar"); falarAssistente("Efeitos visuais ativados."); return;
-    }
+    if (contem("tirar efeitos visuais", "desativar efeitos visuais", "sem efeitos", "remover efeitos")) { toggleEfeitos("desativar"); falarAssistente("Efeitos visuais desativados."); return; }
+    if (contem("colocar efeitos visuais", "ativar efeitos visuais", "ligar efeitos visuais", "com efeitos")) { toggleEfeitos("ativar"); falarAssistente("Efeitos visuais ativados."); return; }
 
     // ==============================================
-    // 3. CONSULTAS SOBRE O JOGO E ENCICLOPÉDIA
+    // 3. CONSULTAS SOBRE O JOGO E LEITOR DE FASES
     // ==============================================
     if (contem("quais as conquistas", "minhas conquistas", "trofeus")) {
         let concluidas = JSON.parse(localStorage.getItem("conquistasDesbloqueadas")) || [];
@@ -403,7 +399,6 @@ function processarComandoVoz(comandoRaw) {
         return;
     }
 
-    // Leitor específico de ENUNCIADO e SUGESTÃO (Atualizado!)
     if (contem("leia", "ler", "repetir", "o que diz", "qual e o", "qual a")) {
         if (contem("enunciado", "pergunta", "questao", "sugestao", "dica")) { 
             let el = document.getElementById("enunciado") || document.querySelector(".enunciado") || document.getElementById("sugestao") || document.querySelector(".sugestao"); 
@@ -415,11 +410,8 @@ function processarComandoVoz(comandoRaw) {
         if (contem("item d", "alternativa d")) { let el = document.getElementById("item-d") || document.querySelector(".item-d"); if(el) falarAssistente(el.innerText); else falarAssistente("Não encontrei alternativa D."); return; }
     }
 
-    // Perguntas de Química
-    if (contem("ligacoes", "valencia", "numero atomico", "massa", "peso")) {
-        for (let mol in enciclopediaMoleculas) {
-            if (comando.includes(mol)) { if(contem("ligacoes", "ligacao")) { falarAssistente(enciclopediaMoleculas[mol].ligacoes); return; } }
-        }
+    // Perguntas Locais Básicas de Química (Fallback para não gastar a Bateria)
+    if (contem("numero atomico", "massa", "peso", "ligacoes", "valencia")) {
         let elementoEncontrado = elementosTabela.find(el => comando.includes(normalizar(el.nome)));
         if (elementoEncontrado) {
             if (contem("numero atomico", "atomico", "protons")) { falarAssistente(`O número atômico do ${elementoEncontrado.nome} é ${elementoEncontrado.n}.`); } 
@@ -430,47 +422,28 @@ function processarComandoVoz(comandoRaw) {
     }
 
     // ==============================================
-    // 4. NAVEGAÇÃO COMPLEXA ENTRE MODOS (ATUALIZADA)
+    // 4. NAVEGAÇÃO COMPLEXA ENTRE MODOS
     // ==============================================
     if (contem("iniciar", "comecar", "jogar", "bora", "vamos", "entrar no modo", "acessar", "entrar")) {
-        
-        // Atalhos Diretos Mágicos (ex: "Entrar no modo difícil do modo estruturando")
         if (contem("estruturando") || contem("desafio")) {
             if(contem("facil")) { falarAssistente("Indo para o nível Fácil."); localStorage.setItem("modoAtual", "desafio"); localStorage.setItem("nivel", "facil"); mudarTela('estruturando.html'); return; }
             if(contem("medio")) { falarAssistente("Indo para o nível Médio."); localStorage.setItem("modoAtual", "desafio"); localStorage.setItem("nivel", "medio"); mudarTela('estruturando.html'); return; }
             if(contem("dificil")) { falarAssistente("Indo para o nível Difícil."); localStorage.setItem("modoAtual", "desafio"); localStorage.setItem("nivel", "dificil"); mudarTela('estruturando.html'); return; }
             if(contem("impossivel")) { falarAssistente("Indo para o nível Impossível."); localStorage.setItem("modoAtual", "desafio"); localStorage.setItem("nivel", "impossivel"); mudarTela('estruturando.html'); return; }
         }
-
-        // Fluxo conversacional Estruturando
-        if (contem("estruturando", "classico")) {
-            falarAssistente("Modo Estruturando. Você quer o modo Livre ou o modo Desafio?");
-            contextoAssistente = "escolher_submodo_estruturando";
-            return;
-        }
-
-        // Fluxo conversacional Inclusivo (ATUALIZADO!)
-        if (contem("inclusivo", "inclusao", "acessibilidade")) {
-            falarAssistente("Entrar em qual modo inclusivo? Reconhecer, Relacionar ou Interpretar?");
-            contextoAssistente = "escolher_modo_inclusivo";
-            return;
-        }
-
-        // Se disser só "iniciar jogo" na tela inicial
+        if (contem("estruturando", "classico")) { falarAssistente("Modo Estruturando. Você quer o modo Livre ou o modo Desafio?"); contextoAssistente = "escolher_submodo_estruturando"; return; }
+        if (contem("inclusivo", "inclusao", "acessibilidade")) { falarAssistente("Entrar em qual modo inclusivo? Reconhecer, Relacionar ou Interpretar?"); contextoAssistente = "escolher_modo_inclusivo"; return; }
         let urlAtual = window.location.pathname;
         if (!urlAtual.includes('modos.html') && !urlAtual.includes('estruturando') && !urlAtual.includes('inclusao')) {
-            falarAssistente("Indo para o menu de modos.");
-            if (typeof iniciar === "function") iniciar(); else mudarTela('modos.html');
-            return;
+            falarAssistente("Indo para o menu de modos."); if (typeof iniciar === "function") iniciar(); else mudarTela('modos.html'); return;
         } else {
-            falarAssistente("Especifique o modo. Diga: Entrar no modo estruturando, ou Entrar no modo inclusivo.");
-            return;
+            falarAssistente("Especifique o modo. Diga: Entrar no modo estruturando, ou Entrar no modo inclusivo."); return;
         }
     }
 
     // Ajuda Genérica
     if (contem("ajuda", "o que fazer", "opcoes", "socorro")) { 
-        falarAssistente("Experimente dizer: Entrar no modo estruturando, Ativar modo escuro, Ler o que está na tela, Leia a sugestão, ou perguntar o número atômico do Carbono."); 
+        falarAssistente("Você pode perguntar algo como: Adômines, o que é a regra do octeto? Ou dar comandos como: Entrar no modo estruturando, Ativar modo escuro, Ler o que está na tela."); 
         return; 
     }
 }
@@ -594,21 +567,8 @@ function processarChat(e) {
     }
 }
 
-function renderizarConquistas() {
-  let container = document.getElementById("lista-conquistas");
-  if (!container) return;
-  container.innerHTML = ""; 
-  let conquistadas = JSON.parse(localStorage.getItem("conquistasDesbloqueadas")) ||[];
-  listaDeConquistas.forEach(conq => {
-    let div = document.createElement("div"); let desbloqueada = conquistadas.includes(conq.id);
-    div.className = `conquista-item ${desbloqueada ? 'conquista-desbloqueada' : ''}`;
-    div.innerHTML = `<div class="conquista-icone">${desbloqueada ? '🏆' : '🔒'}</div><div class="conquista-texto">${conq.texto}</div>`;
-    container.appendChild(div);
-  });
-}
-
 // ==========================================
-// SISTEMA DA TABELA PERIÓDICA E INJEÇÃO GLOBAL
+// INJEÇÃO GLOBAL (Tabela Periódica, Microfone e QuimiChat)
 // ==========================================
 
 const elementosTabela = [
@@ -642,7 +602,7 @@ const elementosTabela = [
     { n: 55, s: 'Cs', nome: 'Césio', l: '1', m: '132.91', c: 1, r: 6 }, { n: 56, s: 'Ba', nome: 'Bário', l: '2', m: '137.33', c: 2, r: 6 },
     { n: 57, s: 'La', nome: 'Lantânio', l: 'Variável', m: '138.91', c: 4, r: 8 }, { n: 58, s: 'Ce', nome: 'Cério', l: 'Variável', m: '140.12', c: 5, r: 8 },
     { n: 59, s: 'Pr', nome: 'Praseodímio', l: 'Variável', m: '140.91', c: 6, r: 8 }, { n: 60, s: 'Nd', nome: 'Neodímio', l: 'Variável', m: '144.24', c: 7, r: 8 },
-    { n: 61, s: 'Pm', nome: 'Promécio', l: 'Variável', m: '[145]', c: 8, r: 8 }, { n: 62, s: 'Sm', sm: 'Samário', l: 'Variável', m: '150.36', c: 9, r: 8 },
+    { n: 61, s: 'Pm', nome: 'Promécio', l: 'Variável', m: '[145]', c: 8, r: 8 }, { n: 62, s: 'Sm', nome: 'Samário', l: 'Variável', m: '150.36', c: 9, r: 8 },
     { n: 63, s: 'Eu', nome: 'Európio', l: 'Variável', m: '151.96', c: 10, r: 8 }, { n: 64, s: 'Gd', nome: 'Gadolínio', l: 'Variável', m: '157.25', c: 11, r: 8 },
     { n: 65, s: 'Tb', nome: 'Térbio', l: 'Variável', m: '158.93', c: 12, r: 8 }, { n: 66, s: 'Dy', nome: 'Disprósio', l: 'Variável', m: '162.50', c: 13, r: 8 },
     { n: 67, s: 'Ho', nome: 'Hólmio', l: 'Variável', m: '164.93', c: 14, r: 8 }, { n: 68, s: 'Er', nome: 'Érbio', l: 'Variável', m: '167.26', c: 15, r: 8 },
@@ -676,7 +636,7 @@ const elementosTabela = [
 ];
 
 function injetarElementosGlobais() {
-    // 1. Injeta o Modal da Tabela Periódica
+    // 1. Tabela Periódica
     if (!document.getElementById('tabela-overlay')) {
         const modalHTML = `
         <div id="tabela-overlay" class="modal-overlay" onclick="fecharModais(event)">
@@ -699,27 +659,151 @@ function injetarElementosGlobais() {
         </div>`;
         document.body.insertAdjacentHTML('beforeend', modalHTML);
     }
+
+    // 2. QuimiChat
+    if (!document.getElementById('quimichat-overlay')) {
+        const chatHTML = `
+        <div id="quimichat-overlay" class="modal-overlay" onclick="fecharModais(event)">
+          <div class="modal-box modal-chat">
+            <div class="modal-header" style="background: #1e293b;">
+              <h3>💬 QuimiChat (Adômines)</h3>
+              <button onclick="fecharQuimiChat()">✖</button>
+            </div>
+            <div class="aviso-chat">O QuimiChat possui um limite diário de ${MAX_PERGUNTAS} perguntas.</div>
+            <div class="bateria-container">🔋 Bateria da Adômines: <span id="chat-bateria-num">100%</span></div>
+            <div class="chat-body-inner">
+              <div id="quimichat-mensagens" class="chat-mensagens">
+                <div class="msg-ai">Olá! Eu sou a Adômines. Qual é a sua dúvida de química hoje?</div>
+              </div>
+              <div class="chat-input-area">
+                <input type="text" id="quimichat-input" placeholder="Pergunte algo sobre química..." onkeypress="verificarEnterQuimiChat(event)">
+                <button onclick="enviarPerguntaQuimiChatInput()">➤</button>
+              </div>
+            </div>
+          </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', chatHTML);
+        atualizarBateriaUI();
+    }
     
-    // 2. Injeta o Botão da Tabela na Direita
+    // Injeta os botões na barra
     const headerDireita = document.querySelector('.topo .direita');
-    const temBotaoTabela = document.querySelector('.btn-tabela-global');
-    if (headerDireita && !temBotaoTabela) {
+    if (headerDireita && !document.querySelector('.btn-tabela-global')) {
         headerDireita.insertAdjacentHTML('afterbegin', `<button class="icon-btn btn-tabela-global" onclick="abrirTabelaPeriodica()" title="Tabela Periódica">📊</button>`);
     }
+    if (headerDireita && !document.querySelector('.btn-chat-global')) {
+        headerDireita.insertAdjacentHTML('afterbegin', `<button class="icon-btn btn-chat-global" onclick="abrirQuimiChat()" title="QuimiChat">💬</button>`);
+    }
 
-    // 3. Injeta o Botão do Microfone na Esquerda (Caso o HTML da fase não tenha)
     const headerEsquerda = document.querySelector('.topo .esquerda');
-    const temBotaoMic = document.getElementById('btnAssistente');
-    if (headerEsquerda && !temBotaoMic) {
+    if (headerEsquerda && !document.getElementById('btnAssistente')) {
         const micHTML = `<button class="icon-btn" onclick="toggleAssistenteVoz()" id="btnAssistente" title="Assistente de Voz">🎤</button>`;
         const trofeus = document.getElementById('trofeus-globais');
-        // Coloca antes dos troféus, se os troféus existirem, senão no final da esquerda.
-        if (trofeus) { trofeus.insertAdjacentHTML('beforebegin', micHTML); } 
-        else { headerEsquerda.insertAdjacentHTML('beforeend', micHTML); }
+        if (trofeus) { trofeus.insertAdjacentHTML('beforebegin', micHTML); } else { headerEsquerda.insertAdjacentHTML('beforeend', micHTML); }
     }
 }
 
+// Funções Tabela
 function abrirTabelaPeriodica() { tocarSomClick(); document.getElementById("tabela-overlay").style.display = "block"; let grade = document.getElementById("grade-tabela"); if(grade && grade.innerHTML === "") { renderizarTabelaPeriodica(); } }
 function fecharTabelaPeriodica() { tocarSomClick(); document.getElementById("tabela-overlay").style.display = "none"; }
 function renderizarTabelaPeriodica() { let grade = document.getElementById("grade-tabela"); grade.innerHTML = ""; elementosTabela.forEach(el => { let div = document.createElement("div"); div.className = "elemento-tabela"; div.style.gridColumn = el.c; div.style.gridRow = el.r; div.innerHTML = `<span class="el-num">${el.n}</span><span class="el-sim">${el.s}</span>`; div.onclick = () => mostrarInfoElemento(el); grade.appendChild(div); }); }
 function mostrarInfoElemento(el) { tocarSomClick(); document.getElementById("el-nome").innerText = el.nome; document.getElementById("el-simbolo").innerText = el.s; document.getElementById("el-numero").innerText = el.n; document.getElementById("el-massa").innerText = el.m; document.getElementById("el-ligacoes").innerText = el.l; }
+
+// ==========================================
+// LÓGICA DO QUIMICHAT (API GEMINI)
+// ==========================================
+function abrirQuimiChat() { tocarSomClick(); document.getElementById("quimichat-overlay").style.display = "block"; setTimeout(()=>{ document.getElementById("quimichat-input").focus(); }, 100); }
+function fecharQuimiChat() { tocarSomClick(); document.getElementById("quimichat-overlay").style.display = "none"; }
+function verificarEnterQuimiChat(e) { if(e.key === 'Enter') enviarPerguntaQuimiChatInput(); }
+
+function atualizarBateriaUI() {
+    let dados = gerenciarBateriaQuimiChat();
+    let porcentagem = (dados.restantes / MAX_PERGUNTAS) * 100;
+    let span = document.getElementById("chat-bateria-num");
+    if(span) span.innerText = Math.round(porcentagem) + "% (" + dados.restantes + " restantes)";
+}
+
+function descontarBateria() {
+    let dados = gerenciarBateriaQuimiChat();
+    if(dados.restantes > 0) { dados.restantes--; localStorage.setItem("quimiChatBateria", JSON.stringify(dados)); atualizarBateriaUI(); }
+}
+
+function enviarPerguntaQuimiChatInput() {
+    let input = document.getElementById("quimichat-input");
+    let texto = input.value.trim();
+    if(texto === "") return;
+    input.value = "";
+    enviarPerguntaQuimiChat(texto, false);
+}
+
+// Filtro rápido para não gastar API atoa com coisas óbvias
+function pareceQuimica(pergunta) {
+    let proibidas = ["futebol", "neymar", "filme", "capital", "politica", "bbb", "quem ganhou", "idade de"];
+    let p = normalizar(pergunta);
+    if(proibidas.some(x => p.includes(x))) return false;
+    return true; // Se não for óbvio, deixa a IA julgar.
+}
+
+async function enviarPerguntaQuimiChat(pergunta, lerVozAlta) {
+    let container = document.getElementById("quimichat-mensagens");
+    
+    // Adiciona msg do usuário
+    container.innerHTML += `<div class="msg-user">${pergunta}</div>`;
+    container.scrollTop = container.scrollHeight;
+
+    let dadosBateria = gerenciarBateriaQuimiChat();
+    if (dadosBateria.restantes <= 0) {
+        let msgSemEnergia = "Minha bateria acabou! Usei muita energia processando cálculos químicos hoje. Volte amanhã!";
+        container.innerHTML += `<div class="msg-ai">${msgSemEnergia}</div>`;
+        if(lerVozAlta) falarAssistente(msgSemEnergia);
+        return;
+    }
+
+    if (!pareceQuimica(pergunta)) {
+        let msgNaoQuimica = "Isso não parece ter nenhuma relação com química! Reformule sua pergunta.";
+        container.innerHTML += `<div class="msg-ai">${msgNaoQuimica}</div>`;
+        if(lerVozAlta) falarAssistente(msgNaoQuimica);
+        return;
+    }
+
+    // Cria o status de "digitando..."
+    let idTemp = "msg-" + Date.now();
+    container.innerHTML += `<div id="${idTemp}" class="carregando-ai">Adômines está pensando...</div>`;
+    container.scrollTop = container.scrollHeight;
+
+    try {
+        let instrucao = "Você é a Adômines, assistente de química de um jogo. Responda APENAS perguntas sobre química de forma simples, direta e para jovens estudantes. Se a pergunta NÃO for sobre química, responda EXATAMENTE: 'Desculpe, eu só posso responder a perguntas relacionadas à química.'";
+        
+        const respostaApi = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY_GEMINI}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                system_instruction: { parts: { text: instrucao } },
+                contents: [{ parts: [{ text: pergunta }] }]
+            })
+        });
+
+        const dados = await respostaApi.json();
+        document.getElementById(idTemp).remove(); // Tira o "pensando"
+
+        if (dados.error) { throw new Error(dados.error.message); }
+
+        let respostaTexto = dados.candidates[0].content.parts[0].text.trim();
+        
+        // Verifica se a IA deu a resposta de bloqueio. Se deu, NÃO desconta bateria.
+        if (!respostaTexto.includes("Desculpe, eu só posso responder")) {
+            descontarBateria(); // Foi uma boa resposta, desconta 5%
+        }
+
+        container.innerHTML += `<div class="msg-ai">${respostaTexto}</div>`;
+        if(lerVozAlta) falarAssistente(respostaTexto);
+        container.scrollTop = container.scrollHeight;
+
+    } catch (e) {
+        document.getElementById(idTemp)?.remove();
+        console.error("Erro QuimiChat:", e);
+        let msgErro = "Não consegui me conectar ao laboratório agora. Verifique se o desenvolvedor configurou minha Chave de Acesso da API do Gemini.";
+        container.innerHTML += `<div class="msg-ai" style="color:#ef4444">${msgErro}</div>`;
+        if(lerVozAlta) falarAssistente(msgErro);
+    }
+}
