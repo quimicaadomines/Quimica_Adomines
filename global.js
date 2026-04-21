@@ -753,7 +753,8 @@ async function enviarPerguntaQuimiChat(pergunta, lerVozAlta) {
     try {
         let promptCompleto = "REGRA: Você é a Adômines, assistente de química de um jogo. Responda APENAS perguntas sobre química de forma simples, direta e para jovens estudantes. Se a pergunta NÃO for sobre química, responda EXATAMENTE: 'Desculpe, eu só posso responder a perguntas relacionadas à química.'\n\nPERGUNTA DO JOGADOR: " + pergunta;
         
-        const respostaApi = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${API_KEY_GEMINI}`, {
+        // ROTA OFICIAL E ESTÁVEL (V1) COM O MODELO UNIVERSAL (GEMINI-PRO)
+        const respostaApi = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${API_KEY_GEMINI}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
