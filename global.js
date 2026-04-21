@@ -14,12 +14,13 @@ let contextoAssistente = null;
 // ==========================================
 // CONFIGURAÇÃO DO QUIMICHAT (IA)
 // ==========================================
-const API_KEY_GEMINI = "gen-lang-client-0377558002"; // <-- Cole sua chave do Google Gemini aqui
+// ⚠️ AVISO: A sua chave parece ser o ID do Projeto. A chave correta sempre começa com "AIzaSy..."
+// Se der erro de conexão, volte no site do Google e copie a Chave de API (API Key) correta.
+const API_KEY_GEMINI = "gen-lang-client-0377558002"; 
 const MAX_PERGUNTAS = 20;
 
 function gerenciarBateriaQuimiChat() {
     let dados = JSON.parse(localStorage.getItem("quimiChatBateria")) || { dia: new Date().toLocaleDateString(), restantes: MAX_PERGUNTAS };
-    // Se mudou de dia (meia-noite), recarrega a bateria
     if (dados.dia !== new Date().toLocaleDateString()) {
         dados = { dia: new Date().toLocaleDateString(), restantes: MAX_PERGUNTAS };
         localStorage.setItem("quimiChatBateria", JSON.stringify(dados));
@@ -72,8 +73,10 @@ function carregarConfiguracoes() {
 
   renderizarConquistas();
   renderizarTrofeus();
-  gerenciarBateriaQuimiChat(); // Inicializa a bateria do dia
-  injetarElementosGlobais(); // Injeta Tabela, Microfone e QuimiChat
+  gerenciarBateriaQuimiChat(); 
+  
+  // O setTimeout garante que o HTML carregou antes de tentar injetar os botões
+  setTimeout(injetarElementosGlobais, 200); 
   
   if (localStorage.getItem("assistenteAtivo") === "true") {
       setTimeout(() => { assistenteAtivo = false; toggleAssistenteVoz(true); }, 1000); 
@@ -241,7 +244,6 @@ function falarAssistente(texto) {
     assistenteSintese.speak(fala);
 }
 
-// NOVA INTRODUÇÃO DA ASSISTENTE
 window.toggleAssistenteVoz = function(silencioso = false) {
     if(!silencioso) tocarSomClick();
     if (!assistenteReconhecimento) {
@@ -285,13 +287,18 @@ function processarComandoVoz(comandoRaw) {
     const contem = (...palavras) => palavras.some(p => comando.includes(normalizar(p)));
 
     // ==============================================
-    // IA QUIMICHAT (NOVIDADE)
+    // IA QUIMICHAT (NOVIDADE: Reconhecimento Fonético Expandido)
     // ==============================================
-    if (comando.startsWith("adomines")) {
-        let pergunta = comandoRaw.replace(/ad[ôo]mines/i, "").trim();
-        if (pergunta.length > 2) {
+    // A IA do microfone escreve os sons que ouve de várias formas diferentes.
+    let ativadorRegex = /^(adomines|a dominis|a domines|adominis|as dominis|aldomines|o dominis|ad homens|aos dominis|adomini|adomin)\b/i;
+    
+    if (ativadorRegex.test(comando)) {
+        // Remove a palavra mágica (independente de como o PC escreveu) e pega só a pergunta
+        let perguntaRaw = comandoRaw.replace(/^(Ad[ôo]mines|A dominis|A domines|Adominis|As dominis|Aldomines|O dominis|Ad homens|Aos dominis|Adomini|Adomin)\s*/i, "").trim();
+        
+        if (perguntaRaw.length > 2) {
             abrirQuimiChat();
-            enviarPerguntaQuimiChat(pergunta, true); // O "true" indica que foi por voz (vai ler a resposta em voz alta)
+            enviarPerguntaQuimiChat(perguntaRaw, true); // O "true" indica que vai ler em voz alta
         } else {
             falarAssistente("Estou ouvindo. Pode fazer sua pergunta de química.");
         }
@@ -410,7 +417,7 @@ function processarComandoVoz(comandoRaw) {
         if (contem("item d", "alternativa d")) { let el = document.getElementById("item-d") || document.querySelector(".item-d"); if(el) falarAssistente(el.innerText); else falarAssistente("Não encontrei alternativa D."); return; }
     }
 
-    // Perguntas Locais Básicas de Química (Fallback para não gastar a Bateria)
+    // Perguntas Locais (Caso não use o "Adômines" no começo)
     if (contem("numero atomico", "massa", "peso", "ligacoes", "valencia")) {
         let elementoEncontrado = elementosTabela.find(el => comando.includes(normalizar(el.nome)));
         if (elementoEncontrado) {
@@ -441,7 +448,6 @@ function processarComandoVoz(comandoRaw) {
         }
     }
 
-    // Ajuda Genérica
     if (contem("ajuda", "o que fazer", "opcoes", "socorro")) { 
         falarAssistente("Você pode perguntar algo como: Adômines, o que é a regra do octeto? Ou dar comandos como: Entrar no modo estruturando, Ativar modo escuro, Ler o que está na tela."); 
         return; 
@@ -686,15 +692,18 @@ function injetarElementosGlobais() {
         atualizarBateriaUI();
     }
     
-    // Injeta os botões na barra
+    // Injeta Botões na Direita (Garantido pela trava de segurança)
     const headerDireita = document.querySelector('.topo .direita');
-    if (headerDireita && !document.querySelector('.btn-tabela-global')) {
-        headerDireita.insertAdjacentHTML('afterbegin', `<button class="icon-btn btn-tabela-global" onclick="abrirTabelaPeriodica()" title="Tabela Periódica">📊</button>`);
-    }
-    if (headerDireita && !document.querySelector('.btn-chat-global')) {
-        headerDireita.insertAdjacentHTML('afterbegin', `<button class="icon-btn btn-chat-global" onclick="abrirQuimiChat()" title="QuimiChat">💬</button>`);
+    if (headerDireita) {
+        if (!document.querySelector('.btn-tabela-global')) {
+            headerDireita.insertAdjacentHTML('afterbegin', `<button class="icon-btn btn-tabela-global" onclick="abrirTabelaPeriodica()" title="Tabela Periódica">📊</button>`);
+        }
+        if (!document.querySelector('.btn-chat-global')) {
+            headerDireita.insertAdjacentHTML('afterbegin', `<button class="icon-btn btn-chat-global" onclick="abrirQuimiChat()" title="QuimiChat">💬</button>`);
+        }
     }
 
+    // Injeta Botão do Microfone na Esquerda
     const headerEsquerda = document.querySelector('.topo .esquerda');
     if (headerEsquerda && !document.getElementById('btnAssistente')) {
         const micHTML = `<button class="icon-btn" onclick="toggleAssistenteVoz()" id="btnAssistente" title="Assistente de Voz">🎤</button>`;
@@ -736,18 +745,16 @@ function enviarPerguntaQuimiChatInput() {
     enviarPerguntaQuimiChat(texto, false);
 }
 
-// Filtro rápido para não gastar API atoa com coisas óbvias
 function pareceQuimica(pergunta) {
     let proibidas = ["futebol", "neymar", "filme", "capital", "politica", "bbb", "quem ganhou", "idade de"];
     let p = normalizar(pergunta);
     if(proibidas.some(x => p.includes(x))) return false;
-    return true; // Se não for óbvio, deixa a IA julgar.
+    return true; 
 }
 
 async function enviarPerguntaQuimiChat(pergunta, lerVozAlta) {
     let container = document.getElementById("quimichat-mensagens");
     
-    // Adiciona msg do usuário
     container.innerHTML += `<div class="msg-user">${pergunta}</div>`;
     container.scrollTop = container.scrollHeight;
 
@@ -766,7 +773,6 @@ async function enviarPerguntaQuimiChat(pergunta, lerVozAlta) {
         return;
     }
 
-    // Cria o status de "digitando..."
     let idTemp = "msg-" + Date.now();
     container.innerHTML += `<div id="${idTemp}" class="carregando-ai">Adômines está pensando...</div>`;
     container.scrollTop = container.scrollHeight;
@@ -784,15 +790,15 @@ async function enviarPerguntaQuimiChat(pergunta, lerVozAlta) {
         });
 
         const dados = await respostaApi.json();
-        document.getElementById(idTemp).remove(); // Tira o "pensando"
+        let avisoPensando = document.getElementById(idTemp);
+        if(avisoPensando) avisoPensando.remove();
 
         if (dados.error) { throw new Error(dados.error.message); }
 
         let respostaTexto = dados.candidates[0].content.parts[0].text.trim();
         
-        // Verifica se a IA deu a resposta de bloqueio. Se deu, NÃO desconta bateria.
         if (!respostaTexto.includes("Desculpe, eu só posso responder")) {
-            descontarBateria(); // Foi uma boa resposta, desconta 5%
+            descontarBateria(); 
         }
 
         container.innerHTML += `<div class="msg-ai">${respostaTexto}</div>`;
@@ -800,9 +806,10 @@ async function enviarPerguntaQuimiChat(pergunta, lerVozAlta) {
         container.scrollTop = container.scrollHeight;
 
     } catch (e) {
-        document.getElementById(idTemp)?.remove();
+        let avisoPensando = document.getElementById(idTemp);
+        if(avisoPensando) avisoPensando.remove();
         console.error("Erro QuimiChat:", e);
-        let msgErro = "Não consegui me conectar ao laboratório agora. Verifique se o desenvolvedor configurou minha Chave de Acesso da API do Gemini.";
+        let msgErro = "Não consegui me conectar ao laboratório agora. Verifique se o desenvolvedor configurou minha Chave de Acesso da API do Gemini corretamente.";
         container.innerHTML += `<div class="msg-ai" style="color:#ef4444">${msgErro}</div>`;
         if(lerVozAlta) falarAssistente(msgErro);
     }
