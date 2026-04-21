@@ -37,7 +37,7 @@ const listaDeConquistas =[
   { id: "c7", texto: "Complete um nível inclusivo do modo de jogo estruturando." }
 ];
 
-const nomesCatalogoDemo = [
+const nomesCatalogoDemo =[
     "Água", "Gás Carbônico", "Amônia", "Metano", "Monóxido de Carbono", "Ácido Clorídrico", "Cloreto de Sódio", 
     "Etanol", "Ácido Sulfúrico", "Gás Oxigênio", "Gás Nitrogênio", "Gás Hidrogênio", "Ozônio", "Dióxido de Enxofre",
     "Ácido Nítrico", "Benzeno", "Glicose", "Ureia", "Acetona", "Ácido Acético"
@@ -274,7 +274,7 @@ document.addEventListener("keydown", (e) => {
 const normalizar = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
 function lerTelaInteira() {
-    let textos = [];
+    let textos =[];
     let elementos = document.querySelectorAll("h1, h2, h3, p:not(.escondido), .descricao, .sugestao, .enunciado");
     elementos.forEach(el => {
         if(el.offsetParent !== null && el.innerText.trim().length > 0) { textos.push(el.innerText); }
@@ -379,14 +379,14 @@ function processarComandoVoz(comandoOriginal) {
     if (contem("colocar efeitos visuais", "ativar efeitos visuais", "ligar efeitos visuais", "com efeitos")) { toggleEfeitos("ativar"); falarAssistente("Efeitos visuais ativados."); return; }
 
     if (contem("quais as conquistas", "minhas conquistas", "trofeus")) {
-        let concluidas = JSON.parse(localStorage.getItem("conquistasDesbloqueadas")) || [];
+        let concluidas = JSON.parse(localStorage.getItem("conquistasDesbloqueadas")) ||[];
         if (concluidas.length === 0) falarAssistente("Você ainda não desbloqueou nenhuma conquista.");
         else falarAssistente(`Você já desbloqueou ${concluidas.length} conquistas. Abra o painel para ver todas.`);
         return;
     }
 
     if (contem("quais moleculas", "catalogo", "cataloguei", "modo livre")) {
-        let cat = JSON.parse(localStorage.getItem("catalogoDesbloqueado")) || [];
+        let cat = JSON.parse(localStorage.getItem("catalogoDesbloqueado")) ||[];
         if (cat.length === 0) falarAssistente("Você ainda não catalogou nenhuma molécula.");
         else {
             let texto = `Você catalogou ${cat.length} moléculas. Algumas são: `;
@@ -518,11 +518,17 @@ function celebrar(tipo) {
     setTimeout(() => { tela.classList.remove("ativa"); tela.querySelectorAll(".confete").forEach(c => c.remove()); }, 6000);
 }
 
-function abrirChat() { tocarSomClick(); document.getElementById("chat-overlay").style.display = "block"; }
-function fecharChatBtn() { tocarSomClick(); document.getElementById("chat-overlay").style.display = "none"; }
-function abrirConquistas() { tocarSomClick(); document.getElementById("conquistas-overlay").style.display = "block"; }
-function fecharConquistasBtn() { tocarSomClick(); document.getElementById("conquistas-overlay").style.display = "none"; }
-function fecharModais(event) { if (event.target.classList.contains("modal-overlay")) { event.target.style.display = "none"; } }
+function abrirChat() { tocarSomClick(); document.getElementById("chat-overlay").style.display = "block"; document.body.style.overflow = "hidden"; }
+function fecharChatBtn() { tocarSomClick(); document.getElementById("chat-overlay").style.display = "none"; document.body.style.overflow = "auto"; }
+function abrirConquistas() { tocarSomClick(); document.getElementById("conquistas-overlay").style.display = "block"; document.body.style.overflow = "hidden"; }
+function fecharConquistasBtn() { tocarSomClick(); document.getElementById("conquistas-overlay").style.display = "none"; document.body.style.overflow = "auto"; }
+
+function fecharModais(event) { 
+    if (event.target.classList.contains("modal-overlay")) { 
+        event.target.style.display = "none"; 
+        document.body.style.overflow = "auto"; // Libera a rolagem quando clica fora do modal
+    } 
+}
 
 function processarChat(e) {
     if(e.key === 'Enter') {
@@ -576,7 +582,7 @@ function renderizarConquistas() {
 // INJEÇÃO GLOBAL DOS MODAIS (Tabela e QuimiChat)
 // ==========================================
 
-const elementosTabela = [
+const elementosTabela =[
     { n: 1, s: 'H', nome: 'Hidrogênio', l: '1', m: '1.008', c: 1, r: 1 }, { n: 2, s: 'He', nome: 'Hélio', l: '0', m: '4.002', c: 18, r: 1 },
     { n: 3, s: 'Li', nome: 'Lítio', l: '1', m: '6.94', c: 1, r: 2 }, { n: 4, s: 'Be', nome: 'Berílio', l: '2', m: '9.012', c: 2, r: 2 },
     { n: 5, s: 'B', nome: 'Boro', l: '3', m: '10.81', c: 13, r: 2 }, { n: 6, s: 'C', nome: 'Carbono', l: '4', m: '12.011', c: 14, r: 2 },
@@ -690,13 +696,13 @@ function injetarElementosGlobais() {
     }
 }
 
-function abrirTabelaPeriodica() { tocarSomClick(); document.getElementById("tabela-overlay").style.display = "flex"; let grade = document.getElementById("grade-tabela"); if(grade && grade.innerHTML === "") { renderizarTabelaPeriodica(); } }
-function fecharTabelaPeriodica() { tocarSomClick(); document.getElementById("tabela-overlay").style.display = "none"; }
+function abrirTabelaPeriodica() { tocarSomClick(); document.getElementById("tabela-overlay").style.display = "flex"; document.body.style.overflow = "hidden"; let grade = document.getElementById("grade-tabela"); if(grade && grade.innerHTML === "") { renderizarTabelaPeriodica(); } }
+function fecharTabelaPeriodica() { tocarSomClick(); document.getElementById("tabela-overlay").style.display = "none"; document.body.style.overflow = "auto"; }
 function renderizarTabelaPeriodica() { let grade = document.getElementById("grade-tabela"); grade.innerHTML = ""; elementosTabela.forEach(el => { let div = document.createElement("div"); div.className = "elemento-tabela"; div.style.gridColumn = el.c; div.style.gridRow = el.r; div.innerHTML = `<span class="el-num">${el.n}</span><span class="el-sim">${el.s}</span>`; div.onclick = () => mostrarInfoElemento(el); grade.appendChild(div); }); }
 function mostrarInfoElemento(el) { tocarSomClick(); document.getElementById("el-nome").innerText = el.nome; document.getElementById("el-simbolo").innerText = el.s; document.getElementById("el-numero").innerText = el.n; document.getElementById("el-massa").innerText = el.m; document.getElementById("el-ligacoes").innerText = el.l; }
 
-function abrirQuimiChat() { tocarSomClick(); document.getElementById("quimichat-overlay").style.display = "flex"; setTimeout(()=>{ document.getElementById("quimichat-input").focus(); }, 100); }
-function fecharQuimiChat() { tocarSomClick(); document.getElementById("quimichat-overlay").style.display = "none"; }
+function abrirQuimiChat() { tocarSomClick(); document.getElementById("quimichat-overlay").style.display = "flex"; document.body.style.overflow = "hidden"; setTimeout(()=>{ document.getElementById("quimichat-input").focus(); }, 100); }
+function fecharQuimiChat() { tocarSomClick(); document.getElementById("quimichat-overlay").style.display = "none"; document.body.style.overflow = "auto"; }
 function verificarEnterQuimiChat(e) { if(e.key === 'Enter') enviarPerguntaQuimiChatInput(); }
 
 function atualizarBateriaUI() {
@@ -720,7 +726,7 @@ function enviarPerguntaQuimiChatInput() {
 }
 
 function pareceQuimica(pergunta) {
-    let proibidas = ["futebol", "neymar", "filme", "capital", "politica", "bbb", "quem ganhou", "idade de"];
+    let proibidas =["futebol", "neymar", "filme", "capital", "politica", "bbb", "quem ganhou", "idade de"];
     let p = normalizar(pergunta);
     if(proibidas.some(x => p.includes(x))) return false;
     return true; 
@@ -752,7 +758,6 @@ async function enviarPerguntaQuimiChat(pergunta, lerVozAlta) {
     container.scrollTop = container.scrollHeight;
 
     try {
-        // CHAMADA SEGURA PARA A SUA API NA VERCEL
         const respostaApi = await fetch(`/api/chat`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -770,12 +775,20 @@ async function enviarPerguntaQuimiChat(pergunta, lerVozAlta) {
 
         let respostaTexto = dados.candidates[0].content.parts[0].text.trim();
         
+        // --- FORMATAÇÃO DO TEXTO DA IA (Negrito e Quebra de Linha) ---
+        respostaTexto = respostaTexto.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+        respostaTexto = respostaTexto.replace(/\n/g, '<br>');
+        
         if (!respostaTexto.includes("Desculpe, eu só posso responder")) {
             descontarBateria(); 
         }
 
         container.innerHTML += `<div class="msg-ai">${respostaTexto}</div>`;
-        if(lerVozAlta) falarAssistente(respostaTexto);
+        
+        // Remove as tags HTML caso a assistente vá falar em voz alta, pra não ler "br" ou "b"
+        let textoParaVoz = respostaTexto.replace(/<br>/g, " ").replace(/<b>/g, "").replace(/<\/b>/g, "");
+        if(lerVozAlta) falarAssistente(textoParaVoz);
+        
         container.scrollTop = container.scrollHeight;
 
     } catch (e) {
