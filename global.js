@@ -14,7 +14,8 @@ let contextoAssistente = null;
 // ==========================================
 // CONFIGURAÇÃO DO QUIMICHAT (IA)
 // ==========================================
-const API_KEY_GEMINI = "AIzaSyB6zTuKDRT5AIEd6z6DDTme_ggnvK-6c0U"; 
+// A CHAVE DA API FOI REMOVIDA DAQUI POR SEGURANÇA!
+// O jogo agora vai se conectar com o arquivo /api/chat.js (Back-end na Vercel)
 const MAX_PERGUNTAS = 20;
 
 function gerenciarBateriaQuimiChat() {
@@ -751,27 +752,21 @@ async function enviarPerguntaQuimiChat(pergunta, lerVozAlta) {
     container.scrollTop = container.scrollHeight;
 
     try {
-        let promptCompleto = "REGRA: Você é a Adômines, assistente de química de um jogo. Responda APENAS perguntas sobre química de forma simples, direta e para jovens estudantes. Se a pergunta NÃO for sobre química, responda EXATAMENTE: 'Desculpe, eu só posso responder a perguntas relacionadas à química.'\n\nPERGUNTA DO JOGADOR: " + pergunta;
-        
-        // ROTA COM O MODELO QUE VOCÊ ESCOLHEU
-        const respostaApi = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${API_KEY_GEMINI}`, {
+        // CHAMADA SEGURA PARA A SUA API NA VERCEL
+        const respostaApi = await fetch(`/api/chat`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                contents: [{ 
-                    parts: [{ text: promptCompleto }] 
-                }]
-            })
+            body: JSON.stringify({ pergunta: pergunta })
         });
 
-        if (!respostaApi.ok) {
-            const erroDetalhado = await respostaApi.json();
-            throw new Error(erroDetalhado.error ? erroDetalhado.error.message : `Erro HTTP: ${respostaApi.status}`);
-        }
-
         const dados = await respostaApi.json();
+        
         let avisoPensando = document.getElementById(idTemp);
         if(avisoPensando) avisoPensando.remove();
+
+        if (!respostaApi.ok) {
+            throw new Error(dados.error ? (dados.error.message || dados.error) : `Erro HTTP: ${respostaApi.status}`);
+        }
 
         let respostaTexto = dados.candidates[0].content.parts[0].text.trim();
         
@@ -786,7 +781,7 @@ async function enviarPerguntaQuimiChat(pergunta, lerVozAlta) {
     } catch (e) {
         let avisoPensando = document.getElementById(idTemp);
         if(avisoPensando) avisoPensando.remove();
-        console.error("ERRO DETALHADO DO GEMINI:", e.message);
+        console.error("ERRO NO CHAT:", e.message);
         let msgErro = "Não consegui me conectar ao laboratório agora. Erro: " + (e.message || "Desconhecido");
         container.innerHTML += `<div class="msg-ai" style="color:#ef4444">${msgErro}</div>`;
         if(lerVozAlta) falarAssistente("Não consegui me conectar ao laboratório agora.");
