@@ -69,7 +69,6 @@ function carregarConfiguracoes() {
     if (p !== undefined) { p.then(_ => { musicaIniciada = true; }).catch(e => { console.log("Bloqueio de autoplay."); }); }
   }
 
-  // AGORA ISSO VAI RODAR PERFEITAMENTE:
   renderizarConquistas();
   renderizarTrofeus();
   gerenciarBateriaQuimiChat(); 
@@ -80,7 +79,6 @@ function carregarConfiguracoes() {
   }
 }
 
-// CORREÇÃO MÁGICA: Garante que o global.js carregue sem ser atropelado por outros arquivos
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', carregarConfiguracoes);
 } else {
@@ -288,11 +286,11 @@ function processarComandoVoz(comandoOriginal) {
     let comando = normalizar(comandoOriginal.replace(/[.,!?]/g, "").trim());
     const contem = (...palavras) => palavras.some(p => comando.includes(normalizar(p)));
 
-    // IA QUIMICHAT (Correção Fonética do A domínis)
+    // IA QUIMICHAT
     let ativadorRegex = /^(adomines|a dominis|a domines|adominis|as dominis|aldomines|o dominis|ad homens|aos dominis|adomini|adomin|domines|dominis)\b/i;
     
     if (ativadorRegex.test(comando)) {
-        let pergunta = comando.replace(ativadorRegex, "").trim(); 
+        let pergunta = comandoOriginal.replace(/^(Ad[ôo]mines|A dominis|A domines|Adominis|As dominis|Aldomines|O dominis|Ad homens|Aos dominis|Adomini|Adomin|Domines|Dominis)\s*/i, "").trim(); 
         if (pergunta.length > 2) {
             abrirQuimiChat();
             enviarPerguntaQuimiChat(pergunta, true); 
@@ -360,7 +358,6 @@ function processarComandoVoz(comandoOriginal) {
     }
     if (contem("ler o que ta na tela", "ler a tela", "leia a tela", "o que tem na tela", "o que diz na tela")) { lerTelaInteira(); return; }
     
-    // CORREÇÃO: "dia" removido para evitar ativar com ruídos como "bom dia"
     if (contem("ativar modo escuro", "colocar modo escuro", "tema escuro", "noturno")) { if(!document.body.classList.contains("dark")) toggleModo("escuro"); falarAssistente("Modo escuro ativado."); return; }
     if (contem("ativar modo claro", "colocar modo claro", "tema claro", "tirar modo escuro", "modo dia")) { if(document.body.classList.contains("dark")) toggleModo("claro"); falarAssistente("Modo claro ativado."); return; }
     
@@ -643,7 +640,6 @@ const elementosTabela = [
 ];
 
 function injetarElementosGlobais() {
-    // 1. Tabela Periódica (Modais Invisíveis no Final do Body)
     if (!document.getElementById('tabela-overlay')) {
         const modalHTML = `
         <div id="tabela-overlay" class="modal-overlay" onclick="fecharModais(event)" style="z-index: 100000;">
@@ -667,7 +663,6 @@ function injetarElementosGlobais() {
         document.body.insertAdjacentHTML('beforeend', modalHTML);
     }
 
-    // 2. QuimiChat (Modal Invisível no Final do Body)
     if (!document.getElementById('quimichat-overlay')) {
         const chatHTML = `
         <div id="quimichat-overlay" class="modal-overlay" onclick="fecharModais(event)" style="z-index: 100000;">
@@ -762,16 +757,24 @@ async function enviarPerguntaQuimiChat(pergunta, lerVozAlta) {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                system_instruction: { parts: { text: instrucao } },
-                contents: [{ parts: [{ text: pergunta }] }]
+                system_instruction: { 
+                    parts: [{ text: instrucao }]
+                },
+                contents: [{ 
+                    role: "user",
+                    parts: [{ text: pergunta }] 
+                }]
             })
         });
+
+        if (!respostaApi.ok) {
+            const erroDetalhado = await respostaApi.json();
+            throw new Error(erroDetalhado.error ? erroDetalhado.error.message : `Erro HTTP: ${respostaApi.status}`);
+        }
 
         const dados = await respostaApi.json();
         let avisoPensando = document.getElementById(idTemp);
         if(avisoPensando) avisoPensando.remove();
-
-        if (dados.error) { throw new Error(dados.error.message); }
 
         let respostaTexto = dados.candidates[0].content.parts[0].text.trim();
         
@@ -786,9 +789,9 @@ async function enviarPerguntaQuimiChat(pergunta, lerVozAlta) {
     } catch (e) {
         let avisoPensando = document.getElementById(idTemp);
         if(avisoPensando) avisoPensando.remove();
-        console.error("Erro QuimiChat:", e);
-        let msgErro = "Não consegui me conectar ao laboratório agora. Verifique a internet ou a Chave de Acesso da API.";
+        console.error("ERRO DETALHADO DO GEMINI:", e.message);
+        let msgErro = "Não consegui me conectar ao laboratório agora. Erro: " + (e.message || "Desconhecido");
         container.innerHTML += `<div class="msg-ai" style="color:#ef4444">${msgErro}</div>`;
-        if(lerVozAlta) falarAssistente(msgErro);
+        if(lerVozAlta) falarAssistente("Não consegui me conectar ao laboratório agora.");
     }
 }
