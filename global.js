@@ -50,40 +50,45 @@ const enciclopediaMoleculas = {
 
 function carregarConfiguracoes() {
   if (localStorage.getItem("tema") === "escuro") { document.body.classList.add("dark"); let btn = document.getElementById("temaBtn"); if(btn) btn.innerText = "☀️"; }
-  if (localStorage.getItem("mutado") === "true") { mutado = true; musica.muted = true; let btn = document.getElementById("muteBtn"); if(btn) btn.innerText = "🔇"; }
+  if (localStorage.getItem("mutado") === "true") { mutado = true; if(musica) musica.muted = true; let btn = document.getElementById("muteBtn"); if(btn) btn.innerText = "🔇"; }
   
   let volMusica = localStorage.getItem("volumeMusica");
-  if (volMusica !== null) { musica.volume = parseFloat(volMusica); let rg = document.getElementById("rangeMusica"); if(rg) rg.value = volMusica; }
+  if (volMusica !== null && musica) { musica.volume = parseFloat(volMusica); let rg = document.getElementById("rangeMusica"); if(rg) rg.value = volMusica; }
   
   let volEfeitos = localStorage.getItem("volumeEfeitos");
-  if (volEfeitos !== null) { clickAudio.volume = parseFloat(volEfeitos); bubbleAudio.volume = parseFloat(volEfeitos); let rg = document.getElementById("rangeEfeitos"); if(rg) rg.value = volEfeitos; }
+  if (volEfeitos !== null) { if(clickAudio) clickAudio.volume = parseFloat(volEfeitos); if(bubbleAudio) bubbleAudio.volume = parseFloat(volEfeitos); let rg = document.getElementById("rangeEfeitos"); if(rg) rg.value = volEfeitos; }
 
   if (localStorage.getItem("efeitosVisuais") === "false") { efeitosVisuaisAtivos = false; let chk = document.getElementById("checkEfeitos"); if(chk) chk.checked = true; aplicarEfeitosNaLogo(false); }
 
   let tempoSalvo = localStorage.getItem("tempoMusica");
   let estavaTocando = localStorage.getItem("musicaTocando"); 
-  if (tempoSalvo !== null) { musica.currentTime = parseFloat(tempoSalvo); }
+  if (tempoSalvo !== null && musica) { musica.currentTime = parseFloat(tempoSalvo); }
   
-  if (estavaTocando === "true" && !mutado) {
+  if (estavaTocando === "true" && !mutado && musica) {
     let p = musica.play();
     if (p !== undefined) { p.then(_ => { musicaIniciada = true; }).catch(e => { console.log("Bloqueio de autoplay."); }); }
   }
 
+  // AGORA ISSO VAI RODAR PERFEITAMENTE:
   renderizarConquistas();
   renderizarTrofeus();
   gerenciarBateriaQuimiChat(); 
-  
-  injetarElementosGlobais(); // Injeta apenas os Modais Invisíveis no Body
+  injetarElementosGlobais(); 
   
   if (localStorage.getItem("assistenteAtivo") === "true") {
       setTimeout(() => { assistenteAtivo = false; toggleAssistenteVoz(true); }, 1000); 
   }
 }
-window.onload = carregarConfiguracoes;
+
+// CORREÇÃO MÁGICA: Garante que o global.js carregue sem ser atropelado por outros arquivos
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', carregarConfiguracoes);
+} else {
+    carregarConfiguracoes();
+}
 
 window.addEventListener("beforeunload", () => { 
-  localStorage.setItem("tempoMusica", musica.currentTime); 
-  localStorage.setItem("musicaTocando", !musica.paused);
+  if(musica) { localStorage.setItem("tempoMusica", musica.currentTime); localStorage.setItem("musicaTocando", !musica.paused); }
 });
 
 function mudarTela(url) {
@@ -92,20 +97,19 @@ function mudarTela(url) {
   if (assistenteReconhecimento) { assistenteReconhecimento.onend = null; assistenteReconhecimento.stop(); }
   if (transicaoAudio) { transicaoAudio.volume = 1.0; transicaoAudio.currentTime = 0; transicaoAudio.play().catch(()=>{}); }
   document.body.classList.add("saindo");
-  localStorage.setItem("tempoMusica", musica.currentTime);
-  localStorage.setItem("musicaTocando", !musica.paused);
+  if(musica) { localStorage.setItem("tempoMusica", musica.currentTime); localStorage.setItem("musicaTocando", !musica.paused); }
   setTimeout(() => { window.location.href = url; }, 500);
 }
 
-document.addEventListener("click", () => { if (!musicaIniciada && !mutado) { musica.play().catch(()=>{}); musicaIniciada = true; } }, { once: true });
-function tocarSomClick() { clickAudio.currentTime = 0; clickAudio.play().catch(()=>{}); }
+document.addEventListener("click", () => { if (!musicaIniciada && !mutado && musica) { musica.play().catch(()=>{}); musicaIniciada = true; } }, { once: true });
+function tocarSomClick() { if(clickAudio){ clickAudio.currentTime = 0; clickAudio.play().catch(()=>{}); } }
 
 document.addEventListener("click", (e) => {
   let menu = document.getElementById("menu");
   if (menu && menu.style.display === "block" && !menu.contains(e.target)) { menu.style.display = "none"; }
   if (e.target.closest('button') || e.target.tagName === 'INPUT') return;
   if (!efeitosVisuaisAtivos) return;
-  bubbleAudio.currentTime = 0; bubbleAudio.play().catch(()=>{});
+  if(bubbleAudio){ bubbleAudio.currentTime = 0; bubbleAudio.play().catch(()=>{}); }
   let bolha = document.createElement("div"); bolha.classList.add("bolha");
   bolha.style.left = e.clientX + "px"; bolha.style.top = e.clientY + "px";
   document.body.appendChild(bolha); setTimeout(() => bolha.remove(), 600);
@@ -129,25 +133,26 @@ function toggleMute(forcarEstado = null) {
     else if (forcarEstado === "desmutar") mutado = false;
     else mutado = !mutado;
     
-    musica.muted = mutado; 
-    if (!mutado && !musicaIniciada) { musica.play(); musicaIniciada = true; } 
+    if(musica) musica.muted = mutado; 
+    if (!mutado && !musicaIniciada && musica) { musica.play(); musicaIniciada = true; } 
     let btn = document.getElementById("muteBtn");
     if(btn) btn.innerText = mutado ? "🔇" : "🔊"; 
     localStorage.setItem("mutado", mutado); 
 }
 
-function toggleMenu(event) { if (event) event.stopPropagation(); tocarSomClick(); let menu = document.getElementById("menu"); menu.style.display = (menu.style.display === "block") ? "none" : "block"; }
+function toggleMenu(event) { if (event) event.stopPropagation(); tocarSomClick(); let menu = document.getElementById("menu"); if(menu) menu.style.display = (menu.style.display === "block") ? "none" : "block"; }
 
 function volumeMusica(v) { 
     v = Math.max(0, Math.min(1, v)); 
-    musica.volume = v; 
+    if(musica) musica.volume = v; 
     localStorage.setItem("volumeMusica", v); 
     let rg = document.getElementById("rangeMusica"); if(rg) rg.value = v;
 }
 
 function volumeEfeitos(v) { 
     v = Math.max(0, Math.min(1, v));
-    clickAudio.volume = v; bubbleAudio.volume = v; 
+    if(clickAudio) clickAudio.volume = v; 
+    if(bubbleAudio) bubbleAudio.volume = v; 
     localStorage.setItem("volumeEfeitos", v); 
     let rg = document.getElementById("rangeEfeitos"); if(rg) rg.value = v;
 }
@@ -205,7 +210,7 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
 
     assistenteReconhecimento.onresult = function(event) {
         if(isNavegando) return;
-        let comando = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
+        let comando = event.results[event.results.length - 1][0].transcript.trim();
         mostrarMensagemGlob('🎤 Você: "' + comando + '"');
         processarComandoVoz(comando);
     };
@@ -279,19 +284,18 @@ function lerTelaInteira() {
     else { falarAssistente("Não encontrei nenhum texto principal nesta tela para ler."); }
 }
 
-function processarComandoVoz(comandoRaw) {
-    let comando = normalizar(comandoRaw.replace(/[.,!?]/g, "").trim());
+function processarComandoVoz(comandoOriginal) {
+    let comando = normalizar(comandoOriginal.replace(/[.,!?]/g, "").trim());
     const contem = (...palavras) => palavras.some(p => comando.includes(normalizar(p)));
 
-    // IA QUIMICHAT (Reconhecimento Fonético Expandido)
-    let ativadorRegex = /^(adomines|a dominis|a domines|adominis|as dominis|aldomines|o dominis|ad homens|aos dominis|adomini|adomin)\b/i;
+    // IA QUIMICHAT (Correção Fonética do A domínis)
+    let ativadorRegex = /^(adomines|a dominis|a domines|adominis|as dominis|aldomines|o dominis|ad homens|aos dominis|adomini|adomin|domines|dominis)\b/i;
     
     if (ativadorRegex.test(comando)) {
-        let perguntaRaw = comandoRaw.replace(/^(Ad[ôo]mines|A dominis|A domines|Adominis|As dominis|Aldomines|O dominis|Ad homens|Aos dominis|Adomini|Adomin)\s*/i, "").trim();
-        
-        if (perguntaRaw.length > 2) {
+        let pergunta = comando.replace(ativadorRegex, "").trim(); 
+        if (pergunta.length > 2) {
             abrirQuimiChat();
-            enviarPerguntaQuimiChat(perguntaRaw, true); 
+            enviarPerguntaQuimiChat(pergunta, true); 
         } else {
             falarAssistente("Estou ouvindo. Pode fazer sua pergunta de química.");
         }
@@ -355,18 +359,22 @@ function processarComandoVoz(comandoRaw) {
         return; 
     }
     if (contem("ler o que ta na tela", "ler a tela", "leia a tela", "o que tem na tela", "o que diz na tela")) { lerTelaInteira(); return; }
+    
+    // CORREÇÃO: "dia" removido para evitar ativar com ruídos como "bom dia"
     if (contem("ativar modo escuro", "colocar modo escuro", "tema escuro", "noturno")) { if(!document.body.classList.contains("dark")) toggleModo("escuro"); falarAssistente("Modo escuro ativado."); return; }
-    if (contem("ativar modo claro", "colocar modo claro", "tema claro", "dia", "tirar modo escuro")) { if(document.body.classList.contains("dark")) toggleModo("claro"); falarAssistente("Modo claro ativado."); return; }
+    if (contem("ativar modo claro", "colocar modo claro", "tema claro", "tirar modo escuro", "modo dia")) { if(document.body.classList.contains("dark")) toggleModo("claro"); falarAssistente("Modo claro ativado."); return; }
+    
     if (contem("tirar musica", "mutar", "silencio", "tirar som", "sem som", "desativar som")) { if(!mutado) toggleMute("mutar"); falarAssistente("Som desativado."); return; }
     if (contem("colocar musica", "desmutar", "audio", "colocar som", "com som", "ativar som", "ligar som")) { if(mutado) toggleMute("desmutar"); falarAssistente("Som ativado."); return; }
+    
     if (contem("abaixar", "diminuir", "reduzir") && contem("volume", "musica", "som")) {
-        if(contem("efeito", "efeitos")) { volumeEfeitos(clickAudio.volume - 0.2); falarAssistente("Volume dos efeitos reduzido."); }
-        else { volumeMusica(musica.volume - 0.2); falarAssistente("Volume da música reduzido."); }
+        if(contem("efeito", "efeitos")) { volumeEfeitos((clickAudio?clickAudio.volume:1) - 0.2); falarAssistente("Volume dos efeitos reduzido."); }
+        else { volumeMusica((musica?musica.volume:1) - 0.2); falarAssistente("Volume da música reduzido."); }
         return;
     }
     if (contem("aumentar", "subir", "mais") && contem("volume", "musica", "som")) {
-        if(contem("efeito", "efeitos")) { volumeEfeitos(clickAudio.volume + 0.2); falarAssistente("Volume dos efeitos aumentado."); }
-        else { volumeMusica(musica.volume + 0.2); falarAssistente("Volume da música aumentado."); }
+        if(contem("efeito", "efeitos")) { volumeEfeitos((clickAudio?clickAudio.volume:1) + 0.2); falarAssistente("Volume dos efeitos aumentado."); }
+        else { volumeMusica((musica?musica.volume:1) + 0.2); falarAssistente("Volume da música aumentado."); }
         return;
     }
     if (contem("tirar efeitos visuais", "desativar efeitos visuais", "sem efeitos", "remover efeitos")) { toggleEfeitos("desativar"); falarAssistente("Efeitos visuais desativados."); return; }
@@ -553,6 +561,19 @@ function processarChat(e) {
     }
 }
 
+function renderizarConquistas() {
+  let container = document.getElementById("lista-conquistas");
+  if (!container) return;
+  container.innerHTML = ""; 
+  let conquistadas = JSON.parse(localStorage.getItem("conquistasDesbloqueadas")) ||[];
+  listaDeConquistas.forEach(conq => {
+    let div = document.createElement("div"); let desbloqueada = conquistadas.includes(conq.id);
+    div.className = `conquista-item ${desbloqueada ? 'conquista-desbloqueada' : ''}`;
+    div.innerHTML = `<div class="conquista-icone">${desbloqueada ? '🏆' : '🔒'}</div><div class="conquista-texto">${conq.texto}</div>`;
+    container.appendChild(div);
+  });
+}
+
 // ==========================================
 // INJEÇÃO GLOBAL DOS MODAIS (Tabela e QuimiChat)
 // ==========================================
@@ -625,7 +646,7 @@ function injetarElementosGlobais() {
     // 1. Tabela Periódica (Modais Invisíveis no Final do Body)
     if (!document.getElementById('tabela-overlay')) {
         const modalHTML = `
-        <div id="tabela-overlay" class="modal-overlay" onclick="fecharModais(event)">
+        <div id="tabela-overlay" class="modal-overlay" onclick="fecharModais(event)" style="z-index: 100000;">
           <div class="modal-box modal-tabela">
             <div class="modal-header" style="background: var(--btn-bg);">
               <h3>📊 Tabela Periódica</h3>
@@ -649,7 +670,7 @@ function injetarElementosGlobais() {
     // 2. QuimiChat (Modal Invisível no Final do Body)
     if (!document.getElementById('quimichat-overlay')) {
         const chatHTML = `
-        <div id="quimichat-overlay" class="modal-overlay" onclick="fecharModais(event)">
+        <div id="quimichat-overlay" class="modal-overlay" onclick="fecharModais(event)" style="z-index: 100000;">
           <div class="modal-box modal-chat">
             <div class="modal-header" style="background: #1e293b;">
               <h3>💬 QuimiChat (Adômines)</h3>
@@ -673,16 +694,12 @@ function injetarElementosGlobais() {
     }
 }
 
-// Funções Tabela
-function abrirTabelaPeriodica() { tocarSomClick(); document.getElementById("tabela-overlay").style.display = "block"; let grade = document.getElementById("grade-tabela"); if(grade && grade.innerHTML === "") { renderizarTabelaPeriodica(); } }
+function abrirTabelaPeriodica() { tocarSomClick(); document.getElementById("tabela-overlay").style.display = "flex"; let grade = document.getElementById("grade-tabela"); if(grade && grade.innerHTML === "") { renderizarTabelaPeriodica(); } }
 function fecharTabelaPeriodica() { tocarSomClick(); document.getElementById("tabela-overlay").style.display = "none"; }
 function renderizarTabelaPeriodica() { let grade = document.getElementById("grade-tabela"); grade.innerHTML = ""; elementosTabela.forEach(el => { let div = document.createElement("div"); div.className = "elemento-tabela"; div.style.gridColumn = el.c; div.style.gridRow = el.r; div.innerHTML = `<span class="el-num">${el.n}</span><span class="el-sim">${el.s}</span>`; div.onclick = () => mostrarInfoElemento(el); grade.appendChild(div); }); }
 function mostrarInfoElemento(el) { tocarSomClick(); document.getElementById("el-nome").innerText = el.nome; document.getElementById("el-simbolo").innerText = el.s; document.getElementById("el-numero").innerText = el.n; document.getElementById("el-massa").innerText = el.m; document.getElementById("el-ligacoes").innerText = el.l; }
 
-// ==========================================
-// LÓGICA DO QUIMICHAT (API GEMINI)
-// ==========================================
-function abrirQuimiChat() { tocarSomClick(); document.getElementById("quimichat-overlay").style.display = "block"; setTimeout(()=>{ document.getElementById("quimichat-input").focus(); }, 100); }
+function abrirQuimiChat() { tocarSomClick(); document.getElementById("quimichat-overlay").style.display = "flex"; setTimeout(()=>{ document.getElementById("quimichat-input").focus(); }, 100); }
 function fecharQuimiChat() { tocarSomClick(); document.getElementById("quimichat-overlay").style.display = "none"; }
 function verificarEnterQuimiChat(e) { if(e.key === 'Enter') enviarPerguntaQuimiChatInput(); }
 
@@ -770,7 +787,7 @@ async function enviarPerguntaQuimiChat(pergunta, lerVozAlta) {
         let avisoPensando = document.getElementById(idTemp);
         if(avisoPensando) avisoPensando.remove();
         console.error("Erro QuimiChat:", e);
-        let msgErro = "Não consegui me conectar ao laboratório agora. Verifique se o desenvolvedor configurou minha Chave de Acesso da API do Gemini corretamente.";
+        let msgErro = "Não consegui me conectar ao laboratório agora. Verifique a internet ou a Chave de Acesso da API.";
         container.innerHTML += `<div class="msg-ai" style="color:#ef4444">${msgErro}</div>`;
         if(lerVozAlta) falarAssistente(msgErro);
     }
