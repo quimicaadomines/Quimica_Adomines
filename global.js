@@ -14,9 +14,7 @@ let contextoAssistente = null;
 // ==========================================
 // CONFIGURAÇÃO DO QUIMICHAT (IA)
 // ==========================================
-// ⚠️ AVISO: A sua chave parece ser o ID do Projeto. A chave correta sempre começa com "AIzaSy..."
-// Se der erro de conexão, volte no site do Google e copie a Chave de API (API Key) correta.
-const API_KEY_GEMINI = "gen-lang-client-0377558002"; 
+const API_KEY_GEMINI = "AIzaSyB6zTuKDRT5AIEd6z6DDTme_ggnvK-6c0U"; 
 const MAX_PERGUNTAS = 20;
 
 function gerenciarBateriaQuimiChat() {
@@ -75,8 +73,7 @@ function carregarConfiguracoes() {
   renderizarTrofeus();
   gerenciarBateriaQuimiChat(); 
   
-  // O setTimeout garante que o HTML carregou antes de tentar injetar os botões
-  setTimeout(injetarElementosGlobais, 200); 
+  injetarElementosGlobais(); // Injeta apenas os Modais Invisíveis no Body
   
   if (localStorage.getItem("assistenteAtivo") === "true") {
       setTimeout(() => { assistenteAtivo = false; toggleAssistenteVoz(true); }, 1000); 
@@ -286,28 +283,21 @@ function processarComandoVoz(comandoRaw) {
     let comando = normalizar(comandoRaw.replace(/[.,!?]/g, "").trim());
     const contem = (...palavras) => palavras.some(p => comando.includes(normalizar(p)));
 
-    // ==============================================
-    // IA QUIMICHAT (NOVIDADE: Reconhecimento Fonético Expandido)
-    // ==============================================
-    // A IA do microfone escreve os sons que ouve de várias formas diferentes.
+    // IA QUIMICHAT (Reconhecimento Fonético Expandido)
     let ativadorRegex = /^(adomines|a dominis|a domines|adominis|as dominis|aldomines|o dominis|ad homens|aos dominis|adomini|adomin)\b/i;
     
     if (ativadorRegex.test(comando)) {
-        // Remove a palavra mágica (independente de como o PC escreveu) e pega só a pergunta
         let perguntaRaw = comandoRaw.replace(/^(Ad[ôo]mines|A dominis|A domines|Adominis|As dominis|Aldomines|O dominis|Ad homens|Aos dominis|Adomini|Adomin)\s*/i, "").trim();
         
         if (perguntaRaw.length > 2) {
             abrirQuimiChat();
-            enviarPerguntaQuimiChat(perguntaRaw, true); // O "true" indica que vai ler em voz alta
+            enviarPerguntaQuimiChat(perguntaRaw, true); 
         } else {
             falarAssistente("Estou ouvindo. Pode fazer sua pergunta de química.");
         }
         return;
     }
 
-    // ==============================================
-    // 1. CHECAGEM DE MEMÓRIA/CONTEXTO
-    // ==============================================
     if (contem("cancelar", "esquece", "deixa pra la")) {
         if(contextoAssistente) { falarAssistente("Tudo bem, cancelando."); contextoAssistente = null; return; }
     }
@@ -357,9 +347,6 @@ function processarComandoVoz(comandoRaw) {
         }
     }
 
-    // ==============================================
-    // 2. FUNÇÕES GLOBAIS E CONFIGURAÇÕES
-    // ==============================================
     if (contem("desativar assistente", "desligar assistente", "parar assistente")) { toggleAssistenteVoz(); return; }
     if (contem("voltar pra tela anterior", "voltar para a tela anterior", "retornar", "voltar tela", "voltar")) { 
         falarAssistente("Voltando.");
@@ -385,9 +372,6 @@ function processarComandoVoz(comandoRaw) {
     if (contem("tirar efeitos visuais", "desativar efeitos visuais", "sem efeitos", "remover efeitos")) { toggleEfeitos("desativar"); falarAssistente("Efeitos visuais desativados."); return; }
     if (contem("colocar efeitos visuais", "ativar efeitos visuais", "ligar efeitos visuais", "com efeitos")) { toggleEfeitos("ativar"); falarAssistente("Efeitos visuais ativados."); return; }
 
-    // ==============================================
-    // 3. CONSULTAS SOBRE O JOGO E LEITOR DE FASES
-    // ==============================================
     if (contem("quais as conquistas", "minhas conquistas", "trofeus")) {
         let concluidas = JSON.parse(localStorage.getItem("conquistasDesbloqueadas")) || [];
         if (concluidas.length === 0) falarAssistente("Você ainda não desbloqueou nenhuma conquista.");
@@ -417,7 +401,6 @@ function processarComandoVoz(comandoRaw) {
         if (contem("item d", "alternativa d")) { let el = document.getElementById("item-d") || document.querySelector(".item-d"); if(el) falarAssistente(el.innerText); else falarAssistente("Não encontrei alternativa D."); return; }
     }
 
-    // Perguntas Locais (Caso não use o "Adômines" no começo)
     if (contem("numero atomico", "massa", "peso", "ligacoes", "valencia")) {
         let elementoEncontrado = elementosTabela.find(el => comando.includes(normalizar(el.nome)));
         if (elementoEncontrado) {
@@ -428,9 +411,6 @@ function processarComandoVoz(comandoRaw) {
         }
     }
 
-    // ==============================================
-    // 4. NAVEGAÇÃO COMPLEXA ENTRE MODOS
-    // ==============================================
     if (contem("iniciar", "comecar", "jogar", "bora", "vamos", "entrar no modo", "acessar", "entrar")) {
         if (contem("estruturando") || contem("desafio")) {
             if(contem("facil")) { falarAssistente("Indo para o nível Fácil."); localStorage.setItem("modoAtual", "desafio"); localStorage.setItem("nivel", "facil"); mudarTela('estruturando.html'); return; }
@@ -574,7 +554,7 @@ function processarChat(e) {
 }
 
 // ==========================================
-// INJEÇÃO GLOBAL (Tabela Periódica, Microfone e QuimiChat)
+// INJEÇÃO GLOBAL DOS MODAIS (Tabela e QuimiChat)
 // ==========================================
 
 const elementosTabela = [
@@ -642,7 +622,7 @@ const elementosTabela = [
 ];
 
 function injetarElementosGlobais() {
-    // 1. Tabela Periódica
+    // 1. Tabela Periódica (Modais Invisíveis no Final do Body)
     if (!document.getElementById('tabela-overlay')) {
         const modalHTML = `
         <div id="tabela-overlay" class="modal-overlay" onclick="fecharModais(event)">
@@ -666,7 +646,7 @@ function injetarElementosGlobais() {
         document.body.insertAdjacentHTML('beforeend', modalHTML);
     }
 
-    // 2. QuimiChat
+    // 2. QuimiChat (Modal Invisível no Final do Body)
     if (!document.getElementById('quimichat-overlay')) {
         const chatHTML = `
         <div id="quimichat-overlay" class="modal-overlay" onclick="fecharModais(event)">
@@ -690,25 +670,6 @@ function injetarElementosGlobais() {
         </div>`;
         document.body.insertAdjacentHTML('beforeend', chatHTML);
         atualizarBateriaUI();
-    }
-    
-    // Injeta Botões na Direita (Garantido pela trava de segurança)
-    const headerDireita = document.querySelector('.topo .direita');
-    if (headerDireita) {
-        if (!document.querySelector('.btn-tabela-global')) {
-            headerDireita.insertAdjacentHTML('afterbegin', `<button class="icon-btn btn-tabela-global" onclick="abrirTabelaPeriodica()" title="Tabela Periódica">📊</button>`);
-        }
-        if (!document.querySelector('.btn-chat-global')) {
-            headerDireita.insertAdjacentHTML('afterbegin', `<button class="icon-btn btn-chat-global" onclick="abrirQuimiChat()" title="QuimiChat">💬</button>`);
-        }
-    }
-
-    // Injeta Botão do Microfone na Esquerda
-    const headerEsquerda = document.querySelector('.topo .esquerda');
-    if (headerEsquerda && !document.getElementById('btnAssistente')) {
-        const micHTML = `<button class="icon-btn" onclick="toggleAssistenteVoz()" id="btnAssistente" title="Assistente de Voz">🎤</button>`;
-        const trofeus = document.getElementById('trofeus-globais');
-        if (trofeus) { trofeus.insertAdjacentHTML('beforebegin', micHTML); } else { headerEsquerda.insertAdjacentHTML('beforeend', micHTML); }
     }
 }
 

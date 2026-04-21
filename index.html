@@ -22,7 +22,7 @@
     <button class="icon-btn" onclick="toggleMute()" id="muteBtn">🔊</button>
     <button class="icon-btn" onclick="abrirConquistas()">🏅</button>
     
-    <!-- BOTÃO DO ASSISTENTE DE VOZ -->
+    <!-- BOTÃO DO ASSISTENTE DE VOZ FIXADO -->
     <button class="icon-btn" onclick="toggleAssistenteVoz()" id="btnAssistente" title="Assistente de Voz">🎤</button>
     
     <div id="trofeus-globais" class="trofeus-container"></div>
@@ -33,8 +33,10 @@
       <div class="menu-item checkbox-area"><label><input type="checkbox" id="checkEfeitos" onchange="toggleEfeitos(this)"> Desativar efeitos visuais</label></div>
     </div>
   </div>
+  
   <div class="direita">
-    <!-- BOTÃO DA TABELA PERIÓDICA -->
+    <!-- BOTÕES DO CHAT E TABELA FIXADOS -->
+    <button class="icon-btn btn-chat-global" onclick="abrirQuimiChat()" title="QuimiChat">💬</button>
     <button class="icon-btn btn-tabela-global" onclick="abrirTabelaPeriodica()" title="Tabela Periódica">📊</button>
     <button class="icon-btn" onclick="toggleModo()" id="temaBtn">🌙</button>
   </div>
@@ -72,26 +74,6 @@
 </div>
 
 <div id="conquistas-overlay" class="modal-overlay" onclick="fecharModais(event)"><div class="modal-box"><div class="modal-header" style="background: #eab308;"><h3>🏅 Conquistas</h3><button onclick="fecharConquistasBtn()">✖</button></div><div class="modal-body conquistas-lista" id="lista-conquistas"></div></div></div>
-
-<!-- MODAL DA TABELA PERIÓDICA -->
-<div id="tabela-overlay" class="modal-overlay" onclick="fecharModais(event)">
-  <div class="modal-box modal-tabela">
-    <div class="modal-header" style="background: var(--btn-bg);">
-      <h3>📊 Tabela Periódica</h3>
-      <button onclick="fecharTabelaPeriodica()">✖</button>
-    </div>
-    <div class="modal-body tabela-body">
-      <div class="info-painel" id="info-painel-elemento">
-        <h3 id="el-nome" style="width: 100%; text-align: center; margin-bottom: 10px; color: #0284c7;">Selecione um elemento</h3>
-        <p><strong>Símbolo:</strong> <span id="el-simbolo">-</span></p>
-        <p><strong>Número Atômico:</strong> <span id="el-numero">-</span></p>
-        <p><strong>Massa Atômica:</strong> <span id="el-massa">-</span> u</p>
-        <p><strong>Ligações:</strong> <span id="el-ligacoes">-</span></p>
-      </div>
-      <div id="grade-tabela" class="grade-tabela"></div>
-    </div>
-  </div>
-</div>
 
 <script src="global.js"></script>
 <script src="script.js"></script>

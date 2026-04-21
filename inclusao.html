@@ -22,6 +22,10 @@
     <button class="icon-btn" onclick="toggleMenu(event)">⚙️</button>
     <button class="icon-btn" onclick="toggleMute()" id="muteBtn">🔊</button>
     <button class="icon-btn" onclick="abrirConquistas()">🏅</button>
+    
+    <!-- BOTÃO DO ASSISTENTE ADICIONADO AQUI -->
+    <button class="icon-btn" onclick="toggleAssistenteVoz()" id="btnAssistente" title="Assistente de Voz">🎤</button>
+    
     <div id="trofeus-globais" class="trofeus-container"></div>
 
     <div id="menu" class="menu">
@@ -30,7 +34,13 @@
       <div class="menu-item checkbox-area"><label><input type="checkbox" id="checkEfeitos" onchange="toggleEfeitos(this)"> Desativar efeitos visuais</label></div>
     </div>
   </div>
-  <div class="direita"><button class="icon-btn" onclick="toggleModo()" id="temaBtn">🌙</button></div>
+  
+  <div class="direita">
+    <!-- BOTÕES DO CHAT E TABELA FIXADOS -->
+    <button class="icon-btn btn-chat-global" onclick="abrirQuimiChat()" title="QuimiChat">💬</button>
+    <button class="icon-btn btn-tabela-global" onclick="abrirTabelaPeriodica()" title="Tabela Periódica">📊</button>
+    <button class="icon-btn" onclick="toggleModo()" id="temaBtn">🌙</button>
+  </div>
 </header>
 
 <main class="game-container">
