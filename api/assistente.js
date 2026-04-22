@@ -4,8 +4,6 @@ module.exports = async function (req, res) {
     }
 
     const { fraseJogador } = req.body;
-    
-    // Agora usamos a chave específica que você criou pra assistente!
     const API_KEY = process.env.CHAVE_DA_ASSISTENTE;
 
     if (!API_KEY) {
@@ -13,7 +11,7 @@ module.exports = async function (req, res) {
     }
 
     // ==========================================
-    // O "CARDÁPIO" (CÉREBRO DA IA)
+    // O "CARDÁPIO" (CÉREBRO DA IA) ATUALIZADO
     // ==========================================
     const instrucaoSistema = `
 Você é o motor de reconhecimento de intenção de um jogo educativo de química.
@@ -37,10 +35,10 @@ LISTA DE AÇÕES PERMITIDAS:
 - "DESCONHECIDO"
 
 REGRAS ESPECIAIS (O campo "detalhe"):
-1. Se for JOGAR_ESTRUTURANDO, o "detalhe" deve ser: "livre", "facil", "medio", "dificil", "impossivel". Se o jogador não falar qual quer, o detalhe deve ser "perguntar".
+1. Se for JOGAR_ESTRUTURANDO, o "detalhe" deve ser: "livre", "facil", "medio", "dificil", "impossivel". Se não falar qual quer, o detalhe deve ser "perguntar".
 2. Se for JOGAR_INCLUSIVO, o "detalhe" deve ser: "reconhecer", "relacionar", "interpretar". Se não falar, o detalhe deve ser "perguntar".
-3. Se for STATUS_CONQUISTAS ou STATUS_CATALOGO, o "detalhe" deve ser "ganhas", "faltam" ou "todas".
-4. Se for COMANDO_ADM, o "detalhe" deve ser o comando exato falado (ex: "\\platinar").
+3. Se for STATUS_CONQUISTAS ou STATUS_CATALOGO, o detalhe deve ser "ganhas", "faltam" ou "todas".
+4. MUITO IMPORTANTE: Se a frase for de incentivo genérico para jogar (ex: "bora", "let's go", "partiu", "quero jogar", "iniciar", "entrar"), classifique como "IR_MODOS".
 
 EXEMPLO DE RESPOSTA OBRIGATÓRIA:
 {"acao": "JOGAR_ESTRUTURANDO", "detalhe": "facil"}
@@ -53,8 +51,7 @@ EXEMPLO DE RESPOSTA OBRIGATÓRIA:
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 system_instruction: { parts: [{ text: instrucaoSistema }] },
-                contents:[{ parts: [{ text: `O JOGADOR FALOU: "${fraseJogador}"` }] }],
-                // Força o Google a responder sempre em JSON, sem gracinhas.
+                contents:[{ parts:[{ text: `O JOGADOR FALOU: "${fraseJogador}"` }] }],
                 generationConfig: { responseMimeType: "application/json" } 
             })
         });
@@ -65,12 +62,9 @@ EXEMPLO DE RESPOSTA OBRIGATÓRIA:
         }
 
         const dados = await respostaGoogle.json();
-        
-        // Extrai o JSON gerado pela IA
         const textoResposta = dados.candidates[0].content.parts[0].text;
         const intencaoJSON = JSON.parse(textoResposta);
         
-        // Devolve o JSON bonitinho pro front-end do jogo
         return res.status(200).json(intencaoJSON);
 
     } catch (error) {
