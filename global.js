@@ -274,25 +274,19 @@ async function processarComandoVoz(comandoOriginal) {
     let comando = normalizar(comandoOriginal.replace(/[.,!?]/g, "").trim());
     const contem = (...palavras) => palavras.some(p => comando.includes(normalizar(p)));
 
-    // 1. CHECAGEM LOCAL: O JOGADOR QUER FALAR COM O CHAT?
+    // 1. CHECAGEM DO CHAT QUIMICHAT (Se chamar pela Adômines)
     let ativadorRegex = /^(adomines|a dominis|a domines|adominis|as dominis|aldomines|o dominis|ad homens|aos dominis|adomini|adomin|domines|dominis)\b/i;
     if (ativadorRegex.test(comando)) {
         let pergunta = comandoOriginal.replace(/^(Ad[ôo]mines|A dominis|A domines|Adominis|As dominis|Aldomines|O dominis|Ad homens|Aos dominis|Adomini|Adomin|Domines|Dominis)\s*/i, "").trim(); 
         if (pergunta.length > 2) {
-            abrirQuimiChat();
-            enviarPerguntaQuimiChat(pergunta, true); 
+            abrirQuimiChat(); enviarPerguntaQuimiChat(pergunta, true); 
         } else {
             falarAssistente("Estou ouvindo. Pode fazer sua pergunta de química.");
         }
         return;
     }
 
-    // 2. CHECAGEM LOCAL: CANCELAR COMANDOS
-    if (contem("cancelar", "esquece", "deixa pra la")) {
-        falarAssistente("Tudo bem, cancelando."); return;
-    }
-
-    // 3. CHECAGEM LOCAL: INFORMAÇÃO DA TABELA (Não queremos gastar a IA com isso)
+    // 2. CHECAGEM RÁPIDA: INFORMAÇÃO DA TABELA
     if (contem("numero atomico", "massa", "peso", "ligacoes", "valencia")) {
         let elementoEncontrado = elementosTabela.find(el => comando.includes(normalizar(el.nome)));
         if (elementoEncontrado) {
@@ -303,7 +297,58 @@ async function processarComandoVoz(comandoOriginal) {
         }
     }
 
-    // 4. SE PASSOU DE TUDO ISSO, MANDA PRO CÉREBRO DA ASSISTENTE (NOVA API)
+    // 3. PENEIRA LOCAL DE COMANDOS (ECONOMIZA A API DO GOOGLE)
+    if (contem("cancelar", "esquece", "deixa pra la")) { falarAssistente("Tudo bem, cancelando."); return; }
+    
+    if (contem("abaixar", "diminuir", "reduzir") && contem("musica", "som", "volume")) { return executarIntencaoDaAssistente({acao: "DIMINUIR_MUSICA"}); }
+    if (contem("abaixar", "diminuir", "reduzir") && contem("efeito")) { return executarIntencaoDaAssistente({acao: "DIMINUIR_EFEITOS"}); }
+    
+    if (contem("desligar", "tirar", "desativar") && contem("efeito", "visuais", "visual")) { return executarIntencaoDaAssistente({acao: "DESLIGAR_VISUAIS"}); }
+    if (contem("ligar", "colocar", "ativar") && contem("efeito", "visuais", "visual")) { return executarIntencaoDaAssistente({acao: "LIGAR_VISUAIS"}); }
+    
+    if (contem("modo claro", "tema claro", "dia")) { return executarIntencaoDaAssistente({acao: "TEMA_CLARO"}); }
+    if (contem("modo escuro", "tema escuro", "noturno")) { return executarIntencaoDaAssistente({acao: "TEMA_ESCURO"}); }
+    
+    if (contem("mutar", "mudo", "tirar som", "silencio")) { return executarIntencaoDaAssistente({acao: "MUTAR_SOM"}); }
+    if (contem("desmutar", "com som", "ligar som")) { return executarIntencaoDaAssistente({acao: "DESMUTAR_SOM"}); }
+    
+    if (contem("abrir", "mostrar") && contem("configuracoes", "configuracao", "ajustes")) { return executarIntencaoDaAssistente({acao: "ABRIR_CONFIG"}); }
+    if (contem("abrir", "mostrar") && contem("tabela periodica", "tabela")) { return executarIntencaoDaAssistente({acao: "ABRIR_TABELA"}); }
+    if (contem("abrir", "mostrar") && contem("conquistas", "trofeus")) { return executarIntencaoDaAssistente({acao: "ABRIR_CONQUISTAS"}); }
+    if (contem("abrir", "chamar") && contem("quimichat", "chat")) { return executarIntencaoDaAssistente({acao: "ABRIR_CHAT"}); }
+    
+    if (contem("voltar", "retornar", "tela anterior")) { return executarIntencaoDaAssistente({acao: "VOLTAR"}); }
+    if (contem("desligar", "parar") && contem("assistente")) { return executarIntencaoDaAssistente({acao: "DESLIGAR_ASSISTENTE"}); }
+    
+    if (contem("ler", "leia") && contem("tela", "tudo")) { return executarIntencaoDaAssistente({acao: "LER_TELA"}); }
+    if (contem("ler", "leia") && contem("enunciado", "pergunta", "questao")) { return executarIntencaoDaAssistente({acao: "LER_ENUNCIADO"}); }
+    if (contem("ler", "leia") && contem("alternativa", "item", "opcoes")) { return executarIntencaoDaAssistente({acao: "LER_ALTERNATIVAS"}); }
+    
+    if (contem("estruturando")) {
+        let det = "";
+        if (contem("livre")) det = "livre";
+        else if (contem("facil")) det = "facil";
+        else if (contem("medio", "media")) det = "medio";
+        else if (contem("dificil")) det = "dificil";
+        else if (contem("impossivel")) det = "impossivel";
+        else det = "perguntar";
+        return executarIntencaoDaAssistente({acao: "JOGAR_ESTRUTURANDO", detalhe: det});
+    }
+
+    if (contem("inclusivo", "inclusao")) {
+        let det = "";
+        if (contem("reconhecer")) det = "reconhecer";
+        else if (contem("relacionar")) det = "relacionar";
+        else if (contem("interpretar")) det = "interpretar";
+        else det = "perguntar";
+        return executarIntencaoDaAssistente({acao: "JOGAR_INCLUSIVO", detalhe: det});
+    }
+
+    if (contem("iniciar", "entrar", "jogar", "ir para") && contem("modos", "jogo")) {
+        return executarIntencaoDaAssistente({acao: "IR_MODOS"});
+    }
+
+    // 4. SE A PENEIRA LOCAL NÃO IDENTIFICOU, MANDA PRO CÉREBRO DA ASSISTENTE (API VERCEL)
     try {
         const respostaApi = await fetch(`/api/assistente`, {
             method: "POST",
@@ -318,19 +363,24 @@ async function processarComandoVoz(comandoOriginal) {
 
     } catch (erro) {
         console.error("Erro na API Assistente:", erro);
-        // Fallback local caso dê algum problema na internet
+        // Fallback local extra
         if (contem("aumentar", "subir", "mais") && contem("volume", "musica", "som")) {
             volumeMusica((musica?musica.volume:1) + 0.2); falarAssistente("Volume aumentado.");
         } else {
-            falarAssistente("Desculpe, meu motor de reconhecimento falhou. Tente novamente.");
+            falarAssistente("Não entendi muito bem. Pode falar de outra forma?");
         }
     }
 }
 
-// === EXECUTOR DE AÇÕES COM BASE NO JSON DA IA ===
+// === EXECUTOR DE AÇÕES (Usado tanto pela peneira local quanto pela API) ===
 function executarIntencaoDaAssistente(intencao) {
-    const acao = intencao.acao;
-    const detalhe = (intencao.detalhe || "").toLowerCase();
+    let acao = intencao.acao || intencao.ação || intencao.Acao || intencao.Ação || "DESCONHECIDO";
+    acao = acao.toUpperCase(); 
+    
+    let detalhe = intencao.detalhe || intencao.Detalhe || "";
+    detalhe = detalhe.toLowerCase(); 
+
+    console.log("🤖 INTENÇÃO IDENTIFICADA -> AÇÃO:", acao, "| DETALHE:", detalhe);
 
     switch (acao) {
         case "DIMINUIR_MUSICA":
@@ -359,7 +409,7 @@ function executarIntencaoDaAssistente(intencao) {
         case "IR_TUTORIAL":
             falarAssistente("Indo para o tutorial."); mudarTela('tutorial.html'); break;
         case "VOLTAR":
-            falarAssistente("Voltando para a tela anterior.");
+            falarAssistente("Voltando.");
             if (window.history.length > 1 && document.referrer.includes(window.location.host)) { window.history.back(); } 
             else { mudarTela('index.html'); }
             break;
@@ -615,7 +665,7 @@ const elementosTabela =[
     { n: 35, s: 'Br', nome: 'Bromo', l: '1', m: '79.904', c: 17, r: 4 }, { n: 36, s: 'Kr', nome: 'Criptônio', l: '0', m: '83.798', c: 18, r: 4 },
     { n: 37, s: 'Rb', nome: 'Rubídio', l: '1', m: '85.468', c: 1, r: 5 }, { n: 38, s: 'Sr', nome: 'Estrôncio', l: '2', m: '87.62', c: 2, r: 5 },
     { n: 39, s: 'Y', nome: 'Ítrio', l: 'Variável', m: '88.906', c: 3, r: 5 }, { n: 40, s: 'Zr', nome: 'Zircônio', l: 'Variável', m: '91.224', c: 4, r: 5 },
-    { n: 41, s: 'Nb', nome: 'Nióbio', l: 'Variável', m: '92.906', c: 5, r: 5 }, { n: 42, s: 'Mo', nome: 'Molibdênio', l: 'Variável', m: '95.95', c: 6, r: 5 },
+    { n: 41, s: 'Nb', nome: 'Nióbio', l: 'Variável', m: '92.906', c: 5, r: 5 }, { n: 42, s: 'Mo', Molibdênio: 'Variável', m: '95.95', c: 6, r: 5 },
     { n: 43, s: 'Tc', nome: 'Tecnécio', l: 'Variável', m: '[98]', c: 7, r: 5 }, { n: 44, s: 'Ru', nome: 'Rutênio', l: 'Variável', m: '101.07', c: 8, r: 5 },
     { n: 45, s: 'Rh', nome: 'Ródio', l: 'Variável', m: '102.91', c: 9, r: 5 }, { n: 46, s: 'Pd', nome: 'Paládio', l: 'Variável', m: '106.42', c: 10, r: 5 },
     { n: 47, s: 'Ag', nome: 'Prata', l: '1', m: '107.87', c: 11, r: 5 }, { n: 48, s: 'Cd', nome: 'Cádmio', l: '2', m: '112.41', c: 12, r: 5 },
