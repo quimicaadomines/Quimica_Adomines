@@ -272,9 +272,13 @@ function lerTelaInteira() {
 // === NOVO MOTOR HÍBRIDO (LOCAL + IA) ===
 async function processarComandoVoz(comandoOriginal) {
     let comando = normalizar(comandoOriginal.replace(/[.,!?]/g, "").trim());
+    
+    // 1. BLOQUEIO DE RUÍDOS (Se for só um barulho ou suspiro, ignora em silêncio)
+    if (comando.length < 2) return; 
+
     const contem = (...palavras) => palavras.some(p => comando.includes(normalizar(p)));
 
-    // 1. CHECAGEM DO CHAT QUIMICHAT (Se chamar pela Adômines)
+    // 2. CHECAGEM DO CHAT QUIMICHAT (Se chamar a Adômines)
     let ativadorRegex = /^(adomines|a dominis|a domines|adominis|as dominis|aldomines|o dominis|ad homens|aos dominis|adomini|adomin|domines|dominis)\b/i;
     if (ativadorRegex.test(comando)) {
         let pergunta = comandoOriginal.replace(/^(Ad[ôo]mines|A dominis|A domines|Adominis|As dominis|Aldomines|O dominis|Ad homens|Aos dominis|Adomini|Adomin|Domines|Dominis)\s*/i, "").trim(); 
@@ -286,43 +290,39 @@ async function processarComandoVoz(comandoOriginal) {
         return;
     }
 
-    // 2. CHECAGEM RÁPIDA: INFORMAÇÃO DA TABELA
+    // 3. PENEIRA LOCAL (MAIS RÁPIDA E NÃO GASTA INTERNET)
+    if (contem("cancelar", "esquece", "deixa pra la")) { falarAssistente("Tudo bem, cancelando."); return; }
+    
     if (contem("numero atomico", "massa", "peso", "ligacoes", "valencia")) {
         let elementoEncontrado = elementosTabela.find(el => comando.includes(normalizar(el.nome)));
         if (elementoEncontrado) {
-            if (contem("numero atomico", "atomico", "protons")) { falarAssistente(`O número atômico do ${elementoEncontrado.nome} é ${elementoEncontrado.n}.`); } 
-            else if (contem("massa", "peso")) { falarAssistente(`A massa atômica do ${elementoEncontrado.nome} é ${elementoEncontrado.m}.`); } 
-            else if (contem("ligacoes", "ligacao", "valencia", "familia")) { falarAssistente(`Seguindo a regra geral, o ${elementoEncontrado.nome} faz ${elementoEncontrado.l} ligações.`); }
-            return;
+            if (contem("numero atomico", "atomico", "protons")) { return falarAssistente(`O número atômico do ${elementoEncontrado.nome} é ${elementoEncontrado.n}.`); } 
+            else if (contem("massa", "peso")) { return falarAssistente(`A massa atômica do ${elementoEncontrado.nome} é ${elementoEncontrado.m}.`); } 
+            else { return falarAssistente(`Seguindo a regra geral, o ${elementoEncontrado.nome} faz ${elementoEncontrado.l} ligações.`); }
         }
     }
 
-    // 3. PENEIRA LOCAL DE COMANDOS (ECONOMIZA A API DO GOOGLE)
-    if (contem("cancelar", "esquece", "deixa pra la")) { falarAssistente("Tudo bem, cancelando."); return; }
+    // Comandos diretos e simples
+    if (contem("abaixar", "diminuir", "reduzir") && contem("musica", "som", "volume")) return executarIntencaoDaAssistente({acao: "DIMINUIR_MUSICA"});
+    if (contem("abaixar", "diminuir", "reduzir") && contem("efeito")) return executarIntencaoDaAssistente({acao: "DIMINUIR_EFEITOS"});
+    if (contem("desligar", "tirar", "desativar") && contem("efeito", "visuais", "visual")) return executarIntencaoDaAssistente({acao: "DESLIGAR_VISUAIS"});
+    if (contem("ligar", "colocar", "ativar") && contem("efeito", "visuais", "visual")) return executarIntencaoDaAssistente({acao: "LIGAR_VISUAIS"});
+    if (contem("modo claro", "tema claro", "dia")) return executarIntencaoDaAssistente({acao: "TEMA_CLARO"});
+    if (contem("modo escuro", "tema escuro", "noturno")) return executarIntencaoDaAssistente({acao: "TEMA_ESCURO"});
+    if (contem("mutar", "mudo", "tirar som", "silencio")) return executarIntencaoDaAssistente({acao: "MUTAR_SOM"});
+    if (contem("desmutar", "com som", "ligar som")) return executarIntencaoDaAssistente({acao: "DESMUTAR_SOM"});
     
-    if (contem("abaixar", "diminuir", "reduzir") && contem("musica", "som", "volume")) { return executarIntencaoDaAssistente({acao: "DIMINUIR_MUSICA"}); }
-    if (contem("abaixar", "diminuir", "reduzir") && contem("efeito")) { return executarIntencaoDaAssistente({acao: "DIMINUIR_EFEITOS"}); }
+    if (contem("abrir", "mostrar") && contem("configuracoes", "configuracao", "ajustes")) return executarIntencaoDaAssistente({acao: "ABRIR_CONFIG"});
+    if (contem("abrir", "mostrar") && contem("tabela periodica", "tabela")) return executarIntencaoDaAssistente({acao: "ABRIR_TABELA"});
+    if (contem("abrir", "mostrar") && contem("conquistas", "trofeus")) return executarIntencaoDaAssistente({acao: "ABRIR_CONQUISTAS"});
+    if (contem("abrir", "chamar") && contem("quimichat", "chat")) return executarIntencaoDaAssistente({acao: "ABRIR_CHAT"});
     
-    if (contem("desligar", "tirar", "desativar") && contem("efeito", "visuais", "visual")) { return executarIntencaoDaAssistente({acao: "DESLIGAR_VISUAIS"}); }
-    if (contem("ligar", "colocar", "ativar") && contem("efeito", "visuais", "visual")) { return executarIntencaoDaAssistente({acao: "LIGAR_VISUAIS"}); }
+    if (contem("voltar", "retornar", "tela anterior")) return executarIntencaoDaAssistente({acao: "VOLTAR"});
+    if (contem("desligar", "parar") && contem("assistente")) return executarIntencaoDaAssistente({acao: "DESLIGAR_ASSISTENTE"});
     
-    if (contem("modo claro", "tema claro", "dia")) { return executarIntencaoDaAssistente({acao: "TEMA_CLARO"}); }
-    if (contem("modo escuro", "tema escuro", "noturno")) { return executarIntencaoDaAssistente({acao: "TEMA_ESCURO"}); }
-    
-    if (contem("mutar", "mudo", "tirar som", "silencio")) { return executarIntencaoDaAssistente({acao: "MUTAR_SOM"}); }
-    if (contem("desmutar", "com som", "ligar som")) { return executarIntencaoDaAssistente({acao: "DESMUTAR_SOM"}); }
-    
-    if (contem("abrir", "mostrar") && contem("configuracoes", "configuracao", "ajustes")) { return executarIntencaoDaAssistente({acao: "ABRIR_CONFIG"}); }
-    if (contem("abrir", "mostrar") && contem("tabela periodica", "tabela")) { return executarIntencaoDaAssistente({acao: "ABRIR_TABELA"}); }
-    if (contem("abrir", "mostrar") && contem("conquistas", "trofeus")) { return executarIntencaoDaAssistente({acao: "ABRIR_CONQUISTAS"}); }
-    if (contem("abrir", "chamar") && contem("quimichat", "chat")) { return executarIntencaoDaAssistente({acao: "ABRIR_CHAT"}); }
-    
-    if (contem("voltar", "retornar", "tela anterior")) { return executarIntencaoDaAssistente({acao: "VOLTAR"}); }
-    if (contem("desligar", "parar") && contem("assistente")) { return executarIntencaoDaAssistente({acao: "DESLIGAR_ASSISTENTE"}); }
-    
-    if (contem("ler", "leia") && contem("tela", "tudo")) { return executarIntencaoDaAssistente({acao: "LER_TELA"}); }
-    if (contem("ler", "leia") && contem("enunciado", "pergunta", "questao")) { return executarIntencaoDaAssistente({acao: "LER_ENUNCIADO"}); }
-    if (contem("ler", "leia") && contem("alternativa", "item", "opcoes")) { return executarIntencaoDaAssistente({acao: "LER_ALTERNATIVAS"}); }
+    if (contem("ler", "leia") && contem("tela", "tudo")) return executarIntencaoDaAssistente({acao: "LER_TELA"});
+    if (contem("ler", "leia") && contem("enunciado", "pergunta", "questao")) return executarIntencaoDaAssistente({acao: "LER_ENUNCIADO"});
+    if (contem("ler", "leia") && contem("alternativa", "item", "opcoes")) return executarIntencaoDaAssistente({acao: "LER_ALTERNATIVAS"});
     
     if (contem("estruturando")) {
         let det = "";
@@ -344,7 +344,8 @@ async function processarComandoVoz(comandoOriginal) {
         return executarIntencaoDaAssistente({acao: "JOGAR_INCLUSIVO", detalhe: det});
     }
 
-    if (contem("iniciar", "entrar", "jogar", "ir para") && contem("modos", "jogo")) {
+    // Identificação flexível para iniciar o jogo:
+    if (contem("iniciar", "entrar", "jogar", "bora", "vamos", "comecar", "start", "let's go", "lets go")) {
         return executarIntencaoDaAssistente({acao: "IR_MODOS"});
     }
 
@@ -363,16 +364,11 @@ async function processarComandoVoz(comandoOriginal) {
 
     } catch (erro) {
         console.error("Erro na API Assistente:", erro);
-        // Fallback local extra
-        if (contem("aumentar", "subir", "mais") && contem("volume", "musica", "som")) {
-            volumeMusica((musica?musica.volume:1) + 0.2); falarAssistente("Volume aumentado.");
-        } else {
-            falarAssistente("Não entendi muito bem. Pode falar de outra forma?");
-        }
+        falarAssistente("Não entendi muito bem. Pode falar de outra forma?");
     }
 }
 
-// === EXECUTOR DE AÇÕES (Usado tanto pela peneira local quanto pela API) ===
+// === EXECUTOR DE AÇÕES (Onde a mágica do JSON acontece) ===
 function executarIntencaoDaAssistente(intencao) {
     let acao = intencao.acao || intencao.ação || intencao.Acao || intencao.Ação || "DESCONHECIDO";
     acao = acao.toUpperCase(); 
@@ -665,7 +661,7 @@ const elementosTabela =[
     { n: 35, s: 'Br', nome: 'Bromo', l: '1', m: '79.904', c: 17, r: 4 }, { n: 36, s: 'Kr', nome: 'Criptônio', l: '0', m: '83.798', c: 18, r: 4 },
     { n: 37, s: 'Rb', nome: 'Rubídio', l: '1', m: '85.468', c: 1, r: 5 }, { n: 38, s: 'Sr', nome: 'Estrôncio', l: '2', m: '87.62', c: 2, r: 5 },
     { n: 39, s: 'Y', nome: 'Ítrio', l: 'Variável', m: '88.906', c: 3, r: 5 }, { n: 40, s: 'Zr', nome: 'Zircônio', l: 'Variável', m: '91.224', c: 4, r: 5 },
-    { n: 41, s: 'Nb', nome: 'Nióbio', l: 'Variável', m: '92.906', c: 5, r: 5 }, { n: 42, s: 'Mo', Molibdênio: 'Variável', m: '95.95', c: 6, r: 5 },
+    { n: 41, s: 'Nb', nome: 'Nióbio', l: 'Variável', m: '92.906', c: 5, r: 5 }, { n: 42, s: 'Mo', nome: 'Molibdênio', l: 'Variável', m: '95.95', c: 6, r: 5 },
     { n: 43, s: 'Tc', nome: 'Tecnécio', l: 'Variável', m: '[98]', c: 7, r: 5 }, { n: 44, s: 'Ru', nome: 'Rutênio', l: 'Variável', m: '101.07', c: 8, r: 5 },
     { n: 45, s: 'Rh', nome: 'Ródio', l: 'Variável', m: '102.91', c: 9, r: 5 }, { n: 46, s: 'Pd', nome: 'Paládio', l: 'Variável', m: '106.42', c: 10, r: 5 },
     { n: 47, s: 'Ag', nome: 'Prata', l: '1', m: '107.87', c: 11, r: 5 }, { n: 48, s: 'Cd', nome: 'Cádmio', l: '2', m: '112.41', c: 12, r: 5 },
@@ -847,7 +843,7 @@ async function enviarPerguntaQuimiChat(pergunta, lerVozAlta) {
 
         container.innerHTML += `<div class="msg-ai">${respostaTexto}</div>`;
         
-        // Remove as tags HTML caso a assistente vá falar em voz alta, pra não ler "br" ou "b"
+        // Remove as tags HTML caso a assistente vá falar em voz alta
         let textoParaVoz = respostaTexto.replace(/<br>/g, " ").replace(/<b>/g, "").replace(/<\/b>/g, "");
         if(lerVozAlta) falarAssistente(textoParaVoz);
         
