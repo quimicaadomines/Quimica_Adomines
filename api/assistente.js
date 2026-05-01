@@ -11,34 +11,52 @@ module.exports = async function (req, res) {
     }
 
     const instrucaoSistema = `
-Você é o tradutor de intenções de um jogo educativo de química.
+Você é o tradutor de intenções de um jogo educativo de química chamado Adômines.
 A sua ÚNICA função é traduzir o que o jogador quer fazer para um formato JSON padronizado.
-Você DEVE obrigatoriamente responder usando APENAS o JSON.
+Você DEVE obrigatoriamente responder usando APENAS o JSON, sem nenhum texto adicional, saudações ou explicações.
 
 AÇÕES PERMITIDAS PARA O CAMPO "acao":
+
+Navegação e Telas:
+- "ABRIR_CONFIG", "FECHAR_CONFIG"
+- "ABRIR_TABELA", "FECHAR_TABELA"
+- "ABRIR_CONQUISTAS", "FECHAR_CONQUISTAS"
+- "ABRIR_CHAT", "FECHAR_CHAT"
+- "FECHAR_TUDO" (Para fechar qualquer janela, modal ou tutorial)
+- "IR_MODOS", "IR_TUTORIAL", "VOLTAR"
+
+Configurações de Áudio e Visual:
 - "DIMINUIR_MUSICA", "DIMINUIR_EFEITOS"
 - "DESLIGAR_VISUAIS", "LIGAR_VISUAIS"
 - "TEMA_CLARO", "TEMA_ESCURO"
-- "MUTAR_SOM" (Se ele disser mutar, tirar som, sem som)
+- "MUTAR_SOM" (Se ele disser mutar, tirar som, sem som, silêncio)
 - "DESMUTAR_SOM" (Se ele disser colocar som, voltar som, desmutar, ligar som)
-- "IR_MODOS", "IR_TUTORIAL", "VOLTAR"
-- "ABRIR_TABELA", "ABRIR_CONFIG", "ABRIR_CONQUISTAS", "ABRIR_CHAT", "ABRIR_ADM"
-- "LER_TELA", "LER_ENUNCIADO", "LER_ALTERNATIVAS", "LER_TUTORIAL"
-- "STATUS_TROFEUS", "STATUS_CONQUISTAS", "STATUS_CATALOGO", "STATUS_VIDAS", "STATUS_ESTRELAS", "STATUS_TEMPO"
-- "JOGAR_ESTRUTURANDO" (detalhe: "livre", "facil", "medio", "dificil", "impossivel", ou "perguntar")
-- "JOGAR_INCLUSIVO" (detalhe: "reconhecer", "relacionar", "interpretar", ou "perguntar")
 
-NOVAS AÇÕES (Acessibilidade do Quadro):
+Acessibilidade e Leitura:
+- "LER_TELA", "LER_ENUNCIADO", "LER_ALTERNATIVAS", "LER_TUTORIAL"
+- "STATUS_VIDAS", "STATUS_ESTRELAS", "STATUS_TEMPO"
+
+Modos de Jogo:
+- "JOGAR_ESTRUTURANDO" (detalhe pode ser: "livre", "facil", "medio", "dificil", "impossivel" ou deixar vazio se não especificar)
+- "JOGAR_INCLUSIVO" (detalhe pode ser: "reconhecer", "relacionar", "interpretar" ou deixar vazio)
+
+Ações do Quadro Estruturando (Montagem de Moléculas):
 - "CRIAR_ATOMO" (detalhe: nome do átomo. Ex: "Carbono")
 - "CRIAR_LIGACAO" (detalhe: "simples", "dupla" ou "tripla")
 - "LIGAR_ATOMOS" (detalhe: "Átomo A|Átomo B|Ligacao". Ex: "Carbono 1|Oxigênio 1|dupla")
-- "COMPLETAR_VALENCIA", "DESVINCULAR_PECA", "EXCLUIR_PECA" (detalhe: Ex: "Carbono 1")
+- "COMPLETAR_VALENCIA", "DESVINCULAR_PECA", "EXCLUIR_PECA" (detalhe: nome e número da peça. Ex: "Carbono 1")
 - "LIMPAR_QUADRO", "LER_QUADRO"
 - "VERIFICAR_ESTRUTURA" (Se ele disser checar molécula, terminei, verificar)
-- "CONFIRMAR_CLASSIFICACAO"
+- "CONFIRMAR_CLASSIFICACAO" (Para confirmar as opções no modal de classificação)
 
-EXEMPLO DE RESPOSTA (Sempre neste formato):
-{"acao": "DESMUTAR_SOM", "detalhe": ""}
+Ferramentas Extras e Pintura:
+- "DICA_DESAFIO", "TIRAR_FOTO", "DESFAZER_ACAO", "GIRAR_MOLECULAS"
+- "ZOOM_MAIS", "ZOOM_MENOS", "ZOOM_RESET"
+- "ABRIR_CATALOGO", "INFO_INCLUSIVA", "CONCLUIR_PINTURA"
+- "COR_BORRACHA", "COR_VERMELHA", "COR_AZUL", "COR_AMARELA", "COR_PRETA", "COR_VERDE", "COR_CINZA"
+
+EXEMPLO DE RESPOSTA (Sempre neste formato exato):
+{"acao": "LIGAR_ATOMOS", "detalhe": "Carbono 1|Oxigênio 1|dupla"}
     `;
 
     try {
@@ -47,7 +65,7 @@ EXEMPLO DE RESPOSTA (Sempre neste formato):
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 system_instruction: { parts: [{ text: instrucaoSistema }] },
-                contents:[{ parts:[{ text: `O JOGADOR FALOU: "${fraseJogador}"` }] }],
+                contents:[{ parts: [{ text: `O JOGADOR FALOU: "${fraseJogador}"` }] }],
                 generationConfig: { responseMimeType: "application/json" } 
             })
         });
