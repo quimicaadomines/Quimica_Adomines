@@ -1,7 +1,7 @@
 // ==========================================
-// ASSISTENTE DE VOZ ADÔMINES (SISTEMA DE CONTEXTO E DICIONÁRIO ATUALIZADOS)
+// ASSISTENTE DE VOZ ADÔMINES (V3 - CORREÇÕES DE ESTADO, MENSAGEM E LIGAÇÕES)
 // ==========================================
-let assistenteAtivo = true; 
+let assistenteAtivo = localStorage.getItem("assistenteAtiva") !== "false"; // Memória de estado
 let assistenteReconhecimento = null;
 let assistenteSintese = window.speechSynthesis;
 let vozAssistente = null;
@@ -10,8 +10,39 @@ let contextoAssistente = null;
 let estouFalando = false; 
 let espacoPressionado = false;
 let tempoPressaoEspaco = 0;
-let anuncioBoasVindasFeito = false;
 window.falaAtual = null;
+
+// ==========================================
+// 0. CAIXA DE MENSAGEM EXCLUSIVA DA ASSISTENTE (Não some antes da hora)
+// ==========================================
+window.mostrarMensagemAssistente = function(texto, persistente = false) {
+    let caixa = document.getElementById("msg-assistente-box");
+    if (!caixa) {
+        caixa = document.createElement("div");
+        caixa.id = "msg-assistente-box";
+        caixa.style.cssText = "position:fixed; bottom:30px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.85); color:#fff; padding:12px 24px; border-radius:30px; z-index:999999; font-family:sans-serif; font-size:16px; text-align:center; max-width:85%; pointer-events:none; transition: opacity 0.3s; border: 2px solid #3b82f6;";
+        document.body.appendChild(caixa);
+    }
+    caixa.innerText = texto;
+    caixa.style.opacity = "1";
+    caixa.style.display = "block";
+    
+    if (window.msgAssistenteTimeout) clearTimeout(window.msgAssistenteTimeout);
+    
+    if (!persistente) {
+        window.msgAssistenteTimeout = setTimeout(() => {
+            window.ocultarMensagemAssistente();
+        }, 4000);
+    }
+};
+
+window.ocultarMensagemAssistente = function() {
+    let caixa = document.getElementById("msg-assistente-box");
+    if (caixa) {
+        caixa.style.opacity = "0";
+        setTimeout(() => { if(caixa.style.opacity === "0") caixa.style.display = "none"; }, 300);
+    }
+};
 
 // ==========================================
 // 1. CONFIGURAÇÃO DA VOZ E RECONHECIMENTO
@@ -39,19 +70,23 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     assistenteReconhecimento.onresult = function(event) {
         let comandoOriginal = event.results[event.results.length - 1][0].transcript.trim();
         
-        if(typeof mostrarMensagemGlob === "function" && comandoOriginal.length > 1) {
-            mostrarMensagemGlob('🎤 Eu ouvi: "' + comandoOriginal + '"');
+        if(comandoOriginal.length > 1) {
+            mostrarMensagemAssistente('🎤 Eu ouvi: "' + comandoOriginal + '"', true);
         }
 
-        if(!assistenteAtivo || estouFalando || comandoOriginal.length < 2) return;
+        if(!assistenteAtivo || estouFalando || comandoOriginal.length < 2) {
+            setTimeout(ocultarMensagemAssistente, 2000);
+            return;
+        }
         
         processarComandoVoz(comandoOriginal);
     };
 
     assistenteReconhecimento.onerror = function(event) {
         if(event.error === 'not-allowed') {
-            if(typeof mostrarMensagemGlob === "function") mostrarMensagemGlob("Permissão do microfone negada.");
+            mostrarMensagemAssistente("Permissão do microfone negada.", false);
             assistenteAtivo = false; 
+            localStorage.setItem("assistenteAtiva", "false");
             let btn = document.getElementById("btnAssistente"); if(btn) btn.classList.remove("mic-ouvindo");
         }
     };
@@ -82,14 +117,14 @@ window.falarAssistente = function(texto) {
     
     window.falaAtual.onend = function() { 
         estouFalando = false; 
-        if(typeof ocultarMensagemGlob === "function") ocultarMensagemGlob();
+        window.ocultarMensagemAssistente();
     };
     window.falaAtual.onerror = function() { 
         estouFalando = false; 
-        if(typeof ocultarMensagemGlob === "function") ocultarMensagemGlob();
+        window.ocultarMensagemAssistente();
     };
 
-    if(typeof mostrarMensagemGlob === "function") mostrarMensagemGlob('🤖 Adômines: "' + texto + '"');
+    mostrarMensagemAssistente('🤖 Adômines: "' + texto + '"', true);
     assistenteSintese.speak(window.falaAtual);
 }
 
@@ -97,12 +132,16 @@ window.toggleAssistenteVoz = function(silencioso = false) {
     if(!silencioso && typeof tocarSomClick === "function") tocarSomClick();
     
     if (assistenteAtivo) {
-        assistenteAtivo = false; contextoAssistente = null; 
+        assistenteAtivo = false; 
+        localStorage.setItem("assistenteAtiva", "false");
+        contextoAssistente = null; 
         try { assistenteReconhecimento.stop(); } catch(e){} 
         let btn = document.getElementById("btnAssistente"); if(btn) btn.classList.remove("mic-ouvindo");
         if(!silencioso) falarAssistente("Assistente desativada.");
     } else {
-        assistenteAtivo = true; contextoAssistente = null; 
+        assistenteAtivo = true; 
+        localStorage.setItem("assistenteAtiva", "true");
+        contextoAssistente = null; 
         if(!silencioso) falarAssistente("Assistente ativada. Segure a tecla Espaço para falar.");
     }
 }
@@ -115,7 +154,10 @@ function dispararBoasVindas() {
         sessionStorage.setItem("boasVindasLidas", "true");
         if (assistenteSintese) assistenteSintese.resume();
         if(typeof musica !== 'undefined' && musica && musica.paused && !mutado) musica.play().catch(()=>{});
-        falarAssistente("Olá! O jogo possui uma assistente de voz. Caso queira usar, pressione e segure a tecla espaço e fale. Quando soltar, eu processo o comando. Para ativar a assistente, dê um clique rápido na tecla espaço. Para desativar, faça o mesmo.");
+        
+        if(assistenteAtivo) {
+            falarAssistente("Olá! O jogo possui uma assistente de voz. Para usá-la, pressione e segure a tecla espaço enquanto fala. Para desativar a assistente, dê um clique rápido na tecla espaço.");
+        }
     }
 }
 
@@ -157,6 +199,7 @@ document.addEventListener("keyup", (e) => {
         } else {
             if (assistenteAtivo && assistenteReconhecimento) {
                 try { assistenteReconhecimento.stop(); } catch(err){}
+                setTimeout(ocultarMensagemAssistente, 2000); // Esconde se ele soltou e o áudio falhou
             }
         }
     }
@@ -192,21 +235,6 @@ const observadorAutomatico = new MutationObserver(() => {
 
 document.addEventListener("DOMContentLoaded", () => {
     observadorAutomatico.observe(document.body, { childList: true, subtree: true, characterData: true });
-    
-    setTimeout(() => {
-        if (!assistenteAtivo) return;
-        let modalTut = document.getElementById("tutorial-genshin-overlay");
-        if (modalTut && window.getComputedStyle(modalTut).display !== "none") {
-            modalTut.dataset.lido = "true";
-            let txt = document.getElementById("tutorial-genshin-texto") ? document.getElementById("tutorial-genshin-texto").innerText : "";
-            return falarAssistente("Tutorial na tela. " + txt + " Diga prosseguir ou concluir.");
-        }
-        let enunciado = document.querySelector(".hud-pergunta") || document.getElementById("texto-enunciado");
-        if (enunciado && enunciado.innerText.trim().length > 5) {
-            enunciado.dataset.ultimoLido = enunciado.innerText;
-            falarAssistente("A tarefa é: " + enunciado.innerText.replace("💡", ""));
-        }
-    }, 1200);
 });
 
 // ==========================================
@@ -273,12 +301,21 @@ async function processarComandoVoz(comandoOriginal) {
     let regexPeca = /(carbono|oxigenio|hidrogenio|nitrogenio|enxofre|fosforo|cloro|fluor|bromo|iodo)\s*(\d+)?/gi;
     let matchesPeca =[...limpo.matchAll(regexPeca)]; 
 
+    // NOVIDADE: Colocar ligação direto em um átomo específico!
+    if (tem("liga", "ligar", "coloca", "colocar", "adiciona", "adicionar", "bota", "botar", "insere", "inserir") && tem("ligacao") && matchesPeca.length === 1) {
+        let pA = matchesPeca[0][0];
+        let t = "simples"; if(tem("dupla", "duas")) t="dupla"; if(tem("tripla", "tres", "três")) t="tripla";
+        return executarIntencao({acao: "ADICIONAR_LIGACAO_ATOMO", detalhe: `${pA}|${t}`});
+    }
+
+    // Ligar dois átomos diferentes
     if (tem("liga", "ligar", "conecta", "conectar", "junta", "juntar", "interliga", "interligar", "une", "unir") && matchesPeca.length >= 2) {
         let pA = matchesPeca[0][0]; let pB = matchesPeca[1][0];
         let t = "simples"; if(tem("dupla", "duas")) t="dupla"; if(tem("tripla", "tres", "três")) t="tripla";
         return executarIntencao({acao: "LIGAR_ATOMOS", detalhe: `${pA}|${pB}|${t}`});
     }
     
+    // Jogar ligação solta no quadro
     if (tem("coloca", "colocar", "cria", "criar", "adiciona", "adicionar", "pega", "pegar", "inserir", "bota", "botar") && tem("ligacao")) {
         let t = "simples"; if(tem("dupla", "duas")) t="dupla"; if(tem("tripla", "tres")) t="tripla";
         return executarIntencao({acao: "CRIAR_LIGACAO", detalhe: t});
@@ -348,6 +385,9 @@ async function processarComandoVoz(comandoOriginal) {
     if (tem("conquista", "conquistas", "trofeu", "medalha")) return executarIntencao({acao: "ABRIR_CONQUISTAS"});
     if (tem("quimichat", "chat", "conversa", "painel adm", "administrador")) return executarIntencao({acao: "ABRIR_CHAT"});
     
+    // NOVIDADE: Abre o tutorial como janela na própria tela
+    if (tem("abre", "abrir", "mostra", "mostrar") && tem("tutorial", "ajuda")) return executarIntencao({acao: "ABRIR_TUTORIAL"});
+    
     if (tem("ler", "leia") && tem("tela", "tudo")) return executarIntencao({acao: "LER_TELA"});
     if (tem("ler", "leia") && tem("enunciado", "pergunta", "questao", "tarefa", "fazer")) return executarIntencao({acao: "LER_ENUNCIADO"});
     if (tem("ler", "leia") && tem("alternativa", "alternativas", "item", "opcoes", "resposta")) return executarIntencao({acao: "LER_ALTERNATIVAS"});
@@ -366,7 +406,7 @@ async function processarComandoVoz(comandoOriginal) {
         return executarIntencao({acao: "IR_MODOS"});
     }
 
-    if(typeof mostrarMensagemGlob === "function") mostrarMensagemGlob("🧠 Consultando IA...");
+    mostrarMensagemAssistente("🧠 Consultando IA...", true);
     try {
         const res = await fetch(`/api/assistente`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fraseJogador: comandoOriginal }) });
         if(!res.ok) throw new Error("Erro de internet.");
@@ -399,6 +439,26 @@ function executarIntencao(intencao, comandoFalado = "") {
         case "ABRIR_CONQUISTAS": if(typeof window.abrirConquistas === "function") window.abrirConquistas(); break;
         case "ABRIR_CHAT": if(typeof window.abrirQuimiChat === "function") window.abrirQuimiChat(); else if(typeof window.abrirChat === "function") window.abrirChat(); break;
         
+        // NOVIDADE: Abre o tutorial direto na tela sem mudar de página
+        case "ABRIR_TUTORIAL":
+        case "IR_TUTORIAL":
+            let modalTut = document.getElementById("tutorial-genshin-overlay") || document.getElementById("modal-tutorial");
+            let btnTut = document.querySelector('[id*="btn-tutorial"], [class*="btn-tutorial"], [onclick*="Tutorial"],[id*="ajuda"], [class*="ajuda"], [title*="Ajuda"]');
+            
+            if (modalTut && window.getComputedStyle(modalTut).display === "none") {
+                modalTut.style.display = "flex";
+                falarAssistente("Abrindo o tutorial na tela.");
+            } else if (btnTut) {
+                btnTut.click();
+                falarAssistente("Abrindo o tutorial na tela.");
+            } else if(typeof window.abrirTutorial === "function") {
+                window.abrirTutorial();
+                falarAssistente("Abrindo o tutorial na tela.");
+            } else {
+                falarAssistente("Não consegui encontrar o botão de tutorial nesta tela. Verifique se você está dentro de um modo de jogo.");
+            }
+            break;
+
         case "DIMINUIR_MUSICA": if(typeof window.volumeMusica === "function") window.volumeMusica((musica ? musica.volume : 1) - 0.2); falarAssistente("Volume reduzido."); break;
         case "DIMINUIR_EFEITOS": if(typeof window.volumeEfeitos === "function") window.volumeEfeitos((clickAudio ? clickAudio.volume : 1) - 0.2); falarAssistente("Efeitos reduzidos."); break;
         case "DESLIGAR_VISUAIS": if(typeof window.toggleEfeitos === "function") window.toggleEfeitos("desativar"); falarAssistente("Efeitos desativados."); break;
@@ -410,7 +470,6 @@ function executarIntencao(intencao, comandoFalado = "") {
             if (!window.location.pathname.includes('modos') && !window.location.pathname.includes('estruturando') && !window.location.pathname.includes('inclusao')) { 
                 falarAssistente("Abrindo os modos de jogo."); if(typeof window.mudarTela==="function") window.mudarTela('modos.html'); 
             } else falarAssistente("Você já está na área de modos."); break;
-        case "IR_TUTORIAL": falarAssistente("Indo para o tutorial."); if(typeof window.mudarTela==="function") window.mudarTela('tutorial.html'); break;
         
         case "STATUS_VIDAS": if (typeof vidasRestantes !== 'undefined') falarAssistente(`Você tem ${vidasRestantes} corações.`); break;
         case "STATUS_ESTRELAS": if (typeof estrelasGanhas !== 'undefined') falarAssistente(`Você já conseguiu ${estrelasGanhas} estrelas.`); break;
@@ -458,9 +517,18 @@ function executarIntencao(intencao, comandoFalado = "") {
 
         case "CRIAR_ATOMO": if(typeof window.adicionarAtomoVoz === "function") window.adicionarAtomoVoz(detalhe); break;
         case "CRIAR_LIGACAO": if(typeof window.adicionarLigacaoVoz === "function") window.adicionarLigacaoVoz(detalhe); break;
+        
+        // NOVIDADE: Adiciona a ligação grudada no átomo que você pediu
+        case "ADICIONAR_LIGACAO_ATOMO":
+            let pts = detalhe.split("|");
+            if(pts.length >= 2 && typeof window.adicionarLigacaoEmAtomoVoz === "function") {
+                window.adicionarLigacaoEmAtomoVoz(pts[0], pts[1]);
+            }
+            break;
+
         case "LIGAR_ATOMOS":
             let p = detalhe.split("|");
-            if(p.length >= 2 && typeof window.ligarAtomosVoz === "function") window.ligarAtomosVoz(p[0], p[1], p[2] || "simples"); break;
+            if(p.length >= 3 && typeof window.ligarAtomosVoz === "function") window.ligarAtomosVoz(p[0], p[1], p[2] || "simples"); break;
         case "COMPLETAR_VALENCIA": if(typeof window.acaoPecaVoz === "function") window.acaoPecaVoz(detalhe, "completar"); break;
         case "DESVINCULAR_PECA": if(typeof window.acaoPecaVoz === "function") window.acaoPecaVoz(detalhe, "desvincular"); break;
         case "EXCLUIR_PECA": if(typeof window.acaoPecaVoz === "function") window.acaoPecaVoz(detalhe, "excluir"); break;
@@ -534,6 +602,39 @@ window.adicionarLigacaoVoz = function(tipo) {
     q.appendChild(lig);
     if(typeof window.verificarLigacoesQuimicas === "function") window.verificarLigacoesQuimicas();
     falarAssistente(`Adicionei uma ligação ${tipo} no quadro.`);
+}
+
+// NOVIDADE: Adiciona ligação colada no átomo
+window.adicionarLigacaoEmAtomoVoz = function(nomeAtomo, tipo) {
+    let pA = window.encontrarPecaVoz(nomeAtomo);
+    if(!pA) return falarAssistente(`Não encontrei o ${nomeAtomo} no quadro.`);
+
+    let cl = "lig-simples"; let vl = 1; let ht = '<div class="linha"></div>';
+    if(tipo.includes("dupla")) { cl = "lig-dupla"; vl = 2; ht = '<div class="linha"></div><div class="linha"></div>'; }
+    if(tipo.includes("tripla")) { cl = "lig-tripla"; vl = 3; ht = '<div class="linha"></div><div class="linha"></div><div class="linha"></div>'; }
+
+    let lig = document.createElement("div"); 
+    lig.className = `peca-draggable ligacao ${cl} no-quadro`; 
+    lig.dataset.tipo = "ligacao"; 
+    lig.dataset.val = vl; 
+    lig.dataset.id = Date.now() + "_" + Math.floor(Math.random() * 1000); 
+    lig.style.position = "absolute"; 
+    lig.style.zIndex = 9; 
+    lig.innerHTML = ht;
+
+    let xA = parseFloat(pA.style.left) || 0; 
+    let yA = parseFloat(pA.style.top) || 0;
+
+    // Coloca a ligação na coordenada exata grudada na direita do átomo
+    lig.style.left = (xA + 40) + "px"; 
+    lig.style.top = (yA + 10) + "px";
+
+    document.getElementById("quadro-inner").appendChild(lig);
+
+    if(typeof window.verificarLigacoesQuimicas === "function") window.verificarLigacoesQuimicas();
+    if(typeof window.atualizarContadores === "function") window.atualizarContadores();
+    
+    falarAssistente(`Pronto. Coloquei uma ligação ${tipo} no ${pA.dataset.idVoz}.`);
 }
 
 window.ligarAtomosVoz = function(nA, nB, tipo) {
