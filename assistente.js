@@ -1,5 +1,5 @@
 // ==========================================
-// ASSISTENTE DE VOZ ADÔMINES - DEFINITIVA
+// ASSISTENTE DE VOZ ADÔMINES (Voz Robusta + Acessibilidade e IA Nuvem)
 // ==========================================
 let assistenteAtivo = true; 
 let assistenteReconhecimento = null;
@@ -10,6 +10,7 @@ let contextoAssistente = null;
 let estouFalando = false; 
 let espacoPressionado = false;
 let tempoPressaoEspaco = 0;
+let anuncioBoasVindasFeito = false;
 window.falaAtual = null;
 
 // ==========================================
@@ -83,12 +84,12 @@ window.toggleAssistenteVoz = function(silencioso = false) {
     if(!silencioso && typeof tocarSomClick === "function") tocarSomClick();
     
     if (assistenteAtivo) {
-        assistenteAtivo = false; contextoAssistente = null; estouFalando = false; 
-        try { assistenteReconhecimento.abort(); } catch(e){} 
+        assistenteAtivo = false; contextoAssistente = null; 
+        try { assistenteReconhecimento.stop(); } catch(e){} 
         let btn = document.getElementById("btnAssistente"); if(btn) btn.classList.remove("mic-ouvindo");
         if(!silencioso) falarAssistente("Assistente desativada.");
     } else {
-        assistenteAtivo = true; contextoAssistente = null; estouFalando = false; 
+        assistenteAtivo = true; contextoAssistente = null; 
         if(!silencioso) falarAssistente("Assistente ativada. Segure a tecla Espaço para falar.");
     }
 }
@@ -97,16 +98,13 @@ window.toggleAssistenteVoz = function(silencioso = false) {
 // 3. CONTROLE DA BARRA DE ESPAÇO E BOAS-VINDAS
 // ==========================================
 function dispararBoasVindas() {
-    // Usa o SessionStorage para NUNCA repetir a mensagem ao mudar de fase
     if (!sessionStorage.getItem("boasVindasLidas")) {
         sessionStorage.setItem("boasVindasLidas", "true");
         if (assistenteSintese) assistenteSintese.resume();
         if(typeof musica !== 'undefined' && musica && musica.paused && !mutado) musica.play().catch(()=>{});
-        
         falarAssistente("Olá! O jogo possui uma assistente. Caso você precise ou queira usar, pressione e segure a tecla espaço e fale. Quando você soltar, eu processo o comando. Um clique rápido na tecla espaço desliga a assistente.");
     }
 }
-
 document.addEventListener("click", dispararBoasVindas, { once: true });
 
 document.addEventListener("keydown", (e) => {
@@ -116,12 +114,10 @@ document.addEventListener("keydown", (e) => {
     if (e.code === "Space") { 
         e.preventDefault(); 
         if (e.repeat) return; 
-
         if (assistenteSintese.speaking) assistenteSintese.cancel();
 
         tempoPressaoEspaco = Date.now();
         espacoPressionado = true;
-        
         if(typeof tocarSomClick === "function") tocarSomClick(); 
         
         if (assistenteAtivo && !estouFalando && assistenteReconhecimento) {
@@ -136,7 +132,6 @@ document.addEventListener("keyup", (e) => {
     if (e.code === "Space") { 
         e.preventDefault(); 
         espacoPressionado = false;
-        
         let tempoSegurado = Date.now() - tempoPressaoEspaco;
         
         if (tempoSegurado < 350) {
@@ -177,8 +172,6 @@ const observadorAutomatico = new MutationObserver(() => {
         falarAssistente("A tarefa é: " + enunciado.innerText.replace("💡", ""));
     }
 });
-
-// Leitura automática forçada assim que a tela abre
 document.addEventListener("DOMContentLoaded", () => {
     observadorAutomatico.observe(document.body, { childList: true, subtree: true, characterData: true });
     
@@ -199,13 +192,16 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ==========================================
-// 5. CÉREBRO LOCAL 
+// 5. CÉREBRO LOCAL (TRADUTOR DE PALAVRAS E FUNÇÕES RÁPIDAS)
 // ==========================================
-// AQUI ESTÁ A CORREÇÃO DO BUG DOS ÁTOMOS (toLowerCase adicionado!)
-const normalizarVoz = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+// Função mágica que converte as palavras do Google em números normais ("um" -> "1")
+const normalizarVozNum = (str) => {
+    let t = str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    return t.replace(/\bum\b/g, "1").replace(/\bdois\b/g, "2").replace(/\btres\b/g, "3").replace(/\bquatro\b/g, "4").replace(/\bcinco\b/g, "5").replace(/[.,!?]/g, "");
+};
 
 async function processarComandoVoz(c, comandoOriginal) {
-    let limpo = normalizarVoz(c).replace(/[.,!?]/g, ""); 
+    let limpo = normalizarVozNum(c); 
     const tem = (...palavras) => palavras.some(p => limpo.includes(p));
 
     if (tem("fecha", "sai", "esconde", "oculta")) {
@@ -226,13 +222,24 @@ async function processarComandoVoz(c, comandoOriginal) {
         }
     }
 
-    let regexPeca = /(carbono|oxigenio|oxigênio|hidrogenio|hidrogênio|nitrogenio|nitrogênio|enxofre|fosforo|fósforo|cloro|fluor|flúor|bromo|iodo)\s*(\d+)?/gi;
-    let matchesPeca =[...comandoOriginal.matchAll(regexPeca)];
+    // =====================================
+    // 🧱 LEGO QUÍMICO 
+    // =====================================
+    let regexPeca = /(carbono|oxigenio|hidrogenio|nitrogenio|enxofre|fosforo|cloro|fluor|bromo|iodo)\s*(\d+)?/gi;
+    let matchesPeca =[...limpo.matchAll(regexPeca)];
 
     if (tem("liga", "conecta", "junta") && matchesPeca.length >= 2) {
+        let pA = matchesPeca[0][0]; let pB = matchesPeca[1][0];
         let t = "simples"; if(tem("dupla", "duas")) t="dupla"; if(tem("tripla", "tres", "três")) t="tripla";
-        return executarIntencao({acao: "LIGAR_ATOMOS", detalhe: `${matchesPeca[0][0]}|${matchesPeca[1][0]}|${t}`});
+        return executarIntencao({acao: "LIGAR_ATOMOS", detalhe: `${pA}|${pB}|${t}`});
     }
+    
+    // Adicionar Ligação Solta
+    if (tem("coloca", "cria", "adiciona", "pega", "inser") && tem("ligacao")) {
+        let t = "simples"; if(tem("dupla", "duas")) t="dupla"; if(tem("tripla", "tres")) t="tripla";
+        return executarIntencao({acao: "CRIAR_LIGACAO", detalhe: t});
+    }
+
     if (tem("completa", "hidrogenio", "encher", "preenche") && matchesPeca.length >= 1 && !tem("cria", "coloca")) {
         return executarIntencao({acao: "COMPLETAR_VALENCIA", detalhe: matchesPeca[0][0]});
     }
@@ -243,7 +250,7 @@ async function processarComandoVoz(c, comandoOriginal) {
         return executarIntencao({acao: "EXCLUIR_PECA", detalhe: matchesPeca[0][0]});
     }
     if (tem("coloca", "cria", "adiciona", "bota", "pega", "inser") && matchesPeca.length >= 1) {
-        return executarIntencao({acao: "CRIAR_ATOMO", detalhe: matchesPeca[0][1]}); 
+        return executarIntencao({acao: "CRIAR_ATOMO", detalhe: matchesPeca[0][1] || matchesPeca[0][0]}); 
     }
     
     if (tem("limpa quadro", "limpar quadro", "apaga tudo", "recomecar")) return executarIntencao({acao: "LIMPAR_QUADRO"});
@@ -279,92 +286,26 @@ async function processarComandoVoz(c, comandoOriginal) {
         if (tem("cancela", "esquece", "sair", "para")) { contextoAssistente = null; return falarAssistente("Cancelado."); }
     }
 
-    let ativadorRegex = /^(adomines|a dominis|a domines|adominis|as dominis|aldomines|o dominis|ad homens|aos dominis|adomini|adomin|domines|dominis)\b/i;
-    if (ativadorRegex.test(limpo)) {
-        let pergunta = comandoOriginal.replace(/^(Ad[ôo]mines|A dominis|A domines|Adominis|As dominis|Aldomines|O dominis|Ad homens|Aos dominis|Adomini|Adomin|Domines|Dominis)\s*/i, "").trim(); 
-        if (pergunta.length > 2) {
-            if(typeof window.abrirQuimiChat === "function") window.abrirQuimiChat(); 
-            if(typeof window.enviarPerguntaQuimiChat === "function") window.enviarPerguntaQuimiChat(pergunta, true); 
-        } else falarAssistente("Pode fazer sua pergunta de química.");
-        return;
-    }
-
-    if (tem("cancela", "esquece", "deixa pra la")) return falarAssistente("Cancelado."); 
-    if (tem("verifica", "checa", "terminei a molecula", "terminei a estrutura", "veja se ta certo")) return executarIntencao({acao: "VERIFICAR_ESTRUTURA"});
-    if (tem("quanto tempo", "tempo restante", "tempo falta", "relogio", "cronometro")) return executarIntencao({acao: "STATUS_TEMPO"});
-    if (tem("quantas vidas", "minhas vidas", "coracoes", "vida tenho", "vidas restam")) return executarIntencao({acao: "STATUS_VIDAS"});
-    if (tem("quantas estrelas", "minhas estrelas", "estrelas tenho")) return executarIntencao({acao: "STATUS_ESTRELAS"});
-
-    // CORREÇÃO DOS VERBOS "ATIVAR SOM" E "TIRAR MUDO"
-    if (tem("desmuta", "tira mudo", "tirar mudo", "com som", "liga som", "ligar som", "ativa som", "ativar som", "volta som", "voltar som")) return executarIntencao({acao: "DESMUTAR_SOM"});
-    if (tem("muta", "mudo", "tira som", "tirar som", "silencio", "sem som", "desliga som", "desligar som", "desativar som")) return executarIntencao({acao: "MUTAR_SOM"});
-    
-    if (tem("abaixa", "diminui", "reduz", "menos") && tem("musica", "som", "volume")) return executarIntencao({acao: "DIMINUIR_MUSICA"});
-    if (tem("abaixa", "diminui", "reduz", "menos") && tem("efeito")) return executarIntencao({acao: "DIMINUIR_EFEITOS"});
-    if (tem("desliga", "tira", "desativa") && tem("efeito", "visuais", "visual")) return executarIntencao({acao: "DESLIGAR_VISUAIS"});
-    if (tem("liga", "coloca", "ativa") && tem("efeito", "visuais", "visual")) return executarIntencao({acao: "LIGAR_VISUAIS"});
-    if (tem("modo claro", "tema claro", "dia")) return executarIntencao({acao: "TEMA_CLARO"});
-    if (tem("modo escuro", "tema escuro", "noturno")) return executarIntencao({acao: "TEMA_ESCURO"});
-    if (tem("volta", "retorna", "anterior", "voltar")) return executarIntencao({acao: "VOLTAR"});
-    
-    if (tem("configura", "ajuste", "opcao", "opcoes")) return executarIntencao({acao: "ABRIR_CONFIG"});
-    if (tem("tabela", "elementos")) return executarIntencao({acao: "ABRIR_TABELA"});
-    if (tem("conquista", "trofeu", "medalha")) return executarIntencao({acao: "ABRIR_CONQUISTAS"});
-    if (tem("quimichat", "chat", "conversa", "adm", "administrador")) return executarIntencao({acao: "ABRIR_CHAT"});
-    
-    if (tem("ler", "leia", "lê") && tem("tela", "tudo")) return executarIntencao({acao: "LER_TELA"});
-    if (tem("ler", "leia", "lê") && tem("enunciado", "pergunta", "questao", "tarefa", "fazer")) return executarIntencao({acao: "LER_ENUNCIADO"});
-    if (tem("ler", "leia", "lê") && tem("alternativa", "item", "opcoes", "resposta")) return executarIntencao({acao: "LER_ALTERNATIVAS"});
-    if (tem("ler", "leia", "lê") && tem("tutorial", "instrucoes", "passo")) return executarIntencao({acao: "LER_TUTORIAL"});
-
-    if (tem("estrutur") || tem("desafio") || (tem("modo") && tem("livre"))) {
-        let det = "perguntar";
-        if (tem("livre")) det = "livre";
-        else if (tem("facil", "fácil")) det = "facil";
-        else if (tem("medio", "médio", "media")) det = "medio";
-        else if (tem("dificil", "difícil")) det = "dificil";
-        else if (tem("impossivel", "impossível")) det = "impossivel";
-        
-        if (det === "perguntar") {
-            contextoAssistente = "escolher_submodo_estruturando"; 
-            return falarAssistente("Você quer jogar o modo Livre ou o Desafio? Diga qual o nível do desafio.");
-        }
-        return executarIntencao({acao: "JOGAR_ESTRUTURANDO", detalhe: det});
-    }
-
-    if (tem("inclusiv")) {
-        let det = "perguntar";
-        if (tem("reconhece")) det = "reconhecer";
-        else if (tem("relaciona")) det = "relacionar";
-        else if (tem("interpreta")) det = "interpretar";
-        
-        if (det === "perguntar") {
-            contextoAssistente = "escolher_modo_inclusivo"; 
-            return falarAssistente("Entrar em qual nível inclusivo? Reconhecer, Relacionar ou Interpretar?");
-        }
-        return executarIntencao({acao: "JOGAR_INCLUSIVO", detalhe: det});
-    }
-
-    if (tem("inicia", "entra", "joga", "bora", "vamo", "start", "comeca", "partiu")) {
-        return executarIntencao({acao: "IR_MODOS"});
-    }
-
+    // =====================================
+    // SE CHEGOU AQUI, O CÓDIGO LOCAL NÃO ACHOU RESPOSTA ÓBVIA.
+    // ENVIA PARA A IA DA VERCEL!
+    // =====================================
     try {
-        const respostaApi = await fetch(`/api/assistente`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ fraseJogador: comandoOriginal })
+        const res = await fetch(`/api/assistente`, { 
+            method: "POST", 
+            headers: { "Content-Type": "application/json" }, 
+            body: JSON.stringify({ fraseJogador: comandoOriginal }) 
         });
-        if (!respostaApi.ok) throw new Error("Falha na API.");
-        const intencao = await respostaApi.json();
+        if(!res.ok) throw new Error("Erro de resposta da Vercel.");
+        const intencao = await res.json();
         executarIntencao(intencao, comandoOriginal);
-    } catch (erro) {
-        falarAssistente(`Eu ouvi: "${comandoOriginal}". Mas não encontrei essa opção na tela e a internet falhou.`);
+    } catch (e) { 
+        falarAssistente(`Eu ouvi: "${comandoOriginal}". Mas não consegui compreender a função e a internet falhou na tradução.`); 
     }
 }
 
 // ==========================================
-// O MOTOR DE EXECUÇÃO E FUNÇÕES DO QUADRO LEGO
+// 6. MOTOR DE EXECUÇÃO TOTAL (Local ou IA)
 // ==========================================
 function executarIntencao(intencao, comandoFalado = "") {
     let acao = (intencao.acao || "DESCONHECIDO").toUpperCase();
@@ -403,7 +344,7 @@ function executarIntencao(intencao, comandoFalado = "") {
         case "STATUS_TEMPO": if (typeof tempoRestante !== "undefined" && typeof intervaloCronometro !== "undefined" && intervaloCronometro !== null) { let m = Math.floor(tempoRestante / 60); let s = tempoRestante % 60; falarAssistente(`Faltam ${m} minuto${m!==1?'s':''} e ${s} segundo${s!==1?'s':''}.`); } break;
 
         case "LER_TELA": lerTelaInteira(); break;
-        case "LER_ENUNCIADO": { let seletores =[".hud-pergunta", "#nome-desafio-atual", ".enunciado", "#enunciado", ".sugestao", ".descricao", "#nome-molecula", ".comando-fase", "h2", "h3"]; let achou = false; for (let s of seletores) { let el = document.querySelector(s); if (el && el.innerText.trim() !== "" && !el.innerText.includes("💡")) { falarAssistente("A tarefa é: " + el.innerText); achou = true; break; } } if (!achou) falarAssistente("Não achei um enunciado."); } break;
+        case "LER_ENUNCIADO": { let seletores =[".hud-pergunta", "#nome-desafio-atual", ".enunciado", ".descricao", ".comando-fase"]; let achou = false; for (let s of seletores) { let el = document.querySelector(s); if (el && el.innerText.trim() !== "" && !el.innerText.includes("💡")) { falarAssistente("A tarefa é: " + el.innerText); achou = true; break; } } if (!achou) falarAssistente("Não achei um enunciado."); } break;
         case "LER_TUTORIAL": { let els = document.querySelectorAll(".tutorial-conteudo, #tutorial, .tutorial, .texto-tutorial, #tutorial-genshin-texto"); let txt = ""; els.forEach(e => { if (e.offsetParent !== null) txt += e.innerText + ". "; }); if(txt.length > 0) falarAssistente(txt); else falarAssistente("Não achei tutorial."); } break;
             
         case "JOGAR_ESTRUTURANDO":
@@ -424,7 +365,10 @@ function executarIntencao(intencao, comandoFalado = "") {
         case "CONFIRMAR_CLASSIFICACAO": if(typeof window.verificarClassificacao === "function") { falarAssistente("Confirmando opções..."); window.verificarClassificacao(); } break;
 
         case "CRIAR_ATOMO": if(typeof window.adicionarAtomoVoz === "function") window.adicionarAtomoVoz(detalhe); break;
-        case "LIGAR_ATOMOS": let p = detalhe.split("|"); if(p.length >= 2 && typeof window.ligarAtomosVoz === "function") window.ligarAtomosVoz(p[0], p[1], p[2] || "simples"); break;
+        case "CRIAR_LIGACAO": if(typeof window.adicionarLigacaoVoz === "function") window.adicionarLigacaoVoz(detalhe); break;
+        case "LIGAR_ATOMOS":
+            let p = detalhe.split("|");
+            if(p.length >= 2 && typeof window.ligarAtomosVoz === "function") window.ligarAtomosVoz(p[0], p[1], p[2] || "simples"); break;
         case "COMPLETAR_VALENCIA": if(typeof window.acaoPecaVoz === "function") window.acaoPecaVoz(detalhe, "completar"); break;
         case "DESVINCULAR_PECA": if(typeof window.acaoPecaVoz === "function") window.acaoPecaVoz(detalhe, "desvincular"); break;
         case "EXCLUIR_PECA": if(typeof window.acaoPecaVoz === "function") window.acaoPecaVoz(detalhe, "excluir"); break;
@@ -436,6 +380,9 @@ function executarIntencao(intencao, comandoFalado = "") {
     }
 }
 
+// ==========================================
+// 7. FUNÇÕES DE LEGO DO QUADRO
+// ==========================================
 window.obterNomeElemento = function(sigla) {
     let t = normalizarVoz(sigla).replace(/atomo de |átomo de |um |uma /g, "").trim();
     if(typeof elementosTabela !== "undefined") { let e = elementosTabela.find(x => normalizarVoz(x.s) === t || normalizarVoz(x.nome) === t); if(e) return { sigla: e.s, nome: e.nome }; }
@@ -480,17 +427,38 @@ window.adicionarAtomoVoz = function(nome) {
     falarAssistente(`Adicionei o ${novo.dataset.idVoz} no quadro.`);
 }
 
+window.adicionarLigacaoVoz = function(tipo) {
+    let q = document.getElementById("quadro-inner");
+    if(!q) return falarAssistente("Você precisa estar no modo Estruturando.");
+    
+    let cl = "lig-simples"; let vl = 1; let ht = '<div class="linha"></div>';
+    if(tipo.includes("dupla")) { cl = "lig-dupla"; vl = 2; ht = '<div class="linha"></div><div class="linha"></div>'; }
+    if(tipo.includes("tripla")) { cl = "lig-tripla"; vl = 3; ht = '<div class="linha"></div><div class="linha"></div><div class="linha"></div>'; }
+    
+    let lig = document.createElement("div"); lig.className = `peca-draggable ligacao ${cl} no-quadro`; lig.dataset.tipo = "ligacao"; lig.dataset.val = vl; lig.dataset.id = Date.now(); lig.style.position = "absolute"; lig.style.zIndex = 9; lig.innerHTML = ht;
+    
+    let r = q.getBoundingClientRect(); let off = Math.floor(Math.random() * 40) - 20;
+    lig.style.left = (r.width/2 - 20 + off) + "px"; lig.style.top = (r.height/2 + off) + "px";
+    
+    q.appendChild(lig);
+    if(typeof window.verificarLigacoesQuimicas === "function") window.verificarLigacoesQuimicas();
+    falarAssistente(`Adicionei uma ligação ${tipo} no quadro.`);
+}
+
 window.ligarAtomosVoz = function(nA, nB, tipo) {
     let pA = window.encontrarPecaVoz(nA); let pB = window.encontrarPecaVoz(nB);
     if(!pA || !pB) return falarAssistente("Não encontrei um desses átomos. Diga o nome e o número, como Carbono 1.");
     if(pA === pB) return falarAssistente("Você não pode ligar um átomo nele mesmo.");
+    
     let cl = "lig-simples"; let vl = 1; let ht = '<div class="linha"></div>';
     if(tipo.includes("dupla")) { cl = "lig-dupla"; vl = 2; ht = '<div class="linha"></div><div class="linha"></div>'; }
     if(tipo.includes("tripla")) { cl = "lig-tripla"; vl = 3; ht = '<div class="linha"></div><div class="linha"></div><div class="linha"></div>'; }
     let lig = document.createElement("div"); lig.className = `peca-draggable ligacao ${cl} no-quadro`; lig.dataset.tipo = "ligacao"; lig.dataset.val = vl; lig.dataset.id = Date.now(); lig.style.position = "absolute"; lig.style.zIndex = 9; lig.innerHTML = ht;
+    
     let xA = parseFloat(pA.style.left) || 0; let yA = parseFloat(pA.style.top) || 0;
     lig.style.left = (xA + 40) + "px"; lig.style.top = (yA + 10) + "px";
     pB.style.left = (xA + 80) + "px"; pB.style.top = yA + "px";
+    
     document.getElementById("quadro-inner").appendChild(lig);
     if(typeof window.verificarLigacoesQuimicas === "function") window.verificarLigacoesQuimicas();
     if(typeof window.atualizarContadores === "function") window.atualizarContadores();
