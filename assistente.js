@@ -1,5 +1,5 @@
 // ==========================================
-// ASSISTENTE DE VOZ ADÔMINES (DICIONÁRIO + PUSH-TO-TALK RESTAURADOS)
+// ASSISTENTE DE VOZ ADÔMINES (SISTEMA DE CONTEXTO E DICIONÁRIO ATUALIZADOS)
 // ==========================================
 let assistenteAtivo = true; 
 let assistenteReconhecimento = null;
@@ -39,7 +39,6 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     assistenteReconhecimento.onresult = function(event) {
         let comandoOriginal = event.results[event.results.length - 1][0].transcript.trim();
         
-        // 1. FEEDBACK VISUAL INCONDICIONAL NA TELA
         if(typeof mostrarMensagemGlob === "function" && comandoOriginal.length > 1) {
             mostrarMensagemGlob('🎤 Eu ouvi: "' + comandoOriginal + '"');
         }
@@ -81,8 +80,14 @@ window.falarAssistente = function(texto) {
     window.falaAtual.rate = 1.0; 
     window.falaAtual.pitch = 1.1; 
     
-    window.falaAtual.onend = function() { estouFalando = false; };
-    window.falaAtual.onerror = function() { estouFalando = false; };
+    window.falaAtual.onend = function() { 
+        estouFalando = false; 
+        if(typeof ocultarMensagemGlob === "function") ocultarMensagemGlob();
+    };
+    window.falaAtual.onerror = function() { 
+        estouFalando = false; 
+        if(typeof ocultarMensagemGlob === "function") ocultarMensagemGlob();
+    };
 
     if(typeof mostrarMensagemGlob === "function") mostrarMensagemGlob('🤖 Adômines: "' + texto + '"');
     assistenteSintese.speak(window.falaAtual);
@@ -110,7 +115,7 @@ function dispararBoasVindas() {
         sessionStorage.setItem("boasVindasLidas", "true");
         if (assistenteSintese) assistenteSintese.resume();
         if(typeof musica !== 'undefined' && musica && musica.paused && !mutado) musica.play().catch(()=>{});
-        falarAssistente("Olá! O jogo possui uma assistente. Caso você precise ou queira usar, pressione e segure a tecla espaço e fale. Quando você soltar, eu processo o comando. Um clique rápido na tecla espaço desliga a assistente.");
+        falarAssistente("Olá! O jogo possui uma assistente de voz. Caso queira usar, pressione e segure a tecla espaço e fale. Quando soltar, eu processo o comando. Para ativar a assistente, dê um clique rápido na tecla espaço. Para desativar, faça o mesmo.");
     }
 }
 
@@ -158,7 +163,7 @@ document.addEventListener("keyup", (e) => {
 });
 
 // ==========================================
-// 4. OLHO BIÔNICO (Lê os enunciados automaticamente)
+// 4. OLHO BIÔNICO
 // ==========================================
 const observadorAutomatico = new MutationObserver(() => {
     if (!assistenteAtivo || estouFalando) return;
@@ -205,78 +210,99 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ==========================================
-// 5. CÉREBRO LOCAL (TRADUTOR DE PALAVRAS E NÚMEROS RESTAURADO)
+// 5. CÉREBRO LOCAL 
 // ==========================================
-
-// O TRADUTOR QUE EU TINHA APAGADO SEM QUERER: Converte "dois" em "2" pra ligação funcionar!
 const normalizarVozNum = (str) => {
     let t = str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
     return t.replace(/\bum\b/g, "1").replace(/\bdois\b/g, "2").replace(/\btres\b/g, "3").replace(/\bquatro\b/g, "4").replace(/\bcinco\b/g, "5").replace(/[.,!?]/g, "");
 };
 
 async function processarComandoVoz(comandoOriginal) {
-    // Agora o texto limpo usa a função que traduz números e deixa minúsculo
     let limpo = normalizarVozNum(comandoOriginal); 
-    const tem = (...palavras) => palavras.some(p => limpo.includes(p));
+    const tem = (...palavras) => palavras.some(p => new RegExp('\\b' + p + '\\b', 'i').test(limpo));
 
-    // AÇÕES DE FECHAR
-    if (tem("fecha", "sai", "esconde", "oculta")) {
-        if (tem("config", "ajuste")) return executarIntencao({acao: "FECHAR_CONFIG"});
-        if (tem("tabela", "elemento")) return executarIntencao({acao: "FECHAR_TABELA"});
-        if (tem("conquista", "trofeu", "medalha")) return executarIntencao({acao: "FECHAR_CONQUISTAS"});
-        if (tem("chat", "conversa", "adm")) return executarIntencao({acao: "FECHAR_CHAT"});
+    if (contextoAssistente) {
+        if (tem("cancela", "cancelar", "esquece", "esquecer", "sair", "para", "parar")) {
+            contextoAssistente = null; 
+            return falarAssistente("Operação cancelada.");
+        }
+        
+        if (contextoAssistente === "escolher_modo_estruturando_base") {
+            if (tem("livre")) { contextoAssistente = null; return executarIntencao({acao: "JOGAR_ESTRUTURANDO", detalhe: "livre"}); }
+            if (tem("desafio")) { 
+                contextoAssistente = "escolher_submodo_estruturando"; 
+                return falarAssistente("O modo desafio contém os seguintes níveis: fácil, médio, difícil e impossível. Qual você quer jogar?"); 
+            }
+            return falarAssistente("Por favor, responda se você quer jogar o modo livre ou o modo desafio.");
+        }
+        
+        if (contextoAssistente === "escolher_submodo_estruturando") {
+            if (tem("facil")) { contextoAssistente = null; return executarIntencao({acao: "JOGAR_ESTRUTURANDO", detalhe: "facil"}); }
+            if (tem("medio", "media")) { contextoAssistente = null; return executarIntencao({acao: "JOGAR_ESTRUTURANDO", detalhe: "medio"}); }
+            if (tem("dificil")) { contextoAssistente = null; return executarIntencao({acao: "JOGAR_ESTRUTURANDO", detalhe: "dificil"}); }
+            if (tem("impossivel")) { contextoAssistente = null; return executarIntencao({acao: "JOGAR_ESTRUTURANDO", detalhe: "impossivel"}); }
+            return falarAssistente("Por favor, escolha um nível válido: fácil, médio, difícil ou impossível.");
+        }
+        
+        if (contextoAssistente === "escolher_modo_inclusivo") {
+            if (tem("reconhecer", "reconhece")) { contextoAssistente = null; return executarIntencao({acao: "JOGAR_INCLUSIVO", detalhe: "reconhecer"}); }
+            if (tem("relacionar", "relaciona")) { contextoAssistente = null; return executarIntencao({acao: "JOGAR_INCLUSIVO", detalhe: "relacionar"}); }
+            if (tem("interpretar", "interpreta")) { contextoAssistente = null; return executarIntencao({acao: "JOGAR_INCLUSIVO", detalhe: "interpretar"}); }
+            return falarAssistente("Por favor, escolha entre: reconhecer, relacionar ou interpretar.");
+        }
+    }
+
+    if (tem("fecha", "fechar", "sai", "sair", "esconde", "esconder", "oculta", "ocultar")) {
+        if (tem("configuracoes", "configura", "configurar", "ajuste", "ajustes")) return executarIntencao({acao: "FECHAR_CONFIG"});
+        if (tem("tabela", "elemento", "elementos")) return executarIntencao({acao: "FECHAR_TABELA"});
+        if (tem("conquista", "conquistas", "trofeu", "medalha")) return executarIntencao({acao: "FECHAR_CONQUISTAS"});
+        if (tem("chat", "conversa", "adm", "administrador")) return executarIntencao({acao: "FECHAR_CHAT"});
         if (tem("tudo", "janela", "modal", "tutorial")) return executarIntencao({acao: "FECHAR_TUDO"});
     }
 
-    // AÇÕES DE TUTORIAL
     let modalTut = document.getElementById("tutorial-genshin-overlay");
     if (modalTut && window.getComputedStyle(modalTut).display !== "none") {
-        if (tem("prossegui", "avanca", "proximo", "continua", "passa", "seguir")) {
+        if (tem("prossegue", "prosseguir", "avanca", "avancar", "proximo", "continua", "continuar", "passa", "passar", "seguir")) {
             if(typeof window.avancarTutorialGenshin === "function") { window.avancarTutorialGenshin(); return falarAssistente("Avançando."); }
         }
-        if (tem("conclui", "fecha", "termina", "pronto", "entendi", "pular", "sair")) {
+        if (tem("conclui", "concluir", "fecha", "fechar", "termina", "terminar", "pronto", "entendi", "pular", "sair")) {
             if(typeof window.fecharTutorialGenshin === "function") { window.fecharTutorialGenshin(); return falarAssistente("Tutorial concluído. Boa sorte no jogo!"); }
         }
     }
 
-    // =====================================
-    // 🧱 LEGO QUÍMICO (AGORA COM LIGAÇÕES SOLTAS RESTAURADAS)
-    // =====================================
     let regexPeca = /(carbono|oxigenio|hidrogenio|nitrogenio|enxofre|fosforo|cloro|fluor|bromo|iodo)\s*(\d+)?/gi;
-    let matchesPeca =[...limpo.matchAll(regexPeca)]; // Usa a string com números traduzidos!
+    let matchesPeca =[...limpo.matchAll(regexPeca)]; 
 
-    if (tem("liga", "conecta", "junta") && matchesPeca.length >= 2) {
+    if (tem("liga", "ligar", "conecta", "conectar", "junta", "juntar", "interliga", "interligar", "une", "unir") && matchesPeca.length >= 2) {
         let pA = matchesPeca[0][0]; let pB = matchesPeca[1][0];
         let t = "simples"; if(tem("dupla", "duas")) t="dupla"; if(tem("tripla", "tres", "três")) t="tripla";
         return executarIntencao({acao: "LIGAR_ATOMOS", detalhe: `${pA}|${pB}|${t}`});
     }
     
-    // O recurso que eu tinha esquecido: Adicionar Ligação Solta
-    if (tem("coloca", "cria", "adiciona", "pega", "inser", "bota") && tem("ligacao")) {
+    if (tem("coloca", "colocar", "cria", "criar", "adiciona", "adicionar", "pega", "pegar", "inserir", "bota", "botar") && tem("ligacao")) {
         let t = "simples"; if(tem("dupla", "duas")) t="dupla"; if(tem("tripla", "tres")) t="tripla";
         return executarIntencao({acao: "CRIAR_LIGACAO", detalhe: t});
     }
 
-    if (tem("completa", "hidrogenio", "encher", "preenche") && matchesPeca.length >= 1 && !tem("cria", "coloca")) {
+    if (tem("completa", "completar", "hidrogenio", "encher", "preenche", "preencher") && matchesPeca.length >= 1 && !tem("cria", "criar", "coloca", "colocar")) {
         return executarIntencao({acao: "COMPLETAR_VALENCIA", detalhe: matchesPeca[0][0]});
     }
-    if (tem("desvincula", "separa", "solta", "desconecta") && matchesPeca.length >= 1) {
+    if (tem("desvincula", "desvincular", "separa", "separar", "solta", "soltar", "desconecta", "desconectar") && matchesPeca.length >= 1) {
         return executarIntencao({acao: "DESVINCULAR_PECA", detalhe: matchesPeca[0][0]});
     }
-    if (tem("exclui", "apaga", "deleta", "remove", "tira") && matchesPeca.length >= 1) {
+    if (tem("exclui", "excluir", "apaga", "apagar", "deleta", "deletar", "remove", "remover", "tira", "tirar") && matchesPeca.length >= 1) {
         return executarIntencao({acao: "EXCLUIR_PECA", detalhe: matchesPeca[0][0]});
     }
-    if (tem("coloca", "cria", "adiciona", "bota", "pega", "inser") && matchesPeca.length >= 1) {
+    if (tem("coloca", "colocar", "cria", "criar", "adiciona", "adicionar", "bota", "botar", "pega", "pegar", "inserir") && matchesPeca.length >= 1) {
         return executarIntencao({acao: "CRIAR_ATOMO", detalhe: matchesPeca[0][1] || matchesPeca[0][0]}); 
     }
     
-    if (tem("limpa quadro", "limpar quadro", "apaga tudo", "recomecar")) return executarIntencao({acao: "LIMPAR_QUADRO"});
+    if (tem("limpa quadro", "limpar quadro", "apaga tudo", "apagar tudo", "recomecar", "recomeça")) return executarIntencao({acao: "LIMPAR_QUADRO"});
     if (tem("o que tem", "ler quadro", "minhas pecas", "minha estrutura")) return executarIntencao({acao: "LER_QUADRO"});
 
-    // QUESTIONÁRIO IMPOSSÍVEL
     let modalClass = document.getElementById("modal-classificacao");
     if (modalClass && window.getComputedStyle(modalClass).display !== "none") {
-        if (tem("confirma", "verifica", "completa", "envia", "terminei", "finaliza")) return executarIntencao({acao: "CONFIRMAR_CLASSIFICACAO"});
+        if (tem("confirma", "confirmar", "verifica", "verificar", "completa", "completar", "envia", "enviar", "terminei", "finaliza", "finalizar")) return executarIntencao({acao: "CONFIRMAR_CLASSIFICACAO"});
         let opMap = { "aberta": "Aberta", "fechada": "Fechada", "normal": "Normal", "ramificada": "Ramificada", "saturada": "Saturada", "insaturada": "Insaturada", "homogenea": "Homogênea", "heterogenea": "Heterogênea" };
         let marcadas =[];
         for (let key in opMap) {
@@ -288,24 +314,6 @@ async function processarComandoVoz(comandoOriginal) {
         if (marcadas.length > 0) return falarAssistente(`Marcadas: ${marcadas.join(", ")}.`);
     }
 
-    // MEMÓRIA DE MODOS (MÚLTIPLAS PERGUNTAS)
-    if (contextoAssistente === "escolher_submodo_estruturando") {
-        if (tem("livre")) { contextoAssistente = null; return executarIntencao({acao: "JOGAR_ESTRUTURANDO", detalhe: "livre"}); }
-        if (tem("facil")) { contextoAssistente = null; return executarIntencao({acao: "JOGAR_ESTRUTURANDO", detalhe: "facil"}); }
-        if (tem("medio", "media")) { contextoAssistente = null; return executarIntencao({acao: "JOGAR_ESTRUTURANDO", detalhe: "medio"}); }
-        if (tem("dificil")) { contextoAssistente = null; return executarIntencao({acao: "JOGAR_ESTRUTURANDO", detalhe: "dificil"}); }
-        if (tem("impossivel")) { contextoAssistente = null; return executarIntencao({acao: "JOGAR_ESTRUTURANDO", detalhe: "impossivel"}); }
-        if (tem("desafio")) return falarAssistente("Certo. Qual nível do desafio? Fácil, Médio, Difícil ou Impossível?"); 
-        if (tem("cancela", "esquece", "sair", "para")) { contextoAssistente = null; return falarAssistente("Cancelado."); }
-    }
-    if (contextoAssistente === "escolher_modo_inclusivo") {
-        if (tem("reconhece")) { contextoAssistente = null; return executarIntencao({acao: "JOGAR_INCLUSIVO", detalhe: "reconhecer"}); }
-        if (tem("relaciona")) { contextoAssistente = null; return executarIntencao({acao: "JOGAR_INCLUSIVO", detalhe: "relacionar"}); }
-        if (tem("interpreta")) { contextoAssistente = null; return executarIntencao({acao: "JOGAR_INCLUSIVO", detalhe: "interpretar"}); }
-        if (tem("cancela", "esquece", "sair", "para")) { contextoAssistente = null; return falarAssistente("Cancelado."); }
-    }
-
-    // CHAT (QUIMICHAT)
     let ativadorRegex = /^(adomines|a dominis|a domines|adominis|as dominis|aldomines|o dominis|ad homens|aos dominis|adomini|adomin|domines|dominis)\b/i;
     if (ativadorRegex.test(limpo)) {
         let pergunta = comandoOriginal.replace(/^(Ad[ôo]mines|A dominis|A domines|Adominis|As dominis|Aldomines|O dominis|Ad homens|Aos dominis|Adomini|Adomin|Domines|Dominis)\s*/i, "").trim(); 
@@ -316,75 +324,48 @@ async function processarComandoVoz(comandoOriginal) {
         return;
     }
 
-    // CONTROLES DO JOGO
-    if (tem("cancela", "esquece", "deixa pra la")) return falarAssistente("Cancelado."); 
-    if (tem("verifica", "checa", "terminei a molecula", "terminei a estrutura", "veja se ta certo", "corrigir estrutura")) return executarIntencao({acao: "VERIFICAR_ESTRUTURA"});
+    if (tem("cancela", "cancelar", "esquece", "esquecer", "deixa pra la")) return falarAssistente("Cancelado."); 
+    if (tem("verifica", "verificar", "checa", "checar", "terminei a molecula", "terminei a estrutura", "veja se ta certo", "corrigir estrutura")) return executarIntencao({acao: "VERIFICAR_ESTRUTURA"});
     if (tem("quanto tempo", "tempo restante", "tempo falta", "relogio", "cronometro")) return executarIntencao({acao: "STATUS_TEMPO"});
     if (tem("quantas vidas", "minhas vidas", "coracoes", "vida tenho", "vidas restam")) return executarIntencao({acao: "STATUS_VIDAS"});
     if (tem("quantas estrelas", "minhas estrelas", "estrelas tenho")) return executarIntencao({acao: "STATUS_ESTRELAS"});
 
-    // SOM E EFEITOS
-    if (tem("desmuta", "com som", "liga som", "ativa som", "volta som", "tira mudo", "tirar mudo", "desativar mudo")) return executarIntencao({acao: "DESMUTAR_SOM"});
-    if (tem("muta", "mudo", "tira som", "silencio", "sem som", "desliga som", "desligar som", "mutar som")) return executarIntencao({acao: "MUTAR_SOM"});
+    if (tem("desmuta", "desmutar", "com som", "liga som", "ativa som", "volta som", "tira mudo", "tirar mudo", "desativar mudo")) return executarIntencao({acao: "DESMUTAR_SOM"});
+    if (tem("muta", "mutar", "mudo", "tira som", "tirar som", "silencio", "sem som", "desliga som", "desligar som")) return executarIntencao({acao: "MUTAR_SOM"});
     
-    if (tem("abaixa", "diminui", "reduz", "menos") && tem("musica", "som", "volume")) return executarIntencao({acao: "DIMINUIR_MUSICA"});
-    if (tem("abaixa", "diminui", "reduz", "menos") && tem("efeito")) return executarIntencao({acao: "DIMINUIR_EFEITOS"});
-    if (tem("desliga", "tira", "desativa") && tem("efeito", "visuais", "visual")) return executarIntencao({acao: "DESLIGAR_VISUAIS"});
-    if (tem("liga", "coloca", "ativa") && tem("efeito", "visuais", "visual")) return executarIntencao({acao: "LIGAR_VISUAIS"});
+    if (tem("abaixa", "abaixar", "diminui", "diminuir", "reduz", "reduzir", "menos") && tem("musica", "som", "volume")) return executarIntencao({acao: "DIMINUIR_MUSICA"});
+    if (tem("abaixa", "abaixar", "diminui", "diminuir", "reduz", "reduzir", "menos") && tem("efeito", "efeitos")) return executarIntencao({acao: "DIMINUIR_EFEITOS"});
+    if (tem("desliga", "desligar", "tira", "tirar", "desativa", "desativar") && tem("efeito", "efeitos", "visuais", "visual")) return executarIntencao({acao: "DESLIGAR_VISUAIS"});
+    if (tem("liga", "ligar", "coloca", "colocar", "ativa", "ativar") && tem("efeito", "efeitos", "visuais", "visual")) return executarIntencao({acao: "LIGAR_VISUAIS"});
     if (tem("modo claro", "tema claro", "dia", "claro")) return executarIntencao({acao: "TEMA_CLARO"});
     if (tem("modo escuro", "tema escuro", "noturno", "escuro")) return executarIntencao({acao: "TEMA_ESCURO"});
     
-    if (tem("volta", "retorna", "anterior", "voltar")) return executarIntencao({acao: "VOLTAR"});
-    if (tem("desliga", "para", "desativa") && tem("assistente", "voz")) return executarIntencao({acao: "DESLIGAR_ASSISTENTE"});
+    if (tem("volta", "voltar", "retorna", "retornar", "anterior")) return executarIntencao({acao: "VOLTAR"});
+    if (tem("desliga", "desligar", "para", "parar", "desativa", "desativar") && tem("assistente", "voz")) return executarIntencao({acao: "DESLIGAR_ASSISTENTE"});
     
-    // PAINÉIS
-    if (tem("configura", "ajuste", "opcao", "opcoes")) return executarIntencao({acao: "ABRIR_CONFIG"});
+    if (tem("configura", "configuracoes", "configurar", "ajuste", "ajustes", "opcao", "opcoes")) return executarIntencao({acao: "ABRIR_CONFIG"});
     if (tem("tabela periodica", "tabela", "elementos")) return executarIntencao({acao: "ABRIR_TABELA"});
-    if (tem("conquista", "trofeu", "medalha")) return executarIntencao({acao: "ABRIR_CONQUISTAS"});
+    if (tem("conquista", "conquistas", "trofeu", "medalha")) return executarIntencao({acao: "ABRIR_CONQUISTAS"});
     if (tem("quimichat", "chat", "conversa", "painel adm", "administrador")) return executarIntencao({acao: "ABRIR_CHAT"});
     
-    // LEITURAS
-    if (tem("ler", "leia", "lê") && tem("tela", "tudo")) return executarIntencao({acao: "LER_TELA"});
-    if (tem("ler", "leia", "lê") && tem("enunciado", "pergunta", "questao", "tarefa", "fazer")) return executarIntencao({acao: "LER_ENUNCIADO"});
-    if (tem("ler", "leia", "lê") && tem("alternativa", "item", "opcoes", "resposta")) return executarIntencao({acao: "LER_ALTERNATIVAS"});
+    if (tem("ler", "leia") && tem("tela", "tudo")) return executarIntencao({acao: "LER_TELA"});
+    if (tem("ler", "leia") && tem("enunciado", "pergunta", "questao", "tarefa", "fazer")) return executarIntencao({acao: "LER_ENUNCIADO"});
+    if (tem("ler", "leia") && tem("alternativa", "alternativas", "item", "opcoes", "resposta")) return executarIntencao({acao: "LER_ALTERNATIVAS"});
 
-    // ENTRAR NOS MODOS (Dicionário Infalível)
-    if (tem("estrutur") || tem("modo livre") || tem("desafio")) {
-        let det = "perguntar";
-        if (tem("livre")) det = "livre";
-        else if (tem("facil", "fácil")) det = "facil";
-        else if (tem("medio", "médio", "media")) det = "medio";
-        else if (tem("dificil", "difícil")) det = "dificil";
-        else if (tem("impossivel", "impossível")) det = "impossivel";
-        
-        if (det === "perguntar") {
-            contextoAssistente = "escolher_submodo_estruturando"; 
-            return falarAssistente("Você quer jogar o modo Livre ou o Desafio? Diga qual o nível do desafio.");
-        }
-        return executarIntencao({acao: "JOGAR_ESTRUTURANDO", detalhe: det});
+    if (tem("estrutura", "estruturando") || (tem("inicia", "iniciar", "jogar") && tem("livre", "desafio"))) {
+        contextoAssistente = "escolher_modo_estruturando_base";
+        return falarAssistente("Você quer jogar o modo livre ou o modo desafio?");
     }
 
-    if (tem("inclusiv")) {
-        let det = "perguntar";
-        if (tem("reconhece")) det = "reconhecer";
-        else if (tem("relaciona")) det = "relacionar";
-        else if (tem("interpreta")) det = "interpretar";
-        
-        if (det === "perguntar") {
-            contextoAssistente = "escolher_modo_inclusivo"; 
-            return falarAssistente("Entrar em qual nível inclusivo? Reconhecer, Relacionar ou Interpretar?");
-        }
-        return executarIntencao({acao: "JOGAR_INCLUSIVO", detalhe: det});
+    if (tem("inclusivo", "inclusao", "inclusiva")) {
+        contextoAssistente = "escolher_modo_inclusivo"; 
+        return falarAssistente("Entrar em qual nível inclusivo? Reconhecer, Relacionar ou Interpretar?");
     }
 
-    // INICIAR BEM DEFINIDO
-    if (tem("inicia", "entra", "joga", "bora", "vamo", "start", "comeca", "partiu")) {
+    if (tem("inicia", "iniciar", "entra", "entrar", "joga", "jogar", "bora", "vamo", "start", "comeca", "comecar", "partiu")) {
         return executarIntencao({acao: "IR_MODOS"});
     }
 
-    // =====================================
-    // SE CHEGOU AQUI, A VERCEL TRADUZ A GÍRIA
-    // =====================================
     if(typeof mostrarMensagemGlob === "function") mostrarMensagemGlob("🧠 Consultando IA...");
     try {
         const res = await fetch(`/api/assistente`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fraseJogador: comandoOriginal }) });
@@ -397,7 +378,7 @@ async function processarComandoVoz(comandoOriginal) {
 }
 
 // ==========================================
-// 6. MOTOR DE EXECUÇÃO TOTAL (Onde as engrenagens viram)
+// 6. MOTOR DE EXECUÇÃO TOTAL
 // ==========================================
 function executarIntencao(intencao, comandoFalado = "") {
     let acao = (intencao.acao || "DESCONHECIDO").toUpperCase();
@@ -456,7 +437,6 @@ function executarIntencao(intencao, comandoFalado = "") {
         case "VERIFICAR_ESTRUTURA": if(typeof window.verificarMoleculaDesafio === "function") { falarAssistente("Verificando..."); window.verificarMoleculaDesafio(); } break;
         case "CONFIRMAR_CLASSIFICACAO": if(typeof window.verificarClassificacao === "function") { falarAssistente("Confirmando opções..."); window.verificarClassificacao(); } break;
 
-        // ====== FERRAMENTAS EXTRAS MAPEADAS ======
         case "DICA_DESAFIO": if(typeof window.mostrarDicaDesafio === "function") window.mostrarDicaDesafio(); break;
         case "TIRAR_FOTO": if(typeof window.tirarFoto === "function") window.tirarFoto(); break;
         case "DESFAZER_ACAO": if(typeof window.desfazerAcao === "function") window.desfazerAcao(); if(typeof window.desfazerPintura === "function") window.desfazerPintura(); falarAssistente("Ação desfeita."); break;
@@ -475,7 +455,6 @@ function executarIntencao(intencao, comandoFalado = "") {
         case "COR_PRETA": if(typeof window.mudarCor === "function") window.mudarCor('#333333', false); falarAssistente("Lápis preto."); break;
         case "COR_VERDE": if(typeof window.mudarCor === "function") window.mudarCor('#22c55e', false); falarAssistente("Lápis verde."); break;
         case "COR_CINZA": if(typeof window.mudarCor === "function") window.mudarCor('#9ca3af', false); falarAssistente("Lápis cinza."); break;
-        // ==========================================
 
         case "CRIAR_ATOMO": if(typeof window.adicionarAtomoVoz === "function") window.adicionarAtomoVoz(detalhe); break;
         case "CRIAR_LIGACAO": if(typeof window.adicionarLigacaoVoz === "function") window.adicionarLigacaoVoz(detalhe); break;
@@ -529,7 +508,7 @@ window.adicionarAtomoVoz = function(nome) {
     let base = Array.from(l.querySelectorAll('.atomo')).find(a => a.dataset.sigla.toLowerCase() === i.sigla.toLowerCase());
     if(!base) return falarAssistente(`O átomo de ${i.nome} não está disponível nesta fase.`);
     
-    let novo = base.cloneNode(true); novo.classList.add("no-quadro"); novo.dataset.id = Date.now(); novo.dataset.recemCriada = "true"; novo.style.position = "absolute"; novo.style.zIndex = 10;
+    let novo = base.cloneNode(true); novo.classList.add("no-quadro"); novo.dataset.id = Date.now() + "_" + Math.floor(Math.random() * 1000); novo.dataset.recemCriada = "true"; novo.style.position = "absolute"; novo.style.zIndex = 10;
     let r = q.getBoundingClientRect(); let off = Math.floor(Math.random() * 40) - 20;
     novo.style.left = (r.width/2 - 20 + off) + "px"; novo.style.top = (r.height/2 - 20 + off) + "px";
     
@@ -547,7 +526,7 @@ window.adicionarLigacaoVoz = function(tipo) {
     if(tipo.includes("dupla")) { cl = "lig-dupla"; vl = 2; ht = '<div class="linha"></div><div class="linha"></div>'; }
     if(tipo.includes("tripla")) { cl = "lig-tripla"; vl = 3; ht = '<div class="linha"></div><div class="linha"></div><div class="linha"></div>'; }
     
-    let lig = document.createElement("div"); lig.className = `peca-draggable ligacao ${cl} no-quadro`; lig.dataset.tipo = "ligacao"; lig.dataset.val = vl; lig.dataset.id = Date.now(); lig.style.position = "absolute"; lig.style.zIndex = 9; lig.innerHTML = ht;
+    let lig = document.createElement("div"); lig.className = `peca-draggable ligacao ${cl} no-quadro`; lig.dataset.tipo = "ligacao"; lig.dataset.val = vl; lig.dataset.id = Date.now() + "_" + Math.floor(Math.random() * 1000); lig.style.position = "absolute"; lig.style.zIndex = 9; lig.innerHTML = ht;
     
     let r = q.getBoundingClientRect(); let off = Math.floor(Math.random() * 40) - 20;
     lig.style.left = (r.width/2 - 20 + off) + "px"; lig.style.top = (r.height/2 + off) + "px";
@@ -565,7 +544,7 @@ window.ligarAtomosVoz = function(nA, nB, tipo) {
     let cl = "lig-simples"; let vl = 1; let ht = '<div class="linha"></div>';
     if(tipo.includes("dupla")) { cl = "lig-dupla"; vl = 2; ht = '<div class="linha"></div><div class="linha"></div>'; }
     if(tipo.includes("tripla")) { cl = "lig-tripla"; vl = 3; ht = '<div class="linha"></div><div class="linha"></div><div class="linha"></div>'; }
-    let lig = document.createElement("div"); lig.className = `peca-draggable ligacao ${cl} no-quadro`; lig.dataset.tipo = "ligacao"; lig.dataset.val = vl; lig.dataset.id = Date.now(); lig.style.position = "absolute"; lig.style.zIndex = 9; lig.innerHTML = ht;
+    let lig = document.createElement("div"); lig.className = `peca-draggable ligacao ${cl} no-quadro`; lig.dataset.tipo = "ligacao"; lig.dataset.val = vl; lig.dataset.id = Date.now() + "_" + Math.floor(Math.random() * 1000); lig.style.position = "absolute"; lig.style.zIndex = 9; lig.innerHTML = ht;
     
     let xA = parseFloat(pA.style.left) || 0; let yA = parseFloat(pA.style.top) || 0;
     lig.style.left = (xA + 40) + "px"; lig.style.top = (yA + 10) + "px";
