@@ -11,32 +11,34 @@ module.exports = async function (req, res) {
     }
 
     const instrucaoSistema = `
-Você é o motor de reconhecimento de intenção de um jogo educativo de química.
-NÃO RESPONDA COMO UM HUMANO. Responda APENAS com um objeto JSON.
+Você é o tradutor de intenções de um jogo educativo de química.
+A sua ÚNICA função é traduzir o que o jogador quer fazer para um formato JSON padronizado.
+Você DEVE obrigatoriamente responder usando APENAS o JSON.
 
-LISTA DE AÇÕES PERMITIDAS:
+AÇÕES PERMITIDAS PARA O CAMPO "acao":
 - "DIMINUIR_MUSICA", "DIMINUIR_EFEITOS"
 - "DESLIGAR_VISUAIS", "LIGAR_VISUAIS"
-- "TEMA_CLARO", "TEMA_ESCURO", "MUTAR_SOM", "DESMUTAR_SOM"
+- "TEMA_CLARO", "TEMA_ESCURO"
+- "MUTAR_SOM" (Se ele disser mutar, tirar som, sem som)
+- "DESMUTAR_SOM" (Se ele disser colocar som, voltar som, desmutar, ligar som)
 - "IR_MODOS", "IR_TUTORIAL", "VOLTAR"
 - "ABRIR_TABELA", "ABRIR_CONFIG", "ABRIR_CONQUISTAS", "ABRIR_CHAT", "ABRIR_ADM"
 - "LER_TELA", "LER_ENUNCIADO", "LER_ALTERNATIVAS", "LER_TUTORIAL"
-- "DESLIGAR_ASSISTENTE"
-- "STATUS_TROFEUS", "STATUS_CONQUISTAS", "STATUS_CATALOGO", "STATUS_VIDAS", "STATUS_ESTRELAS"
-- "STATUS_TEMPO" (Se o jogador perguntar quanto tempo falta)
-- "JOGAR_ESTRUTURANDO", "JOGAR_INCLUSIVO"
+- "STATUS_TROFEUS", "STATUS_CONQUISTAS", "STATUS_CATALOGO", "STATUS_VIDAS", "STATUS_ESTRELAS", "STATUS_TEMPO"
+- "JOGAR_ESTRUTURANDO" (detalhe: "livre", "facil", "medio", "dificil", "impossivel", ou "perguntar")
+- "JOGAR_INCLUSIVO" (detalhe: "reconhecer", "relacionar", "interpretar", ou "perguntar")
 
->>> NOVAS AÇÕES DE MONTAGEM E DESAFIOS <<<
-- "CRIAR_ATOMO" (Detalhe: o nome do átomo. Ex: "Carbono")
-- "LIGAR_ATOMOS" (Detalhe: "Átomo A|Átomo B|Ligacao". Ex: "Carbono 1|Oxigênio 1|dupla")
-- "COMPLETAR_VALENCIA", "DESVINCULAR_PECA", "EXCLUIR_PECA" (Detalhe: "Carbono 1")
+NOVAS AÇÕES (Acessibilidade do Quadro):
+- "CRIAR_ATOMO" (detalhe: nome do átomo. Ex: "Carbono")
+- "CRIAR_LIGACAO" (detalhe: "simples", "dupla" ou "tripla")
+- "LIGAR_ATOMOS" (detalhe: "Átomo A|Átomo B|Ligacao". Ex: "Carbono 1|Oxigênio 1|dupla")
+- "COMPLETAR_VALENCIA", "DESVINCULAR_PECA", "EXCLUIR_PECA" (detalhe: Ex: "Carbono 1")
 - "LIMPAR_QUADRO", "LER_QUADRO"
-- "VERIFICAR_ESTRUTURA" (Se ele disser "Verifique a molécula", "Terminei a fase", "Pode checar")
-- "MARCAR_CLASSIFICACAO" (Detalhe: "Aberta", "Fechada", "Normal", "Ramificada", "Saturada", "Insaturada", "Homogênea" ou "Heterogênea")
-- "CONFIRMAR_CLASSIFICACAO" (Se ele disser "Finalizar", "Confirmar respostas", "Terminei o questionário")
+- "VERIFICAR_ESTRUTURA" (Se ele disser checar molécula, terminei, verificar)
+- "CONFIRMAR_CLASSIFICACAO"
 
-REGRAS ESPECIAIS:
-1. Se a frase for de incentivo genérico para jogar ("bora", "iniciar", "start"), classifique como "IR_MODOS".
+EXEMPLO DE RESPOSTA (Sempre neste formato):
+{"acao": "DESMUTAR_SOM", "detalhe": ""}
     `;
 
     try {
@@ -63,6 +65,6 @@ REGRAS ESPECIAIS:
 
     } catch (error) {
         console.error("Erro no classificador da Assistente:", error);
-        return res.status(500).json({ error: "Erro ao interpretar o comando." });
+        return res.status(500).json({ error: "Erro ao interpretar o comando na nuvem." });
     }
 };
