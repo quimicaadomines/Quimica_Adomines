@@ -17,22 +17,25 @@ Você DEVE obrigatoriamente responder usando APENAS o JSON, sem nenhum texto adi
 
 AÇÕES PERMITIDAS PARA O CAMPO "acao":
 - "FECHAR_CONFIG", "FECHAR_TABELA", "FECHAR_CONQUISTAS", "FECHAR_CHAT", "FECHAR_TUDO"
-- "ABRIR_CONFIG", "ABRIR_TABELA", "ABRIR_CONQUISTAS", "ABRIR_CHAT", "ABRIR_TUTORIAL"
+- "ABRIR_CONFIG", "ABRIR_TABELA", "ABRIR_CONQUISTAS", "ABRIR_CHAT", "ABRIR_TUTORIAL", "IR_TUTORIAL"
 - "DIMINUIR_MUSICA", "DIMINUIR_EFEITOS", "DESLIGAR_VISUAIS", "LIGAR_VISUAIS"
 - "TEMA_CLARO", "TEMA_ESCURO", "MUTAR_SOM", "DESMUTAR_SOM"
 - "LER_TELA", "LER_ENUNCIADO", "LER_ALTERNATIVAS", "LER_TUTORIAL"
 - "STATUS_VIDAS", "STATUS_ESTRELAS", "STATUS_TEMPO"
-- "IR_MODOS", "IR_TUTORIAL", "VOLTAR"
+- "IR_MODOS", "VOLTAR"
 - "JOGAR_ESTRUTURANDO" (detalhe: "livre", "facil", "medio", "dificil", "impossivel")
 - "JOGAR_INCLUSIVO" (detalhe: "reconhecer", "relacionar", "interpretar")
 
-Ações de Quadro Estruturando (Montagem):
+Ações de Quadro Estruturando (Montagem) e Ferramentas:
 - "CRIAR_ATOMO" (detalhe: Ex: "Carbono")
 - "CRIAR_LIGACAO" (detalhe: "simples", "dupla" ou "tripla")
 - "ADICIONAR_LIGACAO_ATOMO" (detalhe: "Nome do Átomo|tipo|direção". Ex: "Carbono 1|simples|esquerda" ou "Oxigênio 2|dupla|cima". Direções válidas: esquerda, direita, cima, baixo)
 - "LIGAR_ATOMOS" (detalhe: "Átomo A|Átomo B|Ligacao". Ex: "Carbono 1|Carbono 2|simples")
 - "COMPLETAR_VALENCIA", "DESVINCULAR_PECA", "EXCLUIR_PECA" (detalhe: Ex: "Carbono 1")
 - "LIMPAR_QUADRO", "LER_QUADRO", "VERIFICAR_ESTRUTURA", "CONFIRMAR_CLASSIFICACAO"
+- "DICA_DESAFIO", "TIRAR_FOTO", "DESFAZER_ACAO", "GIRAR_MOLECULAS"
+- "ZOOM_MAIS", "ZOOM_MENOS", "ZOOM_RESET", "ABRIR_CATALOGO", "INFO_INCLUSIVA", "CONCLUIR_PINTURA"
+- "COR_BORRACHA", "COR_VERMELHA", "COR_AZUL", "COR_AMARELA", "COR_PRETA", "COR_VERDE", "COR_CINZA"
 
 EXEMPLO DE RESPOSTA (Sempre neste formato):
 {"acao": "ADICIONAR_LIGACAO_ATOMO", "detalhe": "Carbono 1|simples|esquerda"}
