@@ -1,3 +1,6 @@
+// ==========================================
+// GLOBAL JAVASCRIPT (CORRIGIDO PARA NÃO DESLIGAR A ASSISTENTE)
+// ==========================================
 let musica = document.getElementById("musica");
 let clickAudio = document.getElementById("click");
 let bubbleAudio = document.getElementById("bubble");
@@ -66,10 +69,7 @@ function carregarConfiguracoes() {
   gerenciarBateriaQuimiChat(); 
   injetarElementosGlobais(); 
   
-  if (localStorage.getItem("assistenteAtivo") === "true") {
-      // Como a assistente agora está em outro arquivo, chamamos a função globalmente
-      setTimeout(() => { if(typeof toggleAssistenteVoz === "function") toggleAssistenteVoz(true); }, 1000); 
-  }
+  // O código antigo da assistente foi removido daqui para evitar o conflito de "desligar" acidentalmente.
 }
 
 if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', carregarConfiguracoes); } 
@@ -83,7 +83,7 @@ function mudarTela(url) {
   if (isNavegando) return; 
   isNavegando = true;
   
-  // Interrompe a voz se ela estiver ativa (agora acessando globalmente)
+  // Interrompe a voz se ela estiver ativa para evitar vazamento de áudio entre telas
   if (typeof assistenteReconhecimento !== 'undefined' && assistenteReconhecimento) { assistenteReconhecimento.onend = null; assistenteReconhecimento.stop(); }
   
   if (transicaoAudio) { transicaoAudio.volume = 1.0; transicaoAudio.currentTime = 0; transicaoAudio.play().catch(()=>{}); }
@@ -504,7 +504,6 @@ async function enviarPerguntaQuimiChat(pergunta, lerVozAlta) {
 
         let respostaTexto = dados.candidates[0].content.parts[0].text.trim();
         
-        // --- FORMATAÇÃO DO TEXTO DA IA (Negrito e Quebra de Linha) ---
         respostaTexto = respostaTexto.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
         respostaTexto = respostaTexto.replace(/\n/g, '<br>');
         
