@@ -1,5 +1,5 @@
 // ==========================================
-// ASSISTENTE DE VOZ ADÔMINES (V10 - SILENCIOSA E 100% SOB DEMANDA)
+// ASSISTENTE DE VOZ ADÔMINES (V11 - FÍSICA REAL E ACESSIBILIDADE TOTAL)
 // ==========================================
 let assistenteAtivo = localStorage.getItem("assistenteAtiva") === "true"; 
 let assistenteReconhecimento = null;
@@ -126,7 +126,6 @@ function inicializarVozSilenciosamente() {
         sessionStorage.setItem("audioLiberado", "true");
         if (assistenteSintese) assistenteSintese.resume();
         if(typeof musica !== 'undefined' && musica && musica.paused && !mutado) musica.play().catch(()=>{});
-        // 100% Silencioso. Nenhuma fala de boas-vindas acontecerá aqui.
     }
 }
 
@@ -171,14 +170,22 @@ document.addEventListener("keyup", (e) => {
 
 window.checagemBloqueioTela = function() {
     let modais = document.querySelectorAll('.modal-overlay');
-    for(let m of modais) {
-        if (window.getComputedStyle(m).display !== "none") return true;
-    }
+    for(let m of modais) { if (window.getComputedStyle(m).display !== "none") return true; }
     return false;
 }
 
-// Leitura Especial de Introdução apenas do Modo Livre
+const observadorAutomatico = new MutationObserver(() => {
+    if (!assistenteAtivo || estouFalando) return;
+    let modalClass = document.getElementById("modal-classificacao");
+    if (modalClass && window.getComputedStyle(modalClass).display !== "none" && !modalClass.dataset.lido) {
+        modalClass.dataset.lido = "true";
+        falarAssistente("A estrutura está correta! Agora, classifique a molécula. Diga as opções para Cadeia, Disposição, Saturação e Natureza. Depois diga Confirmar.");
+        return;
+    }
+});
+
 document.addEventListener("DOMContentLoaded", () => {
+    observadorAutomatico.observe(document.body, { childList: true, subtree: true, characterData: true });
     setTimeout(() => {
         let modoAtual = localStorage.getItem("modoAtual") || "";
         if (window.location.pathname.includes('estruturando') && modoAtual === "livre" && !sessionStorage.getItem("introLivreLida")) {
@@ -195,7 +202,8 @@ document.addEventListener("DOMContentLoaded", () => {
 // ==========================================
 const normalizarVozNum = (str) => {
     let t = str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-    return t.replace(/\bum\b/g, "1").replace(/\bdois\b/g, "2").replace(/\btres\b/g, "3").replace(/\bquatro\b/g, "4").replace(/\bcinco\b/g, "5").replace(/[.,!?]/g, "");
+    return t.replace(/\bum\b/g, "1").replace(/\bdois\b/g, "2").replace(/\btres\b/g, "3").replace(/\bquatro\b/g, "4").replace(/\bcinco\b/g, "5")
+            .replace(/\bseis\b/g, "6").replace(/\bsete\b/g, "7").replace(/\boito\b/g, "8").replace(/\bnove\b/g, "9").replace(/\bdez\b/g, "10").replace(/[.,!?]/g, "");
 };
 
 async function processarComandoVoz(comandoOriginal) {
@@ -283,16 +291,7 @@ async function processarComandoVoz(comandoOriginal) {
         return executarIntencao({acao: "CONSULTAR_TABELA_VOZ", detalhe: matchesPeca[0][1] ? matchesPeca[0][0].replace(matchesPeca[0][1],"").trim() + "|numero" : matchesPeca[0][0] + "|numero"});
     }
 
-    if (tem("liga", "ligar", "coloca", "colocar", "adiciona", "insere") && tem("ligacao") && matchesPeca.length === 1) {
-        let pA = matchesPeca[0][0];
-        let t = "simples"; if(tem("dupla", "duas")) t="dupla"; if(tem("tripla", "tres", "três")) t="tripla";
-        let d = "direita"; 
-        if (tem("esquerda", "atras")) d = "esquerda";
-        else if (tem("cima", "acima", "topo", "em cima")) d = "cima";
-        else if (tem("baixo", "abaixo", "embaixo")) d = "baixo";
-        return executarIntencao({acao: "ADICIONAR_LIGACAO_ATOMO", detalhe: `${pA}|${t}|${d}`});
-    }
-
+    // Auto-criação e Direções Exatas
     if (tem("liga", "ligar", "conecta", "junta", "interliga", "une", "adiciona", "coloca") && matchesPeca.length >= 2) {
         let pA = matchesPeca[0][0]; let pB = matchesPeca[1][0];
         let t = "simples"; if(tem("dupla", "duas")) t="dupla"; if(tem("tripla", "tres", "três")) t="tripla";
@@ -302,6 +301,16 @@ async function processarComandoVoz(comandoOriginal) {
         else if (tem("baixo", "abaixo", "embaixo")) d = "baixo";
         else if (tem("direita", "frente")) d = "direita";
         return executarIntencao({acao: "LIGAR_ATOMOS", detalhe: `${pA}|${pB}|${t}|${d}`});
+    }
+
+    if (tem("liga", "ligar", "coloca", "colocar", "adiciona", "insere") && tem("ligacao") && matchesPeca.length === 1) {
+        let pA = matchesPeca[0][0];
+        let t = "simples"; if(tem("dupla", "duas")) t="dupla"; if(tem("tripla", "tres", "três")) t="tripla";
+        let d = "direita"; 
+        if (tem("esquerda", "atras")) d = "esquerda";
+        else if (tem("cima", "acima", "topo", "em cima")) d = "cima";
+        else if (tem("baixo", "abaixo", "embaixo")) d = "baixo";
+        return executarIntencao({acao: "ADICIONAR_LIGACAO_ATOMO", detalhe: `${pA}|${t}|${d}`});
     }
     
     if (tem("coloca", "colocar", "cria", "crio", "adiciona", "insere") && tem("ligacao")) {
@@ -334,23 +343,17 @@ async function processarComandoVoz(comandoOriginal) {
     }
 
     if (tem("cancela", "esquece", "deixa pra la")) return falarAssistente("Cancelado."); 
-    
     if (tem("verifica", "checa", "terminei a molecula", "corrigir estrutura", "verificar estrutura", "terminei a estrutura")) return executarIntencao({acao: "VERIFICAR_ESTRUTURA"});
-    
     if (tem("desmuta", "liga som", "ativa som", "volta som", "tira mudo", "tirar mudo", "com som", "com audio")) return executarIntencao({acao: "DESMUTAR_SOM"});
     if (tem("muta", "mudo", "tira som", "silencio", "desliga som", "sem som")) return executarIntencao({acao: "MUTAR_SOM"});
-    
     if (tem("tira", "bater") && tem("foto", "print")) return executarIntencao({acao: "TIRAR_FOTO"});
     if (tem("dica", "ajuda", "socorro") && tem("desafio", "fase")) return executarIntencao({acao: "DICA_DESAFIO"});
-    
     if (tem("quanto tempo", "tempo restante", "relogio")) return executarIntencao({acao: "STATUS_TEMPO"});
     if (tem("quantas vidas", "minhas vidas", "coracoes")) return executarIntencao({acao: "STATUS_VIDAS"});
     if (tem("quantas estrelas", "minhas estrelas")) return executarIntencao({acao: "STATUS_ESTRELAS"});
-
     if (tem("aumenta", "mais") && tem("zoom")) return executarIntencao({acao: "ZOOM_MAIS"});
     if (tem("diminui", "menos", "tira") && tem("zoom")) return executarIntencao({acao: "ZOOM_MENOS"});
     if (tem("reseta", "zera", "centraliza") && tem("zoom", "visao")) return executarIntencao({acao: "ZOOM_RESET"});
-
     if (tem("volta", "retorna", "anterior")) return executarIntencao({acao: "VOLTAR"});
     if (tem("configura", "ajuste", "opcao")) return executarIntencao({acao: "ABRIR_CONFIG"});
     if (tem("tabela periodica", "tabela", "elementos")) return executarIntencao({acao: "ABRIR_TABELA"});
@@ -534,10 +537,11 @@ function executarIntencao(intencao, comandoFalado = "") {
 }
 
 // ==========================================
-// 7. FÍSICA E AUTO-CRIAÇÃO AVANÇADA
+// 7. FÍSICA MATEMÁTICA TOTALMENTE INTEGRADA
 // ==========================================
 window.obterNomeElemento = function(sigla) {
-    let t = normalizarVozNum(sigla).replace(/atomo de |átomo de |um |uma /g, "").trim();
+    // Filtro Matemático que limpa os números extras e acha o átomo puro
+    let t = normalizarVozNum(sigla).replace(/atomo de |átomo de |um |uma /g, "").replace(/\d+/g, "").trim();
     if(typeof elementosTabela !== "undefined") { let e = elementosTabela.find(x => normalizarVozNum(x.s) === t || normalizarVozNum(x.nome) === t); if(e) return { sigla: e.s, nome: e.nome }; }
     const m = { "carbono":"C", "oxigenio":"O", "hidrogenio":"H", "nitrogenio":"N", "enxofre":"S", "fosforo":"P", "cloro":"Cl", "fluor":"F", "bromo":"Br", "iodo":"I" };
     if(m[t]) return { sigla: m[t], nome: t };
@@ -702,20 +706,14 @@ window.ligarAtomosVoz = function(nA, nB, tipo, dirDesejada) {
 
     if (!pA) { 
         let nomeA = window.obterNomeElemento(nA).nome;
-        if (!window.adicionarAtomoVoz(nomeA, true)) {
-            falarAssistente(`Não posso ligar porque o átomo de ${nomeA} não existe neste nível.`);
-            return;
-        }
+        if (!window.adicionarAtomoVoz(nomeA, true)) return;
         let ats = Array.from(document.querySelectorAll('#quadro-inner .peca-draggable.atomo'));
         pA = ats.filter(a => window.obterNomeElemento(a.dataset.sigla).nome.toLowerCase() === nomeA.toLowerCase()).pop(); 
     }
     
     if (!pB || pA === pB) { 
         let nomeB = window.obterNomeElemento(nB).nome;
-        if (!window.adicionarAtomoVoz(nomeB, true)) {
-            falarAssistente(`Não posso ligar porque o átomo de ${nomeB} não existe neste nível.`);
-            return;
-        }
+        if (!window.adicionarAtomoVoz(nomeB, true)) return;
         let ats = Array.from(document.querySelectorAll('#quadro-inner .peca-draggable.atomo'));
         pB = ats.filter(a => window.obterNomeElemento(a.dataset.sigla).nome.toLowerCase() === nomeB.toLowerCase()).pop(); 
     }
@@ -745,7 +743,7 @@ window.ligarAtomosVoz = function(nA, nB, tipo, dirDesejada) {
         else { if (pontaExistente.freePt.id === 'B') { bLeft = targetX - 20; bTop = targetY; } else { bLeft = targetX - 20; bTop = targetY - 40; } }
 
         moverPecaEGrupoVoz(pB, bLeft, bTop);
-        falarAssistente(`Liguei o ${pA.dataset.idVoz} ao ${pB.dataset.idVoz} usando a ligação já existente.`);
+        falarAssistente(`Liguei o ${pB.dataset.idVoz} ao ${pA.dataset.idVoz}.`);
     } else {
         let dirA = obterPortaLivre(pA, dirDesejada || "direita");
         if(!dirA) return falarAssistente(`O ${pA.dataset.idVoz} está com todos os lados ocupados.`);
@@ -788,26 +786,57 @@ function moverPecaEGrupoVoz(peca, newLeft, newTop) {
     pGroup.forEach(g => { g.style.left = (parseFloat(g.style.left||0) + diffX) + "px"; g.style.top = (parseFloat(g.style.top||0) + diffY) + "px"; });
 }
 
+// VALÊNCIA VISUAL GARANTIDA E DESVINCULAR COM AFASTAMENTO
 window.acaoPecaVoz = function(nome, acao) {
     if (window.checagemBloqueioTela()) return falarAssistente("Feche a janela atual primeiro.");
     let peca = window.encontrarPecaVoz(nome);
     if(!peca) return falarAssistente(`Não achei o ${nome}.`);
     
-    window.pecaAlvoMenu = peca; 
     if (acao === "completar") { 
-        if(typeof window.cmCompletar === "function") { window.cmCompletar(); if(typeof window.atualizarContadores === "function") window.atualizarContadores(); }
-        falarAssistente(`Valência do ${peca.dataset.idVoz} completada.`); 
+        let valMax = parseInt(peca.dataset.valencia || 0);
+        let valUso = parseInt(peca.dataset.valUso || 0);
+        let falta = valMax - valUso;
+
+        if (falta > 0) {
+            let hAntigo = peca.querySelector(".hidrogenio-completo");
+            if (hAntigo) hAntigo.remove();
+
+            let hidr = document.createElement("div");
+            hidr.className = "hidrogenio-completo";
+            hidr.innerHTML = `H<sub>${falta > 1 ? falta : ''}</sub>`;
+            peca.appendChild(hidr);
+            peca.dataset.hExtras = falta;
+
+            if (typeof window.verificarLigacoesQuimicas === "function") window.verificarLigacoesQuimicas();
+            if (typeof window.atualizarContadores === "function") window.atualizarContadores();
+
+            falarAssistente(`Valência do ${peca.dataset.idVoz} completada visualmente com hidrogênios.`);
+        } else {
+            falarAssistente(`A valência do ${peca.dataset.idVoz} já está completa ou excedida.`);
+        }
     } 
     else if (acao === "excluir") { 
         let n = peca.dataset.idVoz; 
-        if(typeof window.cmExcluir === "function") { window.cmExcluir(); if(typeof window.atualizarContadores === "function") window.atualizarContadores(); }
-        falarAssistente(`O ${n} foi excluído.`); 
+        peca.remove();
+        if(typeof window.curarQuadro === "function") window.curarQuadro();
+        if(typeof window.atualizarContadores === "function") window.atualizarContadores();
+        falarAssistente(`O ${n} foi excluído do quadro.`); 
     }
     else if (acao === "desvincular") { 
-        if(typeof window.cmDesvincular === "function") { window.cmDesvincular(); if(typeof window.atualizarContadores === "function") window.atualizarContadores(); }
-        falarAssistente(`O ${peca.dataset.idVoz} foi desvinculado.`); 
+        let hSub = peca.querySelector('.hidrogenio-completo');
+        if (hSub) { hSub.remove(); peca.dataset.hExtras = 0; }
+
+        let currX = parseFloat(peca.style.left) || 0;
+        let currY = parseFloat(peca.style.top) || 0;
+        peca.style.left = (currX + 40) + "px";
+        peca.style.top = (currY + 40) + "px";
+
+        if(typeof window.curarQuadro === "function") window.curarQuadro();
+        if(typeof window.verificarLigacoesQuimicas === "function") window.verificarLigacoesQuimicas();
+        if(typeof window.atualizarContadores === "function") window.atualizarContadores();
+
+        falarAssistente(`O ${peca.dataset.idVoz} foi separado da estrutura.`); 
     }
-    window.pecaAlvoMenu = null; 
 }
 
 window.lerQuadroVoz = function() {
