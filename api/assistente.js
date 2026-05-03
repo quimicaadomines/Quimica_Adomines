@@ -35,14 +35,15 @@ Ações de Quadro Estruturando (Montagem) e Ferramentas:
 - "CRIAR_LIGACAO" (detalhe: "simples", "dupla" ou "tripla")
 - "ADICIONAR_LIGACAO_ATOMO" (detalhe: "Nome do Átomo|tipo|direção". Ex: "Carbono 1|simples|esquerda")
 - "LIGAR_ATOMOS" (detalhe: "Átomo A|Átomo B|Ligacao|Direcao". Ex: "Carbono|Carbono 1|simples|cima")
-- "COMPLETAR_VALENCIA", "DESVINCULAR_PECA", "EXCLUIR_PECA" (MUITO IMPORTANTE: O detalhe será o nome do átomo Ex: "Carbono 1". MAS se o jogador pedir para fazer em "TODOS" os átomos de uma vez, o detalhe DEVE SER "todos". Exemplo: "Completar a valência de todos os átomos" -> detalhe: "todos")
+- "CRIAR_CADEIA" (MUITO IMPORTANTE: Use este comando se o jogador pedir para adicionar VÁRIOS átomos da mesma espécie em cadeia / fileira. O detalhe será "Nome do Átomo|Quantidade|tipo_de_ligacao". Ex: "Carbono|4|simples" ou "Oxigênio|3|dupla")
+- "COMPLETAR_VALENCIA", "DESVINCULAR_PECA", "EXCLUIR_PECA" (detalhe: "Carbono 1" ou "todos")
 - "LIMPAR_QUADRO", "LER_QUADRO", "VERIFICAR_ESTRUTURA", "CONFIRMAR_CLASSIFICACAO"
 - "DICA_DESAFIO", "TIRAR_FOTO", "DESFAZER_ACAO", "GIRAR_MOLECULAS", "ZOOM_MAIS", "ZOOM_MENOS", "ZOOM_RESET"
 - "INFO_INCLUSIVA", "CONCLUIR_PINTURA"
 - "COR_BORRACHA", "COR_VERMELHA", "COR_AZUL", "COR_AMARELA", "COR_PRETA", "COR_VERDE", "COR_CINZA"
 
-EXEMPLO DE RESPOSTA (Sempre neste formato):
-{"acao": "COMPLETAR_VALENCIA", "detalhe": "todos"}
+EXEMPLO DE RESPOSTA (Sempre neste formato exato):
+{"acao": "CRIAR_CADEIA", "detalhe": "Carbono|4|simples"}
     `;
 
     try {
