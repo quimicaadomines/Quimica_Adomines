@@ -1,5 +1,5 @@
 // ==========================================
-// ASSISTENTE DE VOZ ADÔMINES (V13 - INTEGRAÇÃO GLOBAL, CHAT E CHEATS)
+// ASSISTENTE DE VOZ ADÔMINES (V14 - CORREÇÃO DA CADEIA E INTERCEPTAÇÃO)
 // ==========================================
 let assistenteAtivo = localStorage.getItem("assistenteAtiva") === "true"; 
 let assistenteReconhecimento = null;
@@ -188,9 +188,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 1500);
 });
 
-// ==========================================
-// 5. CÉREBRO LOCAL TOTALMENTE NORMALIZADO
-// ==========================================
 const normalizarVozNum = (str) => {
     if (!str) return "";
     let t = str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -200,7 +197,6 @@ const normalizarVozNum = (str) => {
 
 async function processarComandoVoz(comandoOriginal) {
     let limpo = normalizarVozNum(comandoOriginal); 
-    // CORREÇÃO MESTRE: Tira os acentos também das palavras chaves para não dar conflito!
     const tem = (...palavras) => palavras.some(p => {
         let pNorm = normalizarVozNum(p);
         return new RegExp('\\b' + pNorm + '\\b', 'i').test(limpo);
@@ -236,7 +232,6 @@ async function processarComandoVoz(comandoOriginal) {
         if (tem("tudo", "janela", "modal", "tutorial")) return executarIntencao({acao: "FECHAR_TUDO"});
     }
 
-    // INTERAÇÃO PERFEITA COM O QUIMICHAT (Adômines + Pergunta)
     let ativadorQuimi = /\b(ad[oô]mines|a dominis|a domines|adominis|as dominis|aldomines|o dominis|adomini|adomin|domines|dominis|quimichat|kimichat)\b/i;
     if (ativadorQuimi.test(limpo)) {
         let pergunta = comandoOriginal.replace(/.*(ad[oô]mines|a dominis|a domines|adominis|as dominis|aldomines|o dominis|adomini|adomin|domines|dominis|quimichat|kimichat)\s*/i, "").trim(); 
@@ -249,7 +244,6 @@ async function processarComandoVoz(comandoOriginal) {
         }
     }
 
-    // NAVEGAÇÃO E ABERTURA
     if (tem("inicia", "iniciar", "entra", "entrar", "joga", "jogar", "bora", "start", "comeca")) return executarIntencao({acao: "IR_MODOS"});
     if (tem("abre", "abrir", "mostra", "mostrar", "como jogar") && tem("tutorial", "ajuda", "como jogar")) return executarIntencao({acao: "ABRIR_TUTORIAL"});
     if (tem("configura", "ajuste", "opcao")) return executarIntencao({acao: "ABRIR_CONFIG"});
@@ -258,7 +252,6 @@ async function processarComandoVoz(comandoOriginal) {
     if (tem("catalogo", "pokedex")) return executarIntencao({acao: "ABRIR_CATALOGO"});
     if (tem("adm", "administrador", "chat de cheat", "cheats")) return executarIntencao({acao: "ABRIR_CHAT"});
 
-    // LEITURAS DE TELA E DADOS LOCAIS
     if (tem("ler", "leia", "lê") && tem("tutorial", "ajuda")) return executarIntencao({acao: "LER_TUTORIAL"});
     if (tem("ler", "leia", "lê") && tem("tela", "tudo")) return executarIntencao({acao: "LER_TELA"});
     if (tem("ler", "leia", "lê") && tem("alternativa", "alternativas", "item", "opcoes", "resposta")) return executarIntencao({acao: "LER_ALTERNATIVAS"});
@@ -268,7 +261,6 @@ async function processarComandoVoz(comandoOriginal) {
     if (tem("quais", "qual", "que", "ler") && tem("conquista", "conquistas", "trofeu", "trofeus", "consegui", "desbloqueadas", "bloqueadas")) return executarIntencao({acao: "LER_CONQUISTAS"});
     if (tem("quais", "qual", "que", "ler") && tem("atomo", "atomos", "elemento", "elementos", "disponivel", "disponiveis", "tenho")) return executarIntencao({acao: "LER_ATOMOS_DISPONIVEIS"});
 
-    // COMANDOS DE ADMINISTRAÇÃO DIRETO NA VEIA
     if (tem("comando") || tem("adm") || tem("administrador")) {
         if (tem("platinar", "platina")) return executarIntencao({acao: "COMANDO_ADM", detalhe: "\\platinar"});
         if (tem("catalogador", "catálogo completo")) return executarIntencao({acao: "COMANDO_ADM", detalhe: "\\catalogador"});
@@ -299,6 +291,21 @@ async function processarComandoVoz(comandoOriginal) {
     }
     if (tem("qual", "numero atomico") && matchesPeca.length > 0) {
         return executarIntencao({acao: "CONSULTAR_TABELA_VOZ", detalhe: matchesPeca[0][1] ? matchesPeca[0][0].replace(matchesPeca[0][1],"").trim() + "|numero" : matchesPeca[0][0] + "|numero"});
+    }
+
+    // =====================================
+    // NOVIDADE: AÇÃO DE CADEIA (LOTE) ANTES DE TUDO!
+    // Ex: "Adicionar 3 carbonos ligados entre si"
+    // =====================================
+    let regexCadeia = /(\d+)\s*(carbono|oxigenio|hidrogenio|nitrogenio|enxofre|fosforo|cloro|fluor|bromo|iodo)s?/i;
+    let matchCadeia = limpo.match(regexCadeia);
+    if (matchCadeia && parseInt(matchCadeia[1]) >= 2) {
+        if (tem("cadeia", "fileira", "ligado", "ligados", "interligado", "interligados", "junto", "juntos", "conectados") || tem("cria", "adiciona", "coloca", "bota")) {
+            let qtd = parseInt(matchCadeia[1]);
+            let atomo = matchCadeia[2];
+            let t = "simples"; if(tem("dupla", "duas")) t="dupla"; if(tem("tripla", "tres", "três")) t="tripla";
+            return executarIntencao({acao: "CRIAR_CADEIA", detalhe: `${atomo}|${qtd}|${t}`});
+        }
     }
 
     if (tem("liga", "ligar", "coloca", "colocar", "adiciona", "insere") && tem("ligacao") && matchesPeca.length === 1) {
