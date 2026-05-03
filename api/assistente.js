@@ -34,7 +34,7 @@ Ações de Quadro Estruturando (Montagem) e Ferramentas:
 - "CRIAR_ATOMO" (detalhe: Ex: "Carbono")
 - "CRIAR_LIGACAO" (detalhe: "simples", "dupla" ou "tripla")
 - "ADICIONAR_LIGACAO_ATOMO" (detalhe: "Nome do Átomo|tipo|direção". Ex: "Carbono 1|simples|esquerda" ou "Oxigênio 2|dupla|cima". Direções válidas: esquerda, direita, cima, baixo)
-- "LIGAR_ATOMOS" (Use para interligar átomos ou colocar um novo átomo grudado em outro. detalhe: "Átomo A|Átomo B|Ligacao|Direcao". Ex: "Carbono 1|Oxigênio 1|simples|esquerda")
+- "LIGAR_ATOMOS" (MUITO IMPORTANTE: Use este comando para interligar dois átomos. Se o jogador pedir para adicionar um átomo novo ligado em um que já existe, USE ESTE COMANDO TAMBÉM! detalhe: "Átomo A|Átomo B|Ligacao|Direcao". Ex: "Carbono|Carbono 1|simples|cima")
 - "COMPLETAR_VALENCIA", "DESVINCULAR_PECA", "EXCLUIR_PECA" (detalhe: Ex: "Carbono 1")
 - "LIMPAR_QUADRO", "LER_QUADRO", "VERIFICAR_ESTRUTURA", "CONFIRMAR_CLASSIFICACAO"
 - "DICA_DESAFIO", "TIRAR_FOTO", "DESFAZER_ACAO", "GIRAR_MOLECULAS", "ZOOM_MAIS", "ZOOM_MENOS", "ZOOM_RESET"
@@ -42,7 +42,7 @@ Ações de Quadro Estruturando (Montagem) e Ferramentas:
 - "COR_BORRACHA", "COR_VERMELHA", "COR_AZUL", "COR_AMARELA", "COR_PRETA", "COR_VERDE", "COR_CINZA"
 
 EXEMPLO DE RESPOSTA (Sempre neste formato):
-{"acao": "LIGAR_ATOMOS", "detalhe": "Carbono 1|Oxigênio 1|simples|esquerda"}
+{"acao": "LIGAR_ATOMOS", "detalhe": "Carbono|Carbono 1|simples|esquerda"}
     `;
 
     try {
