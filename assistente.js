@@ -1,7 +1,7 @@
 // ==========================================
-// ASSISTENTE DE VOZ ADÔMINES (100% COMPLETO: FÍSICA + INCLUSIVO + PINTURA)
+// ASSISTENTE DE VOZ ADÔMINES (V6 - ACESSIBILIDADE TOTAL E DADOS LOCAIS)
 // ==========================================
-let assistenteAtivo = localStorage.getItem("assistenteAtiva") !== "false"; 
+let assistenteAtivo = localStorage.getItem("assistenteAtiva") === "true"; // Inicia DESLIGADA por padrão
 let assistenteReconhecimento = null;
 let assistenteSintese = window.speechSynthesis;
 let vozAssistente = null;
@@ -13,7 +13,7 @@ let tempoPressaoEspaco = 0;
 window.falaAtual = null;
 
 // ==========================================
-// 0. CAIXA DE MENSAGEM EXCLUSIVA
+// 0. CAIXA DE MENSAGEM
 // ==========================================
 window.mostrarMensagemAssistente = function(texto, persistente = false) {
     let caixa = document.getElementById("msg-assistente-box");
@@ -30,9 +30,7 @@ window.mostrarMensagemAssistente = function(texto, persistente = false) {
     if (window.msgAssistenteTimeout) clearTimeout(window.msgAssistenteTimeout);
     
     if (!persistente) {
-        window.msgAssistenteTimeout = setTimeout(() => {
-            window.ocultarMensagemAssistente();
-        }, 4000);
+        window.msgAssistenteTimeout = setTimeout(() => { window.ocultarMensagemAssistente(); }, 4000);
     }
 };
 
@@ -45,7 +43,7 @@ window.ocultarMensagemAssistente = function() {
 };
 
 // ==========================================
-// 1. CONFIGURAÇÃO DA VOZ
+// 1. CONFIGURAÇÃO DA VOZ E MICROFONE
 // ==========================================
 function carregarVozes() {
     let vozes = assistenteSintese.getVoices();
@@ -63,8 +61,7 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     assistenteReconhecimento.interimResults = false;
 
     assistenteReconhecimento.onstart = function() {
-        let btn = document.getElementById("btnAssistente");
-        if(btn) btn.classList.add("mic-ouvindo");
+        let btn = document.getElementById("btnAssistente"); if(btn) btn.classList.add("mic-ouvindo");
     };
 
     assistenteReconhecimento.onresult = function(event) {
@@ -87,9 +84,7 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     assistenteReconhecimento.onend = function() {
         let btn = document.getElementById("btnAssistente");
         if(btn && !espacoPressionado) btn.classList.remove("mic-ouvindo");
-        if (assistenteAtivo && espacoPressionado && !estouFalando) {
-            try { assistenteReconhecimento.start(); } catch(e){}
-        }
+        if (assistenteAtivo && espacoPressionado && !estouFalando) { try { assistenteReconhecimento.start(); } catch(e){} }
     };
 }
 
@@ -132,11 +127,7 @@ function dispararBoasVindas() {
         if (assistenteSintese) assistenteSintese.resume();
         if(typeof musica !== 'undefined' && musica && musica.paused && !mutado) musica.play().catch(()=>{});
         
-        if(assistenteAtivo) {
-            falarAssistente("Olá! A assistente de voz já está ligada. Segure a tecla espaço para falar. Para desativar, dê um clique rápido na tecla espaço.");
-        } else {
-            falarAssistente("Olá! O jogo possui uma assistente. Para ativar, dê um clique rápido na tecla espaço.");
-        }
+        falarAssistente("Olá! O jogo possui uma assistente. Para ativá-la, dê um clique rápido na tecla espaço do seu teclado.");
     }
 }
 
@@ -179,30 +170,56 @@ document.addEventListener("keyup", (e) => {
     }
 });
 
+// CHECAGEM DE TELA BLOQUEADA PARA EVITAR INSERÇÕES INVISÍVEIS
+window.checagemBloqueioTela = function() {
+    let modais = document.querySelectorAll('.modal-overlay');
+    for(let m of modais) {
+        if (window.getComputedStyle(m).display !== "none") return true;
+    }
+    return false;
+}
+
 // ==========================================
-// 4. OLHO BIÔNICO
+// 4. OLHO BIÔNICO (ATUALIZADO PARA IGNORAR MODO LIVRE)
 // ==========================================
 const observadorAutomatico = new MutationObserver(() => {
     if (!assistenteAtivo || estouFalando) return;
+    let modoAtual = localStorage.getItem("modoAtual") || "livre";
+
     let modalClass = document.getElementById("modal-classificacao");
     if (modalClass && window.getComputedStyle(modalClass).display !== "none" && !modalClass.dataset.lido) {
         modalClass.dataset.lido = "true";
-        falarAssistente("A estrutura está correta! Agora, classifique a molécula para ganhar a estrela. Diga qual marcar para Cadeia, Disposição, Saturação e Natureza. Depois diga Confirmar.");
+        falarAssistente("A estrutura está correta! Agora, classifique a molécula. Diga as opções para Cadeia, Disposição, Saturação e Natureza. Depois diga Confirmar.");
         return;
     }
-    let enunciado = document.querySelector(".hud-pergunta") || document.getElementById("texto-enunciado");
-    if (enunciado && enunciado.innerText.trim().length > 5 && enunciado.dataset.ultimoLido !== enunciado.innerText) {
-        enunciado.dataset.ultimoLido = enunciado.innerText;
-        falarAssistente("A tarefa é: " + enunciado.innerText.replace("💡", ""));
+    
+    // Ignora enunciados genéricos no modo livre
+    if (modoAtual !== "livre") {
+        let enunciado = document.querySelector(".hud-pergunta") || document.getElementById("texto-enunciado");
+        if (enunciado && enunciado.innerText.trim().length > 5 && enunciado.dataset.ultimoLido !== enunciado.innerText) {
+            enunciado.dataset.ultimoLido = enunciado.innerText;
+            falarAssistente("A tarefa é: " + enunciado.innerText.replace("💡", ""));
+        }
     }
 });
 
 document.addEventListener("DOMContentLoaded", () => {
     observadorAutomatico.observe(document.body, { childList: true, subtree: true, characterData: true });
+    
+    // Leitura especial de entrada do Modo Livre
+    setTimeout(() => {
+        let modoAtual = localStorage.getItem("modoAtual") || "";
+        if (window.location.pathname.includes('estruturando') && modoAtual === "livre" && !sessionStorage.getItem("introLivreLida")) {
+            sessionStorage.setItem("introLivreLida", "true");
+            if (assistenteAtivo) {
+                falarAssistente("Se divirta criando e explorando estruturas moleculares do jeito que quiser! No modo livre, você tem total liberdade para montar, testar e reinventar combinações sem limites ou regras rígidas. Atualmente, já existem 20 estruturas registradas — mas isso é só o começo. As possibilidades são praticamente infinitas. Experimente, erre, acerte e crie algo único!");
+            }
+        }
+    }, 1500);
 });
 
 // ==========================================
-// 5. CÉREBRO LOCAL (TRADUTOR) - COM TODAS AS FUNÇÕES INCLUSIVAS E PINTURA
+// 5. CÉREBRO LOCAL 
 // ==========================================
 const normalizarVozNum = (str) => {
     let t = str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -214,7 +231,7 @@ async function processarComandoVoz(comandoOriginal) {
     const tem = (...palavras) => palavras.some(p => new RegExp('\\b' + p + '\\b', 'i').test(limpo));
 
     if (contextoAssistente) {
-        if (tem("cancela", "cancelar", "esquece", "sair", "para", "parar")) { contextoAssistente = null; return falarAssistente("Operação cancelada."); }
+        if (tem("cancela", "cancelar", "esquece", "sair", "para")) { contextoAssistente = null; return falarAssistente("Cancelado."); }
         if (contextoAssistente === "escolher_modo_estruturando_base") {
             if (tem("livre")) { contextoAssistente = null; return executarIntencao({acao: "JOGAR_ESTRUTURANDO", detalhe: "livre"}); }
             if (tem("desafio")) { contextoAssistente = "escolher_submodo_estruturando"; return falarAssistente("O modo desafio contém: fácil, médio, difícil e impossível. Qual você quer jogar?"); }
@@ -236,7 +253,7 @@ async function processarComandoVoz(comandoOriginal) {
     }
 
     // AÇÕES DE FECHAR
-    if (tem("fecha", "fechar", "sai", "sair", "esconde", "esconder", "oculta")) {
+    if (tem("fecha", "fechar", "sai", "sair", "esconde", "oculta")) {
         if (tem("configuracoes", "configura", "ajuste")) return executarIntencao({acao: "FECHAR_CONFIG"});
         if (tem("tabela", "elemento")) return executarIntencao({acao: "FECHAR_TABELA"});
         if (tem("conquista", "trofeu", "medalha")) return executarIntencao({acao: "FECHAR_CONQUISTAS"});
@@ -244,10 +261,34 @@ async function processarComandoVoz(comandoOriginal) {
         if (tem("tudo", "janela", "modal", "tutorial")) return executarIntencao({acao: "FECHAR_TUDO"});
     }
 
-    // LEITURAS DE TELA
+    // INTERAÇÃO COM O QUIMICHAT IMEDIATA ("Adômines, pergunta")
+    let ativadorRegex = /^(ad[ôo]mines|a dominis|a domines|adominis|as dominis|aldomines|o dominis|adomini|adomin|domines|dominis)\b/i;
+    if (ativadorRegex.test(limpo)) {
+        let pergunta = comandoOriginal.replace(/^(Ad[ôo]mines|A dominis|A domines|Adominis|As dominis|Aldomines|O dominis|Adomini|Adomin|Domines|Dominis)\s*/i, "").trim(); 
+        if (pergunta.length > 2) {
+            if(typeof window.abrirQuimiChat === "function") window.abrirQuimiChat(); 
+            if(typeof window.enviarPerguntaQuimiChat === "function") window.enviarPerguntaQuimiChat(pergunta, true); 
+        } else falarAssistente("Pode fazer sua pergunta de química.");
+        return;
+    }
+
+    // LEITURAS DE TELA E DADOS LOCAIS
+    if (tem("ler", "leia", "lê") && tem("tutorial")) return executarIntencao({acao: "LER_TUTORIAL"});
     if (tem("ler", "leia", "lê") && tem("tela", "tudo")) return executarIntencao({acao: "LER_TELA"});
     if (tem("ler", "leia", "lê") && tem("alternativa", "alternativas", "item", "opcoes", "resposta")) return executarIntencao({acao: "LER_ALTERNATIVAS"});
     if (tem("ler", "leia", "lê") && tem("enunciado", "pergunta", "tarefa")) return executarIntencao({acao: "LER_ENUNCIADO"});
+    
+    if (tem("quais", "qual", "que") && tem("molecula", "moleculas", "estrutura", "catalogo", "cataloguei")) return executarIntencao({acao: "LER_CATALOGO"});
+    if (tem("quais", "qual", "que") && tem("conquista", "conquistas", "trofeu", "trofeus", "consegui")) return executarIntencao({acao: "LER_CONQUISTAS"});
+    if (tem("quais", "qual", "que") && tem("atomo", "atomos", "elemento", "elementos", "disponivel", "disponiveis", "tenho")) return executarIntencao({acao: "LER_ATOMOS_DISPONIVEIS"});
+
+    // COMANDOS DE ADMINISTRAÇÃO (CHAT)
+    if (tem("comando") || tem("adm") || tem("administrador")) {
+        if (tem("platinar")) return executarIntencao({acao: "COMANDO_ADM", detalhe: "\\platinar"});
+        if (tem("catalogador")) return executarIntencao({acao: "COMANDO_ADM", detalhe: "\\catalogador"});
+        if (tem("limpar", "limpa")) return executarIntencao({acao: "COMANDO_ADM", detalhe: "\\limpar"});
+        if (tem("completar", "completa")) return executarIntencao({acao: "COMANDO_ADM", detalhe: "\\completar"});
+    }
 
     // CORES E PINTURA DO MODO INCLUSIVO
     if (tem("cor", "lapis", "pintar")) {
@@ -262,9 +303,20 @@ async function processarComandoVoz(comandoOriginal) {
     if (tem("concluir", "terminei") && tem("pintura", "desenho")) return executarIntencao({acao: "CONCLUIR_PINTURA"});
     if (tem("informacao", "dica") && tem("quimica", "inclusiva")) return executarIntencao({acao: "INFO_INCLUSIVA"});
 
-    // FÍSICA DO QUADRO E LIGAÇÕES
+    // VERIFICAÇÕES DE FÍSICA E LIGAÇÕES E TABELA PERIÓDICA
     let regexPeca = /(carbono|oxigenio|hidrogenio|nitrogenio|enxofre|fosforo|cloro|fluor|bromo|iodo)\s*(\d+)?/gi;
     let matchesPeca =[...limpo.matchAll(regexPeca)]; 
+
+    // Consultas Rápidas à Tabela Periódica
+    if (tem("quantas ligacoes", "quantas ligações") && matchesPeca.length > 0) {
+        return executarIntencao({acao: "CONSULTAR_TABELA_VOZ", detalhe: matchesPeca[0][1] ? matchesPeca[0][0].replace(matchesPeca[0][1],"").trim() + "|ligacoes" : matchesPeca[0][0] + "|ligacoes"});
+    }
+    if (tem("qual a massa", "massa atomica", "massa atômica") && matchesPeca.length > 0) {
+        return executarIntencao({acao: "CONSULTAR_TABELA_VOZ", detalhe: matchesPeca[0][1] ? matchesPeca[0][0].replace(matchesPeca[0][1],"").trim() + "|massa" : matchesPeca[0][0] + "|massa"});
+    }
+    if (tem("numero atomico", "número atômico") && matchesPeca.length > 0) {
+        return executarIntencao({acao: "CONSULTAR_TABELA_VOZ", detalhe: matchesPeca[0][1] ? matchesPeca[0][0].replace(matchesPeca[0][1],"").trim() + "|numero" : matchesPeca[0][0] + "|numero"});
+    }
 
     if (tem("liga", "ligar", "coloca", "colocar", "adiciona", "insere") && tem("ligacao") && matchesPeca.length === 1) {
         let pA = matchesPeca[0][0];
@@ -305,14 +357,19 @@ async function processarComandoVoz(comandoOriginal) {
     if (tem("gira", "girar", "rotacionar") && tem("molecula", "quadro")) return executarIntencao({acao: "GIRAR_MOLECULAS"});
     if (tem("desfazer", "desfaz", "voltar acao")) return executarIntencao({acao: "DESFAZER_ACAO"});
     
-    if (tem("abre", "abrir", "mostra", "mostrar") && tem("tutorial", "ajuda")) return executarIntencao({acao: "ABRIR_TUTORIAL"});
+    if (tem("abre", "abrir", "mostra", "mostrar") && tem("tutorial", "ajuda", "como jogar")) return executarIntencao({acao: "ABRIR_TUTORIAL"});
 
     if (tem("confirma", "verifica", "completa", "envia", "terminei") && document.getElementById("modal-classificacao") && window.getComputedStyle(document.getElementById("modal-classificacao")).display !== "none") {
         return executarIntencao({acao: "CONFIRMAR_CLASSIFICACAO"});
     }
 
     if (tem("cancela", "esquece", "deixa pra la")) return falarAssistente("Cancelado."); 
-    if (tem("verifica", "checa", "terminei a molecula", "corrigir estrutura")) return executarIntencao({acao: "VERIFICAR_ESTRUTURA"});
+    
+    // PRIORIDADE DE COMANDOS (Correções Importantes)
+    if (tem("verifica", "checa", "terminei a molecula", "corrigir estrutura", "verificar estrutura", "terminei a estrutura")) return executarIntencao({acao: "VERIFICAR_ESTRUTURA"});
+    
+    if (tem("desmuta", "liga som", "ativa som", "volta som", "tira mudo", "tirar mudo", "com som", "com audio")) return executarIntencao({acao: "DESMUTAR_SOM"});
+    if (tem("muta", "mudo", "tira som", "silencio", "desliga som", "sem som")) return executarIntencao({acao: "MUTAR_SOM"});
     
     if (tem("tira", "bater") && tem("foto", "print")) return executarIntencao({acao: "TIRAR_FOTO"});
     if (tem("dica", "ajuda", "socorro") && tem("desafio", "fase")) return executarIntencao({acao: "DICA_DESAFIO"});
@@ -321,9 +378,6 @@ async function processarComandoVoz(comandoOriginal) {
     if (tem("quantas vidas", "minhas vidas", "coracoes")) return executarIntencao({acao: "STATUS_VIDAS"});
     if (tem("quantas estrelas", "minhas estrelas")) return executarIntencao({acao: "STATUS_ESTRELAS"});
 
-    if (tem("desmuta", "liga som", "ativa som", "volta som", "tira mudo")) return executarIntencao({acao: "DESMUTAR_SOM"});
-    if (tem("muta", "mudo", "tira som", "silencio", "desliga som")) return executarIntencao({acao: "MUTAR_SOM"});
-    
     if (tem("aumenta", "mais") && tem("zoom")) return executarIntencao({acao: "ZOOM_MAIS"});
     if (tem("diminui", "menos", "tira") && tem("zoom")) return executarIntencao({acao: "ZOOM_MENOS"});
     if (tem("reseta", "zera", "centraliza") && tem("zoom", "visao")) return executarIntencao({acao: "ZOOM_RESET"});
@@ -347,16 +401,6 @@ async function processarComandoVoz(comandoOriginal) {
 
     if (tem("inicia", "iniciar", "entra", "joga", "bora", "start", "comeca")) return executarIntencao({acao: "IR_MODOS"});
 
-    let ativadorRegex = /^(adomines|a dominis|a domines|adominis|as dominis|aldomines|o dominis|ad homens|aos dominis|adomini|adomin|domines|dominis)\b/i;
-    if (ativadorRegex.test(limpo)) {
-        let pergunta = comandoOriginal.replace(/^(Ad[ôo]mines|A dominis|A domines|Adominis|As dominis|Aldomines|O dominis|Ad homens|Aos dominis|Adomini|Adomin|Domines|Dominis)\s*/i, "").trim(); 
-        if (pergunta.length > 2) {
-            if(typeof window.abrirQuimiChat === "function") window.abrirQuimiChat(); 
-            if(typeof window.enviarPerguntaQuimiChat === "function") window.enviarPerguntaQuimiChat(pergunta, true); 
-        } else falarAssistente("Pode fazer sua pergunta de química.");
-        return;
-    }
-
     mostrarMensagemAssistente("🧠 Consultando IA...", true);
     try {
         const res = await fetch(`/api/assistente`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fraseJogador: comandoOriginal }) });
@@ -369,7 +413,7 @@ async function processarComandoVoz(comandoOriginal) {
 }
 
 // ==========================================
-// 6. MOTOR DE EXECUÇÃO TOTAL (COM TODAS AS FUNÇÕES ORIGINAIS)
+// 6. MOTOR DE EXECUÇÃO TOTAL
 // ==========================================
 function executarIntencao(intencao, comandoFalado = "") {
     let acao = (intencao.acao || "DESCONHECIDO").toUpperCase();
@@ -386,9 +430,9 @@ function executarIntencao(intencao, comandoFalado = "") {
         case "DESMUTAR_SOM": if(typeof window.toggleMute === "function") window.toggleMute("desmutar"); falarAssistente("Som ativado."); break;
         case "MUTAR_SOM": if(typeof window.toggleMute === "function") window.toggleMute("mutar"); falarAssistente("Som silenciado."); break;
         case "VOLTAR": if(window.history.length > 1) window.history.back(); else window.mudarTela('index.html'); falarAssistente("Voltando."); break;
-        case "ABRIR_TABELA": if(typeof window.abrirTabelaPeriodica === "function") window.abrirTabelaPeriodica(); break;
-        case "ABRIR_CONQUISTAS": if(typeof window.abrirConquistas === "function") window.abrirConquistas(); break;
-        case "ABRIR_CHAT": if(typeof window.abrirQuimiChat === "function") window.abrirQuimiChat(); else if(typeof window.abrirChat === "function") window.abrirChat(); break;
+        case "ABRIR_TABELA": if(typeof window.abrirTabelaPeriodica === "function") window.abrirTabelaPeriodica(); falarAssistente("Tabela aberta."); break;
+        case "ABRIR_CONQUISTAS": if(typeof window.abrirConquistas === "function") window.abrirConquistas(); falarAssistente("Conquistas abertas."); break;
+        case "ABRIR_CHAT": if(typeof window.abrirQuimiChat === "function") window.abrirQuimiChat(); else if(typeof window.abrirChat === "function") window.abrirChat(); falarAssistente("Chat aberto."); break;
         
         case "ABRIR_TUTORIAL":
         case "IR_TUTORIAL":
@@ -397,6 +441,15 @@ function executarIntencao(intencao, comandoFalado = "") {
             } else if (typeof window.abrirTutorialManual === "function") {
                 window.abrirTutorialManual(); falarAssistente("Abrindo o tutorial.");
             } else { falarAssistente("Tutorial não disponível nesta tela."); }
+            break;
+
+        case "COMANDO_ADM":
+            let inputChat = document.getElementById("quimichat-input") || document.getElementById("chat-input");
+            if (inputChat) {
+               inputChat.value = detalhe;
+               if (typeof processarChat === "function") { processarChat({key: "Enter"}); falarAssistente("Comando administrador executado no chat."); }
+               else if (typeof enviarPerguntaQuimiChatInput === "function") { enviarPerguntaQuimiChatInput(); falarAssistente("Comando enviado."); }
+            } else { falarAssistente("Abra o chat antes de executar comandos de administrador."); }
             break;
 
         case "DIMINUIR_MUSICA": if(typeof window.volumeMusica === "function") window.volumeMusica((musica ? musica.volume : 1) - 0.2); falarAssistente("Volume reduzido."); break;
@@ -415,6 +468,47 @@ function executarIntencao(intencao, comandoFalado = "") {
         case "LER_TELA": if(typeof lerTelaInteira === "function") lerTelaInteira(); break;
         case "LER_ALTERNATIVAS": if(typeof lerOpcoesGlob === "function") lerOpcoesGlob(); break;
         case "LER_ENUNCIADO": { let seletores =[".hud-pergunta", "#nome-desafio-atual", ".enunciado", ".descricao"]; let achou = false; for (let s of seletores) { let el = document.querySelector(s); if (el && el.innerText.trim() !== "" && !el.innerText.includes("💡")) { falarAssistente("A tarefa é: " + el.innerText); achou = true; break; } } if (!achou) falarAssistente("Não achei um enunciado."); } break;
+        case "LER_TUTORIAL":
+           let tutText = document.getElementById("tutorial-genshin-texto");
+           let modalOverlay = document.getElementById("tutorial-genshin-overlay");
+           if (tutText && tutText.innerText.trim().length > 0 && modalOverlay && window.getComputedStyle(modalOverlay).display !== "none") {
+               falarAssistente("Lendo o tutorial: " + tutText.innerText);
+           } else { falarAssistente("Não há nenhum tutorial aberto no momento. Diga abrir tutorial para eu mostrá-lo."); }
+           break;
+        case "LER_ATOMOS_DISPONIVEIS":
+            let atomosUI = document.querySelectorAll('#lista-atomos .atomo');
+            if(atomosUI.length === 0) { falarAssistente("Nenhum átomo e ligação disponíveis nesta tela."); break; }
+            let nomesAt = Array.from(atomosUI).map(a => window.obterNomeElemento(a.dataset.sigla).nome);
+            falarAssistente(`Neste nível você pode usar ligações simples, duplas e triplas. E os átomos de: ${nomesAt.join(", ")}.`);
+            break;
+        case "LER_CATALOGO":
+            let cDesb = JSON.parse(localStorage.getItem("catalogoDesbloqueado")) ||[];
+            if(cDesb.length === 0) { falarAssistente("Você ainda não catalogou nenhuma molécula."); break; }
+            if (typeof dbCatalogo !== "undefined") {
+                let nomesCat = cDesb.map(id => { let m = dbCatalogo.find(x=>x.id===id); return m ? m.nome : ""; }).filter(Boolean);
+                falarAssistente(`Você já catalogou ${cDesb.length} de 20 moléculas no modo livre. São elas: ${nomesCat.join(", ")}.`);
+            } else { falarAssistente("Abra a tela do catálogo primeiro para eu poder ler as moléculas."); }
+            break;
+        case "LER_CONQUISTAS":
+            let cqDesb = JSON.parse(localStorage.getItem("conquistasDesbloqueadas")) ||[];
+            if (typeof listaDeConquistas !== "undefined") {
+                if (cqDesb.length === 0) return falarAssistente("Você ainda não desbloqueou nenhuma conquista. Jogue os desafios para ganhar os troféus.");
+                falarAssistente(`Você tem ${cqDesb.length} conquistas desbloqueadas de um total de ${listaDeConquistas.length}. Diga abrir conquistas para ver o painel completo.`);
+            } else { falarAssistente("Abra a tela de conquistas primeiro para eu ler os detalhes."); }
+            break;
+
+        case "CONSULTAR_TABELA_VOZ":
+            let ptsTb = detalhe.split("|"); let nomeEl = ptsTb[0]; let tipoInfo = ptsTb[1];
+            let elInfo = window.obterNomeElemento(nomeEl);
+            if (typeof elementosTabela !== "undefined") {
+                let t = elementosTabela.find(x => normalizarVozNum(x.s) === normalizarVozNum(elInfo.sigla) || normalizarVozNum(x.nome) === normalizarVozNum(elInfo.nome));
+                if (t) {
+                    if (tipoInfo === "ligacoes") falarAssistente(`O ${t.nome} faz ${t.l} ligações.`);
+                    else if (tipoInfo === "massa") falarAssistente(`A massa atômica do ${t.nome} é ${t.m} u.`);
+                    else if (tipoInfo === "numero") falarAssistente(`O número atômico do ${t.nome} é ${t.n}.`);
+                } else { falarAssistente(`Não achei o ${nomeEl} na tabela.`); }
+            } else { falarAssistente("Tabela periódica não encontrada nesta tela."); }
+            break;
             
         case "JOGAR_ESTRUTURANDO":
             let d = normalizarVozNum(detalhe);
@@ -456,13 +550,13 @@ function executarIntencao(intencao, comandoFalado = "") {
         case "CRIAR_LIGACAO": if(typeof window.adicionarLigacaoVoz === "function") window.adicionarLigacaoVoz(detalhe); break;
         
         case "ADICIONAR_LIGACAO_ATOMO":
-            let pts = detalhe.split("|");
-            if(pts.length >= 2 && typeof window.adicionarLigacaoEmAtomoVoz === "function") { window.adicionarLigacaoEmAtomoVoz(pts[0], pts[1], pts[2] || "direita"); }
+            let ptsDir = detalhe.split("|");
+            if(ptsDir.length >= 2 && typeof window.adicionarLigacaoEmAtomoVoz === "function") { window.adicionarLigacaoEmAtomoVoz(ptsDir[0], ptsDir[1], ptsDir[2] || "direita"); }
             break;
 
         case "LIGAR_ATOMOS":
-            let p = detalhe.split("|");
-            if(p.length >= 3 && typeof window.ligarAtomosVoz === "function") window.ligarAtomosVoz(p[0], p[1], p[2] || "simples"); break;
+            let pL = detalhe.split("|");
+            if(pL.length >= 3 && typeof window.ligarAtomosVoz === "function") window.ligarAtomosVoz(pL[0], pL[1], pL[2] || "simples"); break;
         
         case "COMPLETAR_VALENCIA": if(typeof window.acaoPecaVoz === "function") window.acaoPecaVoz(detalhe, "completar"); break;
         case "DESVINCULAR_PECA": if(typeof window.acaoPecaVoz === "function") window.acaoPecaVoz(detalhe, "desvincular"); break;
@@ -475,7 +569,7 @@ function executarIntencao(intencao, comandoFalado = "") {
 }
 
 // ==========================================
-// 7. FUNÇÕES DE LEGO MATEMÁTICO (ACESSIBILIDADE REAL)
+// 7. FUNÇÕES DE LEGO MATEMÁTICO E ACESSIBILIDADE
 // ==========================================
 window.obterNomeElemento = function(sigla) {
     let t = normalizarVozNum(sigla).replace(/atomo de |átomo de |um |uma /g, "").trim();
@@ -498,7 +592,7 @@ window.atualizarTagsDeVoz = function() {
 }
 
 window.encontrarPecaVoz = function(nome) {
-    window.atualizarTagsDeVoz(); // Força a etiqueta existir antes de procurar
+    window.atualizarTagsDeVoz(); 
     let q = document.getElementById("quadro-inner"); if(!q) return null;
     let p = normalizarVozNum(nome); if(!p.match(/\d+/)) p += " 1"; 
     let ats = Array.from(q.querySelectorAll('.peca-draggable.atomo'));
@@ -506,11 +600,12 @@ window.encontrarPecaVoz = function(nome) {
 }
 
 window.adicionarAtomoVoz = function(nome) {
+    if (window.checagemBloqueioTela()) return falarAssistente("Você está com uma janela ou tutorial aberto. Feche-a primeiro para mexer no quadro.");
     let q = document.getElementById("quadro-inner"); let l = document.getElementById("lista-atomos");
     if(!q || !l) return falarAssistente("Você precisa estar no modo Estruturando.");
     let i = window.obterNomeElemento(nome);
     let base = Array.from(l.querySelectorAll('.atomo')).find(a => a.dataset.sigla.toLowerCase() === i.sigla.toLowerCase());
-    if(!base) return falarAssistente(`O átomo de ${i.nome} não está disponível.`);
+    if(!base) return falarAssistente(`O átomo de ${i.nome} não existe neste nível. Diga "quais átomos estão disponíveis" para saber os que você pode usar.`);
     
     let novo = base.cloneNode(true); novo.classList.add("no-quadro"); novo.dataset.id = Date.now() + "_" + Math.floor(Math.random() * 1000); novo.dataset.noQuadro = "true"; novo.style.position = "absolute"; novo.style.zIndex = 10;
     let r = q.getBoundingClientRect(); let off = Math.floor(Math.random() * 40) - 20;
@@ -523,6 +618,7 @@ window.adicionarAtomoVoz = function(nome) {
 }
 
 window.adicionarLigacaoVoz = function(tipo) {
+    if (window.checagemBloqueioTela()) return falarAssistente("Você está com uma janela aberta. Feche-a primeiro para mexer no quadro.");
     let q = document.getElementById("quadro-inner");
     if(!q) return falarAssistente("Entre no modo Estruturando primeiro.");
     let cl = "lig-simples"; let vl = 1; let ht = '<div class="linha"></div>';
@@ -539,15 +635,15 @@ window.adicionarLigacaoVoz = function(tipo) {
     falarAssistente(`Adicionei uma ligação ${tipo} solta no quadro.`);
 }
 
-// INTELIGÊNCIA DE DIREÇÕES QUE NÃO SOBRESCREVE
 function obterPortaLivre(atomo, pref) {
     let pts = { "direita": "occR", "esquerda": "occL", "cima": "occT", "baixo": "occB" };
-    if (!atomo.dataset[pts[pref]]) return pref; // Preferência está livre
-    for (let d in pts) { if (!atomo.dataset[pts[d]]) return d; } // Acha a primeira livre
-    return null; // Tudo ocupado
+    if (!atomo.dataset[pts[pref]]) return pref; 
+    for (let d in pts) { if (!atomo.dataset[pts[d]]) return d; } 
+    return null; 
 }
 
 window.adicionarLigacaoEmAtomoVoz = function(nomeAtomo, tipo, dirDesejada) {
+    if (window.checagemBloqueioTela()) return falarAssistente("Você está com uma janela aberta. Feche-a primeiro para mexer no quadro.");
     let pA = window.encontrarPecaVoz(nomeAtomo);
     if(!pA) return falarAssistente(`Não encontrei o ${nomeAtomo} no quadro.`);
 
@@ -570,10 +666,10 @@ window.adicionarLigacaoEmAtomoVoz = function(nomeAtomo, tipo, dirDesejada) {
     if (direcao === "esquerda") {
         lig.style.left = (xA - 40) + "px"; lig.style.top = (yA + 10) + "px";
     } else if (direcao === "cima") {
-        lig.classList.add("lig-vertical"); // O Segredo que o estruturando.js precisava!
+        lig.classList.add("lig-vertical"); 
         lig.style.left = (xA + 10) + "px"; lig.style.top = (yA - 40) + "px";
     } else if (direcao === "baixo") {
-        lig.classList.add("lig-vertical"); // O Segredo que o estruturando.js precisava!
+        lig.classList.add("lig-vertical"); 
         lig.style.left = (xA + 10) + "px"; lig.style.top = (yA + 40) + "px";
     } else { 
         lig.style.left = (xA + 40) + "px"; lig.style.top = (yA + 10) + "px";
@@ -587,8 +683,8 @@ window.adicionarLigacaoEmAtomoVoz = function(nomeAtomo, tipo, dirDesejada) {
     falarAssistente(`Pronto. Coloquei uma ligação ${tipo} na ${direcao} do ${pA.dataset.idVoz}.${aviso}`);
 }
 
-// TELETRANSPORTE DO GRUPO PARA INTERLIGAR PERFEITO
 window.ligarAtomosVoz = function(nA, nB, tipo) {
+    if (window.checagemBloqueioTela()) return falarAssistente("Você está com uma janela aberta. Feche-a primeiro para mexer no quadro.");
     let pA = window.encontrarPecaVoz(nA); let pB = window.encontrarPecaVoz(nB);
     if(!pA || !pB) return falarAssistente("Não achei um dos átomos. Diga o nome e o número.");
     if(pA === pB) return falarAssistente("Não posso ligar o átomo nele mesmo.");
@@ -612,7 +708,6 @@ window.ligarAtomosVoz = function(nA, nB, tipo) {
 
     document.getElementById("quadro-inner").appendChild(lig);
 
-    // Mover o Átomo B para a outra ponta da ligação criada
     let connectX, connectY;
     if(dirA === "direita") { connectX = bondX + 40; connectY = bondY - 10; }
     else if(dirA === "esquerda") { connectX = bondX - 40; connectY = bondY - 10; }
@@ -631,12 +726,11 @@ window.ligarAtomosVoz = function(nA, nB, tipo) {
     falarAssistente(`Liguei o ${pA.dataset.idVoz} ao ${pB.dataset.idVoz} com ligação ${tipo}.`);
 }
 
-// COMPLETAR VALÊNCIA COM ATIVAÇÃO REAL DO MENU DE CONTEXTO
 window.acaoPecaVoz = function(nome, acao) {
+    if (window.checagemBloqueioTela()) return falarAssistente("Você está com uma janela aberta. Feche-a primeiro para mexer no quadro.");
     let peca = window.encontrarPecaVoz(nome);
     if(!peca) return falarAssistente(`Não achei o ${nome}.`);
     
-    // Simula o clique do usuário blindando o menu de contexto real
     window.pecaAlvoMenu = peca; 
     
     if (acao === "completar") { 
