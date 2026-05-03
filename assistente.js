@@ -1,5 +1,5 @@
 // ==========================================
-// ASSISTENTE DE VOZ ADÔMINES (V14 - CORREÇÃO DA CADEIA E INTERCEPTAÇÃO)
+// ASSISTENTE DE VOZ ADÔMINES (V15 - CADEIAS PERFEITAS E FÍSICA SEGURA)
 // ==========================================
 let assistenteAtivo = localStorage.getItem("assistenteAtiva") === "true"; 
 let assistenteReconhecimento = null;
@@ -188,6 +188,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 1500);
 });
 
+// ==========================================
+// 5. CÉREBRO LOCAL (TRADUTOR)
+// ==========================================
 const normalizarVozNum = (str) => {
     if (!str) return "";
     let t = str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -294,8 +297,8 @@ async function processarComandoVoz(comandoOriginal) {
     }
 
     // =====================================
-    // NOVIDADE: AÇÃO DE CADEIA (LOTE) ANTES DE TUDO!
-    // Ex: "Adicionar 3 carbonos ligados entre si"
+    // AÇÃO DE CADEIA (LOTE)
+    // O pulo do gato: Apenas as palavras "dupla" ou "tripla" puras ativam a ligação diferente.
     // =====================================
     let regexCadeia = /(\d+)\s*(carbono|oxigenio|hidrogenio|nitrogenio|enxofre|fosforo|cloro|fluor|bromo|iodo)s?/i;
     let matchCadeia = limpo.match(regexCadeia);
@@ -303,14 +306,14 @@ async function processarComandoVoz(comandoOriginal) {
         if (tem("cadeia", "fileira", "ligado", "ligados", "interligado", "interligados", "junto", "juntos", "conectados") || tem("cria", "adiciona", "coloca", "bota")) {
             let qtd = parseInt(matchCadeia[1]);
             let atomo = matchCadeia[2];
-            let t = "simples"; if(tem("dupla", "duas")) t="dupla"; if(tem("tripla", "tres", "três")) t="tripla";
+            let t = "simples"; if(tem("dupla")) t="dupla"; if(tem("tripla")) t="tripla";
             return executarIntencao({acao: "CRIAR_CADEIA", detalhe: `${atomo}|${qtd}|${t}`});
         }
     }
 
     if (tem("liga", "ligar", "coloca", "colocar", "adiciona", "insere") && tem("ligacao") && matchesPeca.length === 1) {
         let pA = matchesPeca[0][0];
-        let t = "simples"; if(tem("dupla", "duas")) t="dupla"; if(tem("tripla", "tres", "três")) t="tripla";
+        let t = "simples"; if(tem("dupla")) t="dupla"; if(tem("tripla")) t="tripla";
         let d = "direita"; 
         if (tem("esquerda", "atras")) d = "esquerda";
         else if (tem("cima", "acima", "topo", "em cima")) d = "cima";
@@ -320,7 +323,7 @@ async function processarComandoVoz(comandoOriginal) {
 
     if (tem("liga", "ligar", "conecta", "junta", "interliga", "une", "adiciona", "coloca") && matchesPeca.length >= 2) {
         let pA = matchesPeca[0][0]; let pB = matchesPeca[1][0];
-        let t = "simples"; if(tem("dupla", "duas")) t="dupla"; if(tem("tripla", "tres", "três")) t="tripla";
+        let t = "simples"; if(tem("dupla")) t="dupla"; if(tem("tripla")) t="tripla";
         let d = ""; 
         if (tem("esquerda", "atras")) d = "esquerda";
         else if (tem("cima", "acima", "topo", "em cima")) d = "cima";
@@ -330,7 +333,7 @@ async function processarComandoVoz(comandoOriginal) {
     }
     
     if (tem("coloca", "colocar", "cria", "crio", "adiciona", "insere") && tem("ligacao")) {
-        let t = "simples"; if(tem("dupla", "duas")) t="dupla"; if(tem("tripla", "tres")) t="tripla";
+        let t = "simples"; if(tem("dupla")) t="dupla"; if(tem("tripla")) t="tripla";
         return executarIntencao({acao: "CRIAR_LIGACAO", detalhe: t});
     }
 
@@ -732,8 +735,8 @@ window.adicionarLigacaoEmAtomoVoz = function(nomeAtomo, tipo, dirDesejada) {
     falarAssistente(`Pronto. Coloquei uma ligação ${tipo} na ${direcao} do ${pA.dataset.idVoz}.${aviso}`);
 }
 
-window.ligarAtomosVoz = function(nA, nB, tipo, dirDesejada) {
-    if (window.checagemBloqueioTela()) return falarAssistente("Feche a janela atual primeiro.");
+window.ligarAtomosVoz = function(nA, nB, tipo, dirDesejada, silencioso = false) {
+    if (window.checagemBloqueioTela()) { if(!silencioso) falarAssistente("Feche a janela atual primeiro."); return; }
     
     let pA = window.encontrarPecaVoz(nA);
     let pB = window.encontrarPecaVoz(nB);
@@ -753,6 +756,14 @@ window.ligarAtomosVoz = function(nA, nB, tipo, dirDesejada) {
         pA = ats.filter(a => window.obterNomeElemento(a.dataset.sigla).nome.toLowerCase() === nomeA.toLowerCase()).pop(); 
     }
     
+    let vl = tipo.includes("tripla") ? 3 : tipo.includes("dupla") ? 2 : 1;
+    
+    // CHECAGEM DE VALÊNCIA ANTES DE CRIAR A SEGUNDA PEÇA (IMPEDE SOBRAS)
+    if (!checarEspacoLivre(pA, vl)) {
+        if(!silencioso) falarAssistente(`O ${pA.dataset.idVoz} não tem mais ligações livres.`);
+        return;
+    }
+
     if (!pB || pA === pB) { 
         let nomeB = window.obterNomeElemento(nB).nome;
         if (!window.adicionarAtomoVoz(nomeB, true)) return;
@@ -760,11 +771,15 @@ window.ligarAtomosVoz = function(nA, nB, tipo, dirDesejada) {
         pB = ats.filter(a => window.obterNomeElemento(a.dataset.sigla).nome.toLowerCase() === nomeB.toLowerCase()).pop(); 
     }
 
-    if(!pA || !pB || pA === pB) return falarAssistente("Ocorreu um erro e não consegui montar a molécula.");
+    if(!pA || !pB || pA === pB) {
+        if(!silencioso) falarAssistente("Ocorreu um erro e não consegui montar a molécula.");
+        return;
+    }
 
-    let vl = tipo.includes("tripla") ? 3 : tipo.includes("dupla") ? 2 : 1;
-    if (!checarEspacoLivre(pA, vl)) return falarAssistente(`O ${pA.dataset.idVoz} não tem mais ligações livres.`);
-    if (!checarEspacoLivre(pB, vl)) return falarAssistente(`O ${pB.dataset.idVoz} não tem mais ligações livres.`);
+    if (!checarEspacoLivre(pB, vl)) {
+        if(!silencioso) falarAssistente(`O ${pB.dataset.idVoz} não tem mais ligações livres.`);
+        return;
+    }
 
     let pontaExistente = getPontaLivreDeLigacao(pA);
 
@@ -785,10 +800,13 @@ window.ligarAtomosVoz = function(nA, nB, tipo, dirDesejada) {
         else { if (pontaExistente.freePt.id === 'B') { bLeft = targetX - 20; bTop = targetY; } else { bLeft = targetX - 20; bTop = targetY - 40; } }
 
         moverPecaEGrupoVoz(pB, bLeft, bTop);
-        falarAssistente(`Liguei o ${pB.dataset.idVoz} ao ${pA.dataset.idVoz} usando a ligação já existente.`);
+        if(!silencioso) falarAssistente(`Liguei o ${pB.dataset.idVoz} ao ${pA.dataset.idVoz} usando a ligação já existente.`);
     } else {
         let dirA = obterPortaLivre(pA, dirDesejada || "direita");
-        if(!dirA) return falarAssistente(`O ${pA.dataset.idVoz} está com todos os lados ocupados.`);
+        if(!dirA) {
+            if(!silencioso) falarAssistente(`O ${pA.dataset.idVoz} está com todos os lados ocupados.`);
+            return;
+        }
 
         let cl = "lig-simples"; let ht = '<div class="linha"></div>';
         if(vl===2) { cl = "lig-dupla"; ht = '<div class="linha"></div><div class="linha"></div>'; }
@@ -813,7 +831,7 @@ window.ligarAtomosVoz = function(nA, nB, tipo, dirDesejada) {
         else if(dirA === "baixo") { connectX = bondX - 10; connectY = bondY + 40; }
 
         moverPecaEGrupoVoz(pB, connectX, connectY);
-        falarAssistente(`Liguei o ${pB.dataset.idVoz} na ${dirA} do ${pA.dataset.idVoz}.`);
+        if(!silencioso) falarAssistente(`Liguei o ${pB.dataset.idVoz} na ${dirA} do ${pA.dataset.idVoz}.`);
     }
 
     if(typeof window.verificarLigacoesQuimicas === "function") window.verificarLigacoesQuimicas();
@@ -834,17 +852,17 @@ window.criarCadeiaVoz = function(nomeAtomo, quantidade, tipoLigacao) {
     if(isNaN(qtd) || qtd < 2) return falarAssistente("Preciso de pelo menos dois átomos para criar uma cadeia molecular.");
     
     let nomePuro = window.obterNomeElemento(nomeAtomo).nome;
-    let primeiroCriou = window.adicionarAtomoVoz(nomePuro, true);
-    if (!primeiroCriou) return; 
     
     let atsIniciais = Array.from(document.querySelectorAll('#quadro-inner .peca-draggable.atomo'));
     let numBase = atsIniciais.filter(a => window.obterNomeElemento(a.dataset.sigla).nome.toLowerCase() === nomePuro.toLowerCase()).length;
     
+    let primeiroCriou = window.adicionarAtomoVoz(nomePuro, true);
+    if (!primeiroCriou) return; 
+    
     for(let i = 1; i < qtd; i++) {
-        let a1 = `${nomePuro} ${numBase + i - 1}`;
-        let a2 = `${nomePuro} ${numBase + i}`;
-        window.adicionarAtomoVoz(nomePuro, true); 
-        window.ligarAtomosVoz(a1, a2, tipoLigacao, "direita"); 
+        let a1 = `${nomePuro} ${numBase + i}`;
+        let a2 = `${nomePuro} ${numBase + i + 1}`;
+        window.ligarAtomosVoz(a1, a2, tipoLigacao, "direita", true); 
     }
     falarAssistente(`Pronto! Criei uma cadeia com ${qtd} átomos de ${nomePuro}.`);
 }
