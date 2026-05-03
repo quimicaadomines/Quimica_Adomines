@@ -1,5 +1,5 @@
 // ==========================================
-// ASSISTENTE DE VOZ ADÔMINES (V12 - AÇÕES EM LOTE PARA TODOS OS ÁTOMOS)
+// ASSISTENTE DE VOZ ADÔMINES (V12 - COM CRIAÇÃO DE CADEIAS E LOTE)
 // ==========================================
 let assistenteAtivo = localStorage.getItem("assistenteAtiva") === "true"; 
 let assistenteReconhecimento = null;
@@ -12,9 +12,6 @@ let espacoPressionado = false;
 let tempoPressaoEspaco = 0;
 window.falaAtual = null;
 
-// ==========================================
-// 0. CAIXA DE MENSAGEM
-// ==========================================
 window.mostrarMensagemAssistente = function(texto, persistente = false) {
     let caixa = document.getElementById("msg-assistente-box");
     if (!caixa) {
@@ -39,9 +36,6 @@ window.ocultarMensagemAssistente = function() {
     }
 };
 
-// ==========================================
-// 1. CONFIGURAÇÃO DA VOZ E MICROFONE
-// ==========================================
 function carregarVozes() {
     let vozes = assistenteSintese.getVoices();
     if(vozes.length === 0) return;
@@ -118,9 +112,6 @@ window.toggleAssistenteVoz = function(silencioso = false) {
     }
 }
 
-// ==========================================
-// 3. INICIALIZAÇÃO SILENCIOSA E ESPAÇO
-// ==========================================
 function inicializarVozSilenciosamente() {
     if (!sessionStorage.getItem("audioLiberado")) {
         sessionStorage.setItem("audioLiberado", "true");
@@ -197,9 +188,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 1500);
 });
 
-// ==========================================
-// 5. CÉREBRO LOCAL (TRADUTOR)
-// ==========================================
 const normalizarVozNum = (str) => {
     let t = str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
     return t.replace(/\bum\b/g, "1").replace(/\bdois\b/g, "2").replace(/\btres\b/g, "3").replace(/\bquatro\b/g, "4").replace(/\bcinco\b/g, "5")
@@ -250,6 +238,7 @@ async function processarComandoVoz(comandoOriginal) {
         return;
     }
 
+    // Ações Rápidas (Navegação, Leituras, etc.)
     if (tem("ler", "leia", "lê") && tem("tutorial")) return executarIntencao({acao: "LER_TUTORIAL"});
     if (tem("ler", "leia", "lê") && tem("tela", "tudo")) return executarIntencao({acao: "LER_TELA"});
     if (tem("ler", "leia", "lê") && tem("alternativa", "alternativas", "item", "opcoes", "resposta")) return executarIntencao({acao: "LER_ALTERNATIVAS"});
@@ -278,108 +267,7 @@ async function processarComandoVoz(comandoOriginal) {
     if (tem("concluir", "terminei") && tem("pintura", "desenho")) return executarIntencao({acao: "CONCLUIR_PINTURA"});
     if (tem("informacao", "dica") && tem("quimica", "inclusiva")) return executarIntencao({acao: "INFO_INCLUSIVA"});
 
-    let regexPeca = /(carbono|oxigenio|hidrogenio|nitrogenio|enxofre|fosforo|cloro|fluor|bromo|iodo)\s*(\d+)?/gi;
-    let matchesPeca =[...limpo.matchAll(regexPeca)]; 
-
-    if (tem("quantas ligacoes", "quantas ligações") && matchesPeca.length > 0) {
-        return executarIntencao({acao: "CONSULTAR_TABELA_VOZ", detalhe: matchesPeca[0][1] ? matchesPeca[0][0].replace(matchesPeca[0][1],"").trim() + "|ligacoes" : matchesPeca[0][0] + "|ligacoes"});
-    }
-    if (tem("qual a massa", "massa atomica", "massa atômica") && matchesPeca.length > 0) {
-        return executarIntencao({acao: "CONSULTAR_TABELA_VOZ", detalhe: matchesPeca[0][1] ? matchesPeca[0][0].replace(matchesPeca[0][1],"").trim() + "|massa" : matchesPeca[0][0] + "|massa"});
-    }
-    if (tem("numero atomico", "número atômico") && matchesPeca.length > 0) {
-        return executarIntencao({acao: "CONSULTAR_TABELA_VOZ", detalhe: matchesPeca[0][1] ? matchesPeca[0][0].replace(matchesPeca[0][1],"").trim() + "|numero" : matchesPeca[0][0] + "|numero"});
-    }
-
-    if (tem("liga", "ligar", "coloca", "colocar", "adiciona", "insere") && tem("ligacao") && matchesPeca.length === 1) {
-        let pA = matchesPeca[0][0];
-        let t = "simples"; if(tem("dupla", "duas")) t="dupla"; if(tem("tripla", "tres", "três")) t="tripla";
-        let d = "direita"; 
-        if (tem("esquerda", "atras")) d = "esquerda";
-        else if (tem("cima", "acima", "topo", "em cima")) d = "cima";
-        else if (tem("baixo", "abaixo", "embaixo")) d = "baixo";
-        return executarIntencao({acao: "ADICIONAR_LIGACAO_ATOMO", detalhe: `${pA}|${t}|${d}`});
-    }
-
-    if (tem("liga", "ligar", "conecta", "junta", "interliga", "une", "adiciona", "coloca") && matchesPeca.length >= 2) {
-        let pA = matchesPeca[0][0]; let pB = matchesPeca[1][0];
-        let t = "simples"; if(tem("dupla", "duas")) t="dupla"; if(tem("tripla", "tres", "três")) t="tripla";
-        let d = ""; 
-        if (tem("esquerda", "atras")) d = "esquerda";
-        else if (tem("cima", "acima", "topo", "em cima")) d = "cima";
-        else if (tem("baixo", "abaixo", "embaixo")) d = "baixo";
-        else if (tem("direita", "frente")) d = "direita";
-        return executarIntencao({acao: "LIGAR_ATOMOS", detalhe: `${pA}|${pB}|${t}|${d}`});
-    }
-    
-    if (tem("coloca", "colocar", "cria", "crio", "adiciona", "insere") && tem("ligacao")) {
-        let t = "simples"; if(tem("dupla", "duas")) t="dupla"; if(tem("tripla", "tres")) t="tripla";
-        return executarIntencao({acao: "CRIAR_LIGACAO", detalhe: t});
-    }
-
-    // AÇÕES EM LOTE (Completar, Desvincular e Excluir "TUDO")
-    if (tem("completa", "completar", "hidrogenio", "encher") && !tem("cria", "coloca")) {
-        if (tem("todos", "tudo", "geral")) return executarIntencao({acao: "COMPLETAR_VALENCIA", detalhe: "todos"});
-        if (matchesPeca.length >= 1) return executarIntencao({acao: "COMPLETAR_VALENCIA", detalhe: matchesPeca[0][0]});
-    }
-    if (tem("desvincula", "desvincular", "separa", "solta", "desconecta")) {
-        if (tem("todos", "tudo", "geral")) return executarIntencao({acao: "DESVINCULAR_PECA", detalhe: "todos"});
-        if (matchesPeca.length >= 1) return executarIntencao({acao: "DESVINCULAR_PECA", detalhe: matchesPeca[0][0]});
-    }
-    if (tem("exclui", "excluir", "apaga", "deleta", "remove", "tira")) {
-        if (tem("todos", "tudo", "geral")) return executarIntencao({acao: "EXCLUIR_PECA", detalhe: "todos"});
-        if (matchesPeca.length >= 1) return executarIntencao({acao: "EXCLUIR_PECA", detalhe: matchesPeca[0][0]});
-    }
-
-    if (tem("coloca", "colocar", "cria", "adiciona", "bota", "pega") && matchesPeca.length >= 1) {
-        return executarIntencao({acao: "CRIAR_ATOMO", detalhe: matchesPeca[0][1] || matchesPeca[0][0]}); 
-    }
-    
-    if (tem("limpa quadro", "limpar quadro", "apaga tudo", "recomecar")) return executarIntencao({acao: "LIMPAR_QUADRO"});
-    if (tem("o que tem", "ler quadro", "minhas pecas")) return executarIntencao({acao: "LER_QUADRO"});
-    if (tem("gira", "girar", "rotacionar") && tem("molecula", "quadro")) return executarIntencao({acao: "GIRAR_MOLECULAS"});
-    if (tem("desfazer", "desfaz", "voltar acao")) return executarIntencao({acao: "DESFAZER_ACAO"});
-    
-    if (tem("abre", "abrir", "mostra", "mostrar") && tem("tutorial", "ajuda", "como jogar")) return executarIntencao({acao: "ABRIR_TUTORIAL"});
-
-    if (tem("confirma", "verifica", "completa", "envia", "terminei") && document.getElementById("modal-classificacao") && window.getComputedStyle(document.getElementById("modal-classificacao")).display !== "none") {
-        return executarIntencao({acao: "CONFIRMAR_CLASSIFICACAO"});
-    }
-
-    if (tem("cancela", "esquece", "deixa pra la")) return falarAssistente("Cancelado."); 
-    
-    if (tem("verifica", "checa", "terminei a molecula", "corrigir estrutura", "verificar estrutura", "terminei a estrutura")) return executarIntencao({acao: "VERIFICAR_ESTRUTURA"});
-    
-    if (tem("desmuta", "liga som", "ativa som", "volta som", "tira mudo", "tirar mudo", "com som", "com audio")) return executarIntencao({acao: "DESMUTAR_SOM"});
-    if (tem("muta", "mudo", "tira som", "silencio", "desliga som", "sem som")) return executarIntencao({acao: "MUTAR_SOM"});
-    
-    if (tem("tira", "bater") && tem("foto", "print")) return executarIntencao({acao: "TIRAR_FOTO"});
-    if (tem("dica", "ajuda", "socorro") && tem("desafio", "fase")) return executarIntencao({acao: "DICA_DESAFIO"});
-    if (tem("quanto tempo", "tempo restante", "relogio")) return executarIntencao({acao: "STATUS_TEMPO"});
-    if (tem("quantas vidas", "minhas vidas", "coracoes")) return executarIntencao({acao: "STATUS_VIDAS"});
-    if (tem("quantas estrelas", "minhas estrelas")) return executarIntencao({acao: "STATUS_ESTRELAS"});
-    if (tem("aumenta", "mais") && tem("zoom")) return executarIntencao({acao: "ZOOM_MAIS"});
-    if (tem("diminui", "menos", "tira") && tem("zoom")) return executarIntencao({acao: "ZOOM_MENOS"});
-    if (tem("reseta", "zera", "centraliza") && tem("zoom", "visao")) return executarIntencao({acao: "ZOOM_RESET"});
-    if (tem("volta", "retorna", "anterior")) return executarIntencao({acao: "VOLTAR"});
-    if (tem("configura", "ajuste", "opcao")) return executarIntencao({acao: "ABRIR_CONFIG"});
-    if (tem("tabela periodica", "tabela", "elementos")) return executarIntencao({acao: "ABRIR_TABELA"});
-    if (tem("conquista", "trofeu")) return executarIntencao({acao: "ABRIR_CONQUISTAS"});
-    if (tem("quimichat", "chat", "conversa")) return executarIntencao({acao: "ABRIR_CHAT"});
-    if (tem("catalogo", "pokedex")) return executarIntencao({acao: "ABRIR_CATALOGO"});
-
-    if (tem("estrutura", "estruturando") || (tem("inicia", "jogar") && tem("livre", "desafio"))) {
-        contextoAssistente = "escolher_modo_estruturando_base";
-        return falarAssistente("Você quer jogar o modo livre ou o modo desafio?");
-    }
-
-    if (tem("inclusivo", "inclusao", "inclusiva")) {
-        contextoAssistente = "escolher_modo_inclusivo"; 
-        return falarAssistente("Entrar em qual nível inclusivo? Reconhecer, Relacionar ou Interpretar?");
-    }
-
-    if (tem("inicia", "iniciar", "entra", "joga", "bora", "start", "comeca")) return executarIntencao({acao: "IR_MODOS"});
-
+    // FÍSICA NO QUADRO E IA
     mostrarMensagemAssistente("🧠 Consultando IA...", true);
     try {
         const res = await fetch(`/api/assistente`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fraseJogador: comandoOriginal }) });
@@ -533,6 +421,12 @@ function executarIntencao(intencao, comandoFalado = "") {
             let pL = detalhe.split("|");
             if(pL.length >= 2 && typeof window.ligarAtomosVoz === "function") window.ligarAtomosVoz(pL[0], pL[1], pL[2] || "simples", pL[3] || ""); break;
         
+        // NOVIDADE: AÇÃO DE CRIAR MÚLTIPLOS ÁTOMOS EM CADEIA
+        case "CRIAR_CADEIA":
+            let parts = detalhe.split("|");
+            if(parts.length >= 2 && typeof window.criarCadeiaVoz === "function") window.criarCadeiaVoz(parts[0], parts[1], parts[2] || "simples"); 
+            break;
+
         case "COMPLETAR_VALENCIA": if(typeof window.acaoPecaVoz === "function") window.acaoPecaVoz(detalhe, "completar"); break;
         case "DESVINCULAR_PECA": if(typeof window.acaoPecaVoz === "function") window.acaoPecaVoz(detalhe, "desvincular"); break;
         case "EXCLUIR_PECA": if(typeof window.acaoPecaVoz === "function") window.acaoPecaVoz(detalhe, "excluir"); break;
@@ -544,7 +438,7 @@ function executarIntencao(intencao, comandoFalado = "") {
 }
 
 // ==========================================
-// 7. FÍSICA MATEMÁTICA E AÇÕES EM LOTE
+// 7. FÍSICA MATEMÁTICA E CADEIAS EM LOTE
 // ==========================================
 window.obterNomeElemento = function(sigla) {
     let t = normalizarVozNum(sigla).replace(/atomo de |átomo de |um |uma /g, "").replace(/\d+/g, "").trim();
@@ -712,7 +606,7 @@ window.ligarAtomosVoz = function(nA, nB, tipo, dirDesejada) {
 
     if (!pA) { 
         let nomeA = window.obterNomeElemento(nA).nome;
-        if (!window.adicionarAtomoVoz(nomeA, true)) return; 
+        if (!window.adicionarAtomoVoz(nomeA, true)) return;
         let ats = Array.from(document.querySelectorAll('#quadro-inner .peca-draggable.atomo'));
         pA = ats.filter(a => window.obterNomeElemento(a.dataset.sigla).nome.toLowerCase() === nomeA.toLowerCase()).pop(); 
     }
@@ -788,8 +682,31 @@ function moverPecaEGrupoVoz(peca, newLeft, newTop) {
     let curX = parseFloat(peca.style.left) || 0; let curY = parseFloat(peca.style.top) || 0;
     let diffX = newLeft - curX; let diffY = newTop - curY;
     let gId = peca.dataset.grupo;
-    let pGroup = gId ? Array.from(document.querySelectorAll(`[data-grupo="${gId}"]`)) : [peca];
+    let pGroup = gId ? Array.from(document.querySelectorAll(`[data-grupo="${gId}"]`)) :[peca];
     pGroup.forEach(g => { g.style.left = (parseFloat(g.style.left||0) + diffX) + "px"; g.style.top = (parseFloat(g.style.top||0) + diffY) + "px"; });
+}
+
+// NOVIDADE: AÇÃO DE CRIAR CADEIAS INTEIRAS EM UM ÚNICO COMANDO!
+window.criarCadeiaVoz = function(nomeAtomo, quantidade, tipoLigacao) {
+    if (window.checagemBloqueioTela()) return falarAssistente("Feche a janela atual primeiro.");
+    let qtd = parseInt(quantidade);
+    if(isNaN(qtd) || qtd < 2) return falarAssistente("Preciso de pelo menos dois átomos para criar uma cadeia molecular.");
+    
+    let nomePuro = window.obterNomeElemento(nomeAtomo).nome;
+    let primeiroCriou = window.adicionarAtomoVoz(nomePuro, true);
+    if (!primeiroCriou) return; // Se o átomo não for permitido no nível, a função acima já avisou e interrompemos.
+    
+    let atsIniciais = Array.from(document.querySelectorAll('#quadro-inner .peca-draggable.atomo'));
+    let numBase = atsIniciais.filter(a => window.obterNomeElemento(a.dataset.sigla).nome.toLowerCase() === nomePuro.toLowerCase()).length;
+    
+    for(let i = 1; i < qtd; i++) {
+        let a1 = `${nomePuro} ${numBase + i - 1}`;
+        let a2 = `${nomePuro} ${numBase + i}`;
+        window.adicionarAtomoVoz(nomePuro, true); // Cria silenciosamente
+        window.ligarAtomosVoz(a1, a2, tipoLigacao, "direita"); // Interliga o anterior com o novo na direita
+    }
+    
+    falarAssistente(`Pronto! Criei uma cadeia com ${qtd} átomos de ${nomePuro}.`);
 }
 
 // AÇÃO EM LOTE PARA VALÊNCIAS E DESVINCULAÇÕES "TODOS"
