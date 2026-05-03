@@ -43,7 +43,7 @@ Ações de Quadro Estruturando (Montagem) e Ferramentas:
 - "COR_BORRACHA", "COR_VERMELHA", "COR_AZUL", "COR_AMARELA", "COR_PRETA", "COR_VERDE", "COR_CINZA"
 
 EXEMPLO DE RESPOSTA (Sempre neste formato exato):
-{"acao": "CRIAR_CADEIA", "detalhe": "Carbono|4|simples"}
+{"acao": "LER_CONQUISTAS", "detalhe": ""}
     `;
 
     try {
