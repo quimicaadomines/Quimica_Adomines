@@ -17,7 +17,7 @@ Você DEVE obrigatoriamente responder usando APENAS o JSON, sem nenhum texto adi
 
 AÇÕES PERMITIDAS PARA O CAMPO "acao":
 - "FECHAR_CONFIG", "FECHAR_TABELA", "FECHAR_CONQUISTAS", "FECHAR_CHAT", "FECHAR_TUDO"
-- "ABRIR_CONFIG", "ABRIR_TABELA", "ABRIR_CONQUISTAS", "ABRIR_CHAT", "ABRIR_TUTORIAL", "IR_TUTORIAL", "ABRIR_CATALOGO"
+- "ABRIR_CONFIG", "ABRIR_TABELA", "ABRIR_CONQUISTAS", "ABRIR_CHAT" (Para a Inteligência Artificial), "ABRIR_ADM" (Para a tela de cheats e administrador), "ABRIR_TUTORIAL", "IR_TUTORIAL", "ABRIR_CATALOGO"
 - "DIMINUIR_MUSICA", "DIMINUIR_EFEITOS", "DESLIGAR_VISUAIS", "LIGAR_VISUAIS"
 - "TEMA_CLARO", "TEMA_ESCURO", "MUTAR_SOM", "DESMUTAR_SOM"
 - "LER_TELA", "LER_ENUNCIADO", "LER_ALTERNATIVAS", "LER_TUTORIAL", "LER_CATALOGO", "LER_CONQUISTAS", "LER_ATOMOS_DISPONIVEIS"
@@ -35,7 +35,7 @@ Ações de Quadro Estruturando (Montagem) e Ferramentas:
 - "CRIAR_LIGACAO" (detalhe: "simples", "dupla" ou "tripla")
 - "ADICIONAR_LIGACAO_ATOMO" (detalhe: "Nome do Átomo|tipo|direção". Ex: "Carbono 1|simples|esquerda")
 - "LIGAR_ATOMOS" (detalhe: "Átomo A|Átomo B|Ligacao|Direcao". Ex: "Carbono|Carbono 1|simples|cima")
-- "CRIAR_CADEIA" (MUITO IMPORTANTE: Use este comando se o jogador pedir para adicionar VÁRIOS átomos da mesma espécie em cadeia / fileira. O detalhe será "Nome do Átomo|Quantidade|tipo_de_ligacao". Ex: "Carbono|4|simples" ou "Oxigênio|3|dupla")
+- "CRIAR_CADEIA" (detalhe: "Nome do Átomo|Quantidade|tipo_de_ligacao". Ex: "Carbono|4|simples")
 - "COMPLETAR_VALENCIA", "DESVINCULAR_PECA", "EXCLUIR_PECA" (detalhe: "Carbono 1" ou "todos")
 - "LIMPAR_QUADRO", "LER_QUADRO", "VERIFICAR_ESTRUTURA", "CONFIRMAR_CLASSIFICACAO"
 - "DICA_DESAFIO", "TIRAR_FOTO", "DESFAZER_ACAO", "GIRAR_MOLECULAS", "ZOOM_MAIS", "ZOOM_MENOS", "ZOOM_RESET"
