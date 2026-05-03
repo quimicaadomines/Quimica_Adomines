@@ -1,7 +1,7 @@
 // ==========================================
-// ASSISTENTE DE VOZ ADÔMINES (V15 - PRIORIDADE MÁXIMA DE COMANDOS)
+// ASSISTENTE DE VOZ ADÔMINES (V17 - ACESSIBILIDADE TOTAL E CORREÇÕES)
 // ==========================================
-let assistenteAtivo = localStorage.getItem("assistenteAtiva") === "true"; 
+let assistenteAtivo = sessionStorage.getItem("assistenteAtiva") === "true"; // Inicia DESLIGADA ao entrar no site
 let assistenteReconhecimento = null;
 let assistenteSintese = window.speechSynthesis;
 let vozAssistente = null;
@@ -11,6 +11,26 @@ let estouFalando = false;
 let espacoPressionado = false;
 let tempoPressaoEspaco = 0;
 window.falaAtual = null;
+
+// ==========================================
+// 0. VISUAL DO MICROFONE E MENSAGENS
+// ==========================================
+window.atualizarIconeMic = function() {
+    let btn = document.getElementById("btnAssistente");
+    if (!btn) return;
+    let barra = btn.querySelector('.barra-vermelha-mic');
+    if (assistenteAtivo) {
+        if(barra) barra.remove();
+    } else {
+        if(!barra) {
+            btn.style.position = "relative";
+            let novaBarra = document.createElement("div");
+            novaBarra.className = "barra-vermelha-mic";
+            novaBarra.style.cssText = "position:absolute; top:50%; left:15%; width:70%; height:3px; background-color:#ef4444; transform:rotate(45deg); z-index:10; pointer-events:none; border-radius:2px;";
+            btn.appendChild(novaBarra);
+        }
+    }
+};
 
 window.mostrarMensagemAssistente = function(texto, persistente = false) {
     let caixa = document.getElementById("msg-assistente-box");
@@ -67,7 +87,8 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     assistenteReconhecimento.onerror = function(event) {
         if(event.error === 'not-allowed') {
             mostrarMensagemAssistente("Permissão do microfone negada.", false);
-            assistenteAtivo = false; localStorage.setItem("assistenteAtiva", "false");
+            assistenteAtivo = false; sessionStorage.setItem("assistenteAtiva", "false");
+            window.atualizarIconeMic();
             let btn = document.getElementById("btnAssistente"); if(btn) btn.classList.remove("mic-ouvindo");
         }
     };
@@ -100,14 +121,16 @@ window.falarAssistente = function(texto) {
 window.toggleAssistenteVoz = function(silencioso = false) {
     if(!silencioso && typeof tocarSomClick === "function") tocarSomClick();
     if (assistenteAtivo) {
-        assistenteAtivo = false; localStorage.setItem("assistenteAtiva", "false");
+        assistenteAtivo = false; sessionStorage.setItem("assistenteAtiva", "false");
         contextoAssistente = null; 
         try { assistenteReconhecimento.stop(); } catch(e){} 
+        window.atualizarIconeMic();
         let btn = document.getElementById("btnAssistente"); if(btn) btn.classList.remove("mic-ouvindo");
         if(!silencioso) falarAssistente("Assistente desativada.");
     } else {
-        assistenteAtivo = true; localStorage.setItem("assistenteAtiva", "true");
+        assistenteAtivo = true; sessionStorage.setItem("assistenteAtiva", "true");
         contextoAssistente = null; 
+        window.atualizarIconeMic();
         if(!silencioso) falarAssistente("Assistente ativada. Segure a tecla Espaço para falar.");
     }
 }
@@ -176,7 +199,9 @@ const observadorAutomatico = new MutationObserver(() => {
 });
 
 document.addEventListener("DOMContentLoaded", () => {
+    window.atualizarIconeMic(); // Adiciona a linha vermelha ao iniciar
     observadorAutomatico.observe(document.body, { childList: true, subtree: true, characterData: true });
+    
     setTimeout(() => {
         let modoAtual = localStorage.getItem("modoAtual") || "";
         if (window.location.pathname.includes('estruturando') && modoAtual === "livre" && !sessionStorage.getItem("introLivreLida")) {
@@ -188,6 +213,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 1500);
 });
 
+// ==========================================
+// 5. CÉREBRO LOCAL TOTALMENTE NORMALIZADO
+// ==========================================
 const normalizarVozNum = (str) => {
     if (!str) return "";
     let t = str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -203,7 +231,7 @@ async function processarComandoVoz(comandoOriginal) {
     });
 
     if (contextoAssistente) {
-        if (tem("cancela", "cancelar", "esquece", "sair", "para")) { contextoAssistente = null; return falarAssistente("Cancelado."); }
+        if (tem("cancela", "cancelar", "esquece", "esquecer", "sair", "para", "parar")) { contextoAssistente = null; return falarAssistente("Cancelado."); }
         if (contextoAssistente === "escolher_modo_estruturando_base") {
             if (tem("livre")) { contextoAssistente = null; return executarIntencao({acao: "JOGAR_ESTRUTURANDO", detalhe: "livre"}); }
             if (tem("desafio")) { contextoAssistente = "escolher_submodo_estruturando"; return falarAssistente("O modo desafio contém: fácil, médio, difícil e impossível. Qual você quer jogar?"); }
@@ -224,12 +252,23 @@ async function processarComandoVoz(comandoOriginal) {
         }
     }
 
-    if (tem("fecha", "fechar", "sai", "sair", "esconde", "oculta")) {
-        if (tem("configuracoes", "configura", "ajuste")) return executarIntencao({acao: "FECHAR_CONFIG"});
-        if (tem("tabela", "elemento")) return executarIntencao({acao: "FECHAR_TABELA"});
-        if (tem("conquista", "trofeu", "medalha")) return executarIntencao({acao: "FECHAR_CONQUISTAS"});
+    if (tem("fecha", "fechar", "sai", "sair", "esconde", "esconder", "oculta", "ocultar")) {
+        if (tem("configuracoes", "configura", "configurar", "ajuste", "ajustes")) return executarIntencao({acao: "FECHAR_CONFIG"});
+        if (tem("tabela", "elemento", "elementos")) return executarIntencao({acao: "FECHAR_TABELA"});
+        if (tem("conquista", "conquistas", "trofeu", "medalha")) return executarIntencao({acao: "FECHAR_CONQUISTAS"});
         if (tem("chat", "conversa", "quimichat", "kimichat")) return executarIntencao({acao: "FECHAR_CHAT"});
         if (tem("tudo", "janela", "modal", "tutorial")) return executarIntencao({acao: "FECHAR_TUDO"});
+    }
+
+    // AÇÕES DO TUTORIAL ABERTO
+    let modalTut = document.getElementById("tutorial-genshin-overlay");
+    if (modalTut && window.getComputedStyle(modalTut).display !== "none") {
+        if (tem("prossegue", "prosseguir", "avanca", "avancar", "proximo", "continua", "continuar", "passa", "passar", "seguir")) {
+            if(typeof window.avancarTutorialGenshin === "function") { window.avancarTutorialGenshin(); return falarAssistente("Avançando."); }
+        }
+        if (tem("conclui", "concluir", "fecha", "fechar", "termina", "terminar", "pronto", "entendi", "pular", "sair")) {
+            if(typeof window.fecharTutorialGenshin === "function") { window.fecharTutorialGenshin(); return falarAssistente("Tutorial concluído. Boa sorte no jogo!"); }
+        }
     }
 
     let ativadorQuimi = /\b(ad[oô]mines|a dominis|a domines|adominis|as dominis|aldomines|o dominis|adomini|adomin|domines|dominis|quimichat|kimichat)\b/i;
@@ -244,22 +283,26 @@ async function processarComandoVoz(comandoOriginal) {
         }
     }
 
-    if (tem("abre", "abrir", "mostra", "mostrar", "como jogar") && tem("tutorial", "ajuda", "como jogar")) return executarIntencao({acao: "ABRIR_TUTORIAL"});
-    if (tem("configura", "configurar", "ajuste", "opcao", "opcoes")) return executarIntencao({acao: "ABRIR_CONFIG"});
-    if (tem("tabela periodica", "tabela", "elementos")) return executarIntencao({acao: "ABRIR_TABELA"});
-    if (tem("conquista", "conquistas", "trofeu", "trofeus")) return executarIntencao({acao: "ABRIR_CONQUISTAS"});
-    if (tem("catalogo", "pokedex")) return executarIntencao({acao: "ABRIR_CATALOGO"});
-    if (tem("adm", "administrador", "chat de cheat", "cheats")) return executarIntencao({acao: "ABRIR_CHAT"});
-
+    // 1. LEITURAS (Maior prioridade para não confundir com abrir)
     if (tem("ler", "leia", "lê") && tem("tutorial", "ajuda")) return executarIntencao({acao: "LER_TUTORIAL"});
     if (tem("ler", "leia", "lê") && tem("tela", "tudo")) return executarIntencao({acao: "LER_TELA"});
     if (tem("ler", "leia", "lê") && tem("alternativa", "alternativas", "item", "opcoes", "resposta")) return executarIntencao({acao: "LER_ALTERNATIVAS"});
     if (tem("ler", "leia", "lê") && tem("enunciado", "pergunta", "tarefa")) return executarIntencao({acao: "LER_ENUNCIADO"});
     
-    if (tem("quais", "qual", "que", "ler", "leia") && tem("molecula", "moleculas", "estrutura", "catalogo", "cataloguei")) return executarIntencao({acao: "LER_CATALOGO"});
-    if (tem("quais", "qual", "que", "ler", "leia") && tem("conquista", "conquistas", "trofeu", "trofeus", "consegui", "desbloqueadas", "bloqueadas")) return executarIntencao({acao: "LER_CONQUISTAS"});
-    if (tem("quais", "qual", "que", "ler", "leia") && tem("atomo", "atomos", "elemento", "elementos", "disponivel", "disponiveis", "tenho")) return executarIntencao({acao: "LER_ATOMOS_DISPONIVEIS"});
+    if (tem("quais", "qual", "que", "ler", "leia", "quantas") && tem("molecula", "moleculas", "estrutura", "catalogo", "cataloguei")) return executarIntencao({acao: "LER_CATALOGO"});
+    if (tem("quais", "qual", "que", "ler", "leia", "quantas") && tem("conquista", "conquistas", "trofeu", "trofeus", "consegui", "desbloqueadas", "bloqueadas")) return executarIntencao({acao: "LER_CONQUISTAS"});
+    if (tem("quais", "qual", "que", "ler", "leia", "quantos") && tem("atomo", "atomos", "elemento", "elementos", "disponivel", "disponiveis", "tenho")) return executarIntencao({acao: "LER_ATOMOS_DISPONIVEIS"});
 
+    // 2. ABERTURA DE JANELAS E NAVEGAÇÃO
+    if (tem("abre", "abrir", "mostra", "mostrar", "como jogar") && tem("tutorial", "ajuda", "como jogar")) return executarIntencao({acao: "ABRIR_TUTORIAL"});
+    if (tem("configura", "configuracoes", "configurar", "ajuste", "ajustes", "opcao", "opcoes")) return executarIntencao({acao: "ABRIR_CONFIG"});
+    if (tem("tabela periodica", "tabela", "elementos")) return executarIntencao({acao: "ABRIR_TABELA"});
+    if (tem("conquista", "conquistas", "trofeu", "trofeus")) return executarIntencao({acao: "ABRIR_CONQUISTAS"});
+    if (tem("catalogo", "pokedex")) return executarIntencao({acao: "ABRIR_CATALOGO"});
+    if (tem("quimichat", "kimichat", "chat da ia", "inteligencia artificial")) return executarIntencao({acao: "ABRIR_CHAT"});
+    if (tem("adm", "administrador", "chat de cheat", "cheats")) return executarIntencao({acao: "ABRIR_ADM"});
+
+    // COMANDOS DE ADMINISTRAÇÃO DIRETO NA VEIA
     if (tem("comando") || tem("adm") || tem("administrador")) {
         if (tem("platinar", "platina")) return executarIntencao({acao: "COMANDO_ADM", detalhe: "\\platinar"});
         if (tem("catalogador", "catálogo completo")) return executarIntencao({acao: "COMANDO_ADM", detalhe: "\\catalogador"});
@@ -298,14 +341,14 @@ async function processarComandoVoz(comandoOriginal) {
         if (tem("cadeia", "fileira", "ligado", "ligados", "interligado", "interligados", "junto", "juntos", "conectados") || tem("cria", "criar", "adiciona", "adicionar", "coloca", "colocar")) {
             let qtd = parseInt(matchCadeia[1]);
             let atomo = matchCadeia[2];
-            let t = "simples"; if(tem("dupla")) t="dupla"; if(tem("tripla")) t="tripla";
+            let t = "simples"; if(tem("dupla", "duas")) t="dupla"; if(tem("tripla", "tres", "três")) t="tripla";
             return executarIntencao({acao: "CRIAR_CADEIA", detalhe: `${atomo}|${qtd}|${t}`});
         }
     }
 
     if (tem("liga", "ligar", "coloca", "colocar", "adiciona", "adicionar", "insere", "inserir") && tem("ligacao", "ligação") && matchesPeca.length === 1) {
         let pA = matchesPeca[0][0];
-        let t = "simples"; if(tem("dupla")) t="dupla"; if(tem("tripla")) t="tripla";
+        let t = "simples"; if(tem("dupla", "duas")) t="dupla"; if(tem("tripla", "tres", "três")) t="tripla";
         let d = "direita"; 
         if (tem("esquerda", "atras")) d = "esquerda";
         else if (tem("cima", "acima", "topo", "em cima")) d = "cima";
@@ -315,7 +358,7 @@ async function processarComandoVoz(comandoOriginal) {
 
     if (tem("liga", "ligar", "conecta", "conectar", "junta", "juntar", "interliga", "interligar", "une", "unir", "adiciona", "adicionar", "coloca", "colocar") && matchesPeca.length >= 2) {
         let pA = matchesPeca[0][0]; let pB = matchesPeca[1][0];
-        let t = "simples"; if(tem("dupla")) t="dupla"; if(tem("tripla")) t="tripla";
+        let t = "simples"; if(tem("dupla", "duas")) t="dupla"; if(tem("tripla", "tres", "três")) t="tripla";
         let d = ""; 
         if (tem("esquerda", "atras")) d = "esquerda";
         else if (tem("cima", "acima", "topo", "em cima")) d = "cima";
@@ -325,7 +368,7 @@ async function processarComandoVoz(comandoOriginal) {
     }
     
     if (tem("coloca", "colocar", "cria", "criar", "adiciona", "adicionar", "insere", "inserir") && tem("ligacao", "ligação")) {
-        let t = "simples"; if(tem("dupla")) t="dupla"; if(tem("tripla")) t="tripla";
+        let t = "simples"; if(tem("dupla", "duas")) t="dupla"; if(tem("tripla", "tres", "três")) t="tripla";
         return executarIntencao({acao: "CRIAR_LIGACAO", detalhe: t});
     }
 
@@ -365,6 +408,10 @@ async function processarComandoVoz(comandoOriginal) {
     
     if (tem("modo escuro", "tema escuro", "noturno", "escuro")) return executarIntencao({acao: "TEMA_ESCURO"});
     if (tem("modo claro", "tema claro", "dia", "claro")) return executarIntencao({acao: "TEMA_CLARO"});
+    if (tem("desliga", "desligar", "tira", "tirar", "desativa", "desativar") && tem("efeito", "efeitos", "visuais", "visual")) return executarIntencao({acao: "DESLIGAR_VISUAIS"});
+    if (tem("liga", "ligar", "coloca", "colocar", "ativa", "ativar") && tem("efeito", "efeitos", "visuais", "visual")) return executarIntencao({acao: "LIGAR_VISUAIS"});
+    if (tem("abaixa", "abaixar", "diminui", "diminuir", "reduz", "reduzir", "menos") && tem("musica", "som", "volume")) return executarIntencao({acao: "DIMINUIR_MUSICA"});
+    if (tem("abaixa", "abaixar", "diminui", "diminuir", "reduz", "reduzir", "menos") && tem("efeito", "efeitos")) return executarIntencao({acao: "DIMINUIR_EFEITOS"});
 
     if (tem("tira", "tirar", "bater") && tem("foto", "print")) return executarIntencao({acao: "TIRAR_FOTO"});
     if (tem("dica", "ajuda", "socorro") && tem("desafio", "fase", "molecula")) return executarIntencao({acao: "DICA_DESAFIO"});
@@ -378,23 +425,17 @@ async function processarComandoVoz(comandoOriginal) {
     
     if (tem("volta", "voltar", "retorna", "retornar", "anterior")) return executarIntencao({acao: "VOLTAR"});
 
-    // =====================================
-    // PRIORIDADE DE MODOS (AGORA É BLINDADA!)
-    // =====================================
-    if (tem("estruturando") || limpo.includes("estruturando") || (tem("modo", "jogar", "iniciar", "entrar", "ir") && tem("livre", "desafio"))) {
+    if ((tem("modo", "inicia", "iniciar", "joga", "jogar", "entra", "entrar", "abre", "abrir") && tem("estruturando")) || (tem("inicia", "iniciar", "joga", "jogar") && tem("livre", "desafio"))) {
         contextoAssistente = "escolher_modo_estruturando_base";
         return falarAssistente("Você quer jogar o modo livre ou o modo desafio?");
     }
 
-    if (tem("inclusivo", "inclusao", "inclusiva") || limpo.includes("inclusiv")) {
+    if ((tem("modo", "inicia", "iniciar", "joga", "jogar", "entra", "entrar") && tem("inclusivo", "inclusao", "inclusiva"))) {
         contextoAssistente = "escolher_modo_inclusivo"; 
         return falarAssistente("Entrar em qual nível inclusivo? Reconhecer, Relacionar ou Interpretar?");
     }
 
-    // "IR MODOS" GENÉRICO FICA NO FINAL PARA NÃO ATRAPALHAR OS MODOS ESPECÍFICOS
-    if (tem("inicia", "iniciar", "entra", "entrar", "joga", "jogar", "bora", "start", "comeca", "começar", "partiu")) {
-        return executarIntencao({acao: "IR_MODOS"});
-    }
+    if (tem("inicia", "iniciar", "entra", "entrar", "joga", "jogar", "bora", "start", "comeca", "começar", "partiu")) return executarIntencao({acao: "IR_MODOS"});
 
     mostrarMensagemAssistente("🧠 Consultando IA...", true);
     try {
@@ -427,8 +468,16 @@ function executarIntencao(intencao, comandoFalado = "") {
         case "VOLTAR": if(window.history.length > 1) window.history.back(); else window.mudarTela('index.html'); falarAssistente("Voltando."); break;
         case "ABRIR_TABELA": if(typeof window.abrirTabelaPeriodica === "function") window.abrirTabelaPeriodica(); falarAssistente("Tabela aberta."); break;
         case "ABRIR_CONQUISTAS": if(typeof window.abrirConquistas === "function") window.abrirConquistas(); falarAssistente("Conquistas abertas."); break;
-        case "ABRIR_CHAT": if(typeof window.abrirQuimiChat === "function") window.abrirQuimiChat(); else if(typeof window.abrirChat === "function") window.abrirChat(); falarAssistente("Chat aberto."); break;
         
+        case "ABRIR_CHAT": 
+            if(typeof window.abrirQuimiChat === "function") window.abrirQuimiChat(); 
+            falarAssistente("QuimiChat aberto."); 
+            break;
+        case "ABRIR_ADM": 
+            if(typeof window.abrirChat === "function") window.abrirChat(); 
+            falarAssistente("Painel administrador aberto."); 
+            break;
+
         case "ABRIR_TUTORIAL":
         case "IR_TUTORIAL":
             if(typeof window.abrirNovoTutorial === "function") { window.abrirNovoTutorial(); falarAssistente("Abrindo o tutorial."); } 
@@ -437,27 +486,12 @@ function executarIntencao(intencao, comandoFalado = "") {
             break;
 
         case "COMANDO_ADM":
-            if (detalhe === "\\platinar" || detalhe === "platinar") {
-                if(typeof listaDeConquistas !== "undefined") {
-                    listaDeConquistas.forEach(c => { if(typeof desbloquearConquista === "function") desbloquearConquista(c.id, true); }); 
-                    if(typeof verificarPlatina === "function") verificarPlatina();
-                    falarAssistente("Cheats ativados. Todas as conquistas foram desbloqueadas.");
-                }
-            } else if (detalhe === "\\catalogador" || detalhe === "catalogador") {
-                let dbIds =[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20];
-                localStorage.setItem("catalogoDesbloqueado", JSON.stringify(dbIds)); 
-                if(typeof window.verificarCatalogador === "function") window.verificarCatalogador();
-                falarAssistente("Cheats ativados. Catálogo completo desbloqueado.");
-            } else if (detalhe === "\\limpar" || detalhe === "limpar" || detalhe === "resetar") {
-                localStorage.removeItem("conquistasDesbloqueadas"); localStorage.removeItem("catalogoDesbloqueado");
-                localStorage.removeItem("platinado"); localStorage.removeItem("catalogador");
-                if(typeof renderizarTrofeus === "function") renderizarTrofeus(); 
-                if(typeof renderizarConquistas === "function") renderizarConquistas();
-                falarAssistente("Dados resetados com sucesso.");
-            } else if (detalhe === "\\completar" || detalhe === "completar") {
-                if(typeof window.cheatCompletarFase === "function") { window.cheatCompletarFase(); falarAssistente("Fase completada via atalho."); }
-                else falarAssistente("Este atalho só funciona dentro de um desafio.");
-            }
+            let inputChat = document.getElementById("quimichat-input") || document.getElementById("chat-input");
+            if (inputChat) {
+               inputChat.value = detalhe;
+               if (typeof processarChat === "function") { processarChat({key: "Enter"}); falarAssistente("Comando administrador executado no chat."); }
+               else if (typeof enviarPerguntaQuimiChatInput === "function") { enviarPerguntaQuimiChatInput(); falarAssistente("Comando enviado."); }
+            } else { falarAssistente("Abra o chat ADM ou QuimiChat antes de executar comandos."); }
             break;
 
         case "DIMINUIR_MUSICA": if(typeof window.volumeMusica === "function") window.volumeMusica((musica ? musica.volume : 1) - 0.2); falarAssistente("Volume reduzido."); break;
