@@ -1,5 +1,5 @@
 // ==========================================
-// ASSISTENTE DE VOZ ADÔMINES (V15 - CADEIAS PERFEITAS E FÍSICA SEGURA)
+// ASSISTENTE DE VOZ ADÔMINES (V16 - DICIONÁRIO BLINDADO E VERBOS CORRIGIDOS)
 // ==========================================
 let assistenteAtivo = localStorage.getItem("assistenteAtiva") === "true"; 
 let assistenteReconhecimento = null;
@@ -188,9 +188,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 1500);
 });
 
-// ==========================================
-// 5. CÉREBRO LOCAL (TRADUTOR)
-// ==========================================
 const normalizarVozNum = (str) => {
     if (!str) return "";
     let t = str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -206,17 +203,17 @@ async function processarComandoVoz(comandoOriginal) {
     });
 
     if (contextoAssistente) {
-        if (tem("cancela", "cancelar", "esquece", "sair", "para")) { contextoAssistente = null; return falarAssistente("Cancelado."); }
+        if (tem("cancela", "cancelar", "esquece", "esquecer", "sair", "para", "parar")) { contextoAssistente = null; return falarAssistente("Cancelado."); }
         if (contextoAssistente === "escolher_modo_estruturando_base") {
             if (tem("livre")) { contextoAssistente = null; return executarIntencao({acao: "JOGAR_ESTRUTURANDO", detalhe: "livre"}); }
             if (tem("desafio")) { contextoAssistente = "escolher_submodo_estruturando"; return falarAssistente("O modo desafio contém: fácil, médio, difícil e impossível. Qual você quer jogar?"); }
             return falarAssistente("Por favor, responda livre ou desafio.");
         }
         if (contextoAssistente === "escolher_submodo_estruturando") {
-            if (tem("facil")) { contextoAssistente = null; return executarIntencao({acao: "JOGAR_ESTRUTURANDO", detalhe: "facil"}); }
-            if (tem("medio", "media")) { contextoAssistente = null; return executarIntencao({acao: "JOGAR_ESTRUTURANDO", detalhe: "medio"}); }
-            if (tem("dificil")) { contextoAssistente = null; return executarIntencao({acao: "JOGAR_ESTRUTURANDO", detalhe: "dificil"}); }
-            if (tem("impossivel")) { contextoAssistente = null; return executarIntencao({acao: "JOGAR_ESTRUTURANDO", detalhe: "impossivel"}); }
+            if (tem("facil", "fácil")) { contextoAssistente = null; return executarIntencao({acao: "JOGAR_ESTRUTURANDO", detalhe: "facil"}); }
+            if (tem("medio", "media", "médio")) { contextoAssistente = null; return executarIntencao({acao: "JOGAR_ESTRUTURANDO", detalhe: "medio"}); }
+            if (tem("dificil", "difícil")) { contextoAssistente = null; return executarIntencao({acao: "JOGAR_ESTRUTURANDO", detalhe: "dificil"}); }
+            if (tem("impossivel", "impossível")) { contextoAssistente = null; return executarIntencao({acao: "JOGAR_ESTRUTURANDO", detalhe: "impossivel"}); }
             return falarAssistente("Diga um nível válido: fácil, médio, difícil ou impossível.");
         }
         if (contextoAssistente === "escolher_modo_inclusivo") {
@@ -227,10 +224,10 @@ async function processarComandoVoz(comandoOriginal) {
         }
     }
 
-    if (tem("fecha", "fechar", "sai", "sair", "esconde", "oculta")) {
-        if (tem("configuracoes", "configura", "ajuste")) return executarIntencao({acao: "FECHAR_CONFIG"});
-        if (tem("tabela", "elemento")) return executarIntencao({acao: "FECHAR_TABELA"});
-        if (tem("conquista", "trofeu", "medalha")) return executarIntencao({acao: "FECHAR_CONQUISTAS"});
+    if (tem("fecha", "fechar", "sai", "sair", "esconde", "esconder", "oculta", "ocultar")) {
+        if (tem("configuracoes", "configura", "configurar", "ajuste", "ajustes")) return executarIntencao({acao: "FECHAR_CONFIG"});
+        if (tem("tabela", "elemento", "elementos")) return executarIntencao({acao: "FECHAR_TABELA"});
+        if (tem("conquista", "conquistas", "trofeu", "medalha")) return executarIntencao({acao: "FECHAR_CONQUISTAS"});
         if (tem("chat", "conversa", "quimichat", "kimichat")) return executarIntencao({acao: "FECHAR_CHAT"});
         if (tem("tudo", "janela", "modal", "tutorial")) return executarIntencao({acao: "FECHAR_TUDO"});
     }
@@ -247,23 +244,25 @@ async function processarComandoVoz(comandoOriginal) {
         }
     }
 
-    if (tem("inicia", "iniciar", "entra", "entrar", "joga", "jogar", "bora", "start", "comeca")) return executarIntencao({acao: "IR_MODOS"});
+    // NAVEGAÇÃO E ABERTURA
     if (tem("abre", "abrir", "mostra", "mostrar", "como jogar") && tem("tutorial", "ajuda", "como jogar")) return executarIntencao({acao: "ABRIR_TUTORIAL"});
-    if (tem("configura", "ajuste", "opcao")) return executarIntencao({acao: "ABRIR_CONFIG"});
+    if (tem("configura", "configurar", "ajuste", "opcao", "opcoes")) return executarIntencao({acao: "ABRIR_CONFIG"});
     if (tem("tabela periodica", "tabela", "elementos")) return executarIntencao({acao: "ABRIR_TABELA"});
-    if (tem("conquista", "conquistas", "trofeu")) return executarIntencao({acao: "ABRIR_CONQUISTAS"});
+    if (tem("conquista", "conquistas", "trofeu", "trofeus")) return executarIntencao({acao: "ABRIR_CONQUISTAS"});
     if (tem("catalogo", "pokedex")) return executarIntencao({acao: "ABRIR_CATALOGO"});
     if (tem("adm", "administrador", "chat de cheat", "cheats")) return executarIntencao({acao: "ABRIR_CHAT"});
 
+    // LEITURAS DE TELA E DADOS LOCAIS
     if (tem("ler", "leia", "lê") && tem("tutorial", "ajuda")) return executarIntencao({acao: "LER_TUTORIAL"});
     if (tem("ler", "leia", "lê") && tem("tela", "tudo")) return executarIntencao({acao: "LER_TELA"});
     if (tem("ler", "leia", "lê") && tem("alternativa", "alternativas", "item", "opcoes", "resposta")) return executarIntencao({acao: "LER_ALTERNATIVAS"});
     if (tem("ler", "leia", "lê") && tem("enunciado", "pergunta", "tarefa")) return executarIntencao({acao: "LER_ENUNCIADO"});
     
-    if (tem("quais", "qual", "que", "ler") && tem("molecula", "moleculas", "estrutura", "catalogo", "cataloguei")) return executarIntencao({acao: "LER_CATALOGO"});
-    if (tem("quais", "qual", "que", "ler") && tem("conquista", "conquistas", "trofeu", "trofeus", "consegui", "desbloqueadas", "bloqueadas")) return executarIntencao({acao: "LER_CONQUISTAS"});
-    if (tem("quais", "qual", "que", "ler") && tem("atomo", "atomos", "elemento", "elementos", "disponivel", "disponiveis", "tenho")) return executarIntencao({acao: "LER_ATOMOS_DISPONIVEIS"});
+    if (tem("quais", "qual", "que", "ler", "leia") && tem("molecula", "moleculas", "estrutura", "catalogo", "cataloguei")) return executarIntencao({acao: "LER_CATALOGO"});
+    if (tem("quais", "qual", "que", "ler", "leia") && tem("conquista", "conquistas", "trofeu", "trofeus", "consegui", "desbloqueadas", "bloqueadas")) return executarIntencao({acao: "LER_CONQUISTAS"});
+    if (tem("quais", "qual", "que", "ler", "leia") && tem("atomo", "atomos", "elemento", "elementos", "disponivel", "disponiveis", "tenho")) return executarIntencao({acao: "LER_ATOMOS_DISPONIVEIS"});
 
+    // COMANDOS DE ADMINISTRAÇÃO DIRETO NA VEIA
     if (tem("comando") || tem("adm") || tem("administrador")) {
         if (tem("platinar", "platina")) return executarIntencao({acao: "COMANDO_ADM", detalhe: "\\platinar"});
         if (tem("catalogador", "catálogo completo")) return executarIntencao({acao: "COMANDO_ADM", detalhe: "\\catalogador"});
@@ -271,7 +270,7 @@ async function processarComandoVoz(comandoOriginal) {
         if (tem("completar", "completa", "pular fase")) return executarIntencao({acao: "COMANDO_ADM", detalhe: "\\completar"});
     }
 
-    if (tem("cor", "lapis", "pintar")) {
+    if (tem("cor", "cores", "lapis", "pintar", "pinta")) {
         if (tem("borracha", "apagar", "transparente")) return executarIntencao({acao: "COR_BORRACHA"});
         if (tem("vermelho", "vermelha")) return executarIntencao({acao: "COR_VERMELHA"});
         if (tem("azul")) return executarIntencao({acao: "COR_AZUL"});
@@ -280,40 +279,39 @@ async function processarComandoVoz(comandoOriginal) {
         if (tem("verde")) return executarIntencao({acao: "COR_VERDE"});
         if (tem("cinza")) return executarIntencao({acao: "COR_CINZA"});
     }
-    if (tem("concluir", "terminei") && tem("pintura", "desenho")) return executarIntencao({acao: "CONCLUIR_PINTURA"});
+    if (tem("concluir", "conclui", "terminei") && tem("pintura", "desenho")) return executarIntencao({acao: "CONCLUIR_PINTURA"});
     if (tem("informacao", "dica") && tem("quimica", "inclusiva")) return executarIntencao({acao: "INFO_INCLUSIVA"});
 
     let regexPeca = /(carbono|oxigenio|hidrogenio|nitrogenio|enxofre|fosforo|cloro|fluor|bromo|iodo)\s*(\d+)?/gi;
     let matchesPeca =[...limpo.matchAll(regexPeca)]; 
 
-    if (tem("quantas", "quantidade") && tem("ligacao", "ligacoes") && matchesPeca.length > 0) {
+    if (tem("quantas", "quantidade") && tem("ligacao", "ligacoes", "ligações") && matchesPeca.length > 0) {
         return executarIntencao({acao: "CONSULTAR_TABELA_VOZ", detalhe: matchesPeca[0][1] ? matchesPeca[0][0].replace(matchesPeca[0][1],"").trim() + "|ligacoes" : matchesPeca[0][0] + "|ligacoes"});
     }
     if (tem("qual", "que") && tem("massa") && matchesPeca.length > 0) {
         return executarIntencao({acao: "CONSULTAR_TABELA_VOZ", detalhe: matchesPeca[0][1] ? matchesPeca[0][0].replace(matchesPeca[0][1],"").trim() + "|massa" : matchesPeca[0][0] + "|massa"});
     }
-    if (tem("qual", "numero atomico") && matchesPeca.length > 0) {
+    if (tem("qual", "numero atomico", "número atômico") && matchesPeca.length > 0) {
         return executarIntencao({acao: "CONSULTAR_TABELA_VOZ", detalhe: matchesPeca[0][1] ? matchesPeca[0][0].replace(matchesPeca[0][1],"").trim() + "|numero" : matchesPeca[0][0] + "|numero"});
     }
 
     // =====================================
     // AÇÃO DE CADEIA (LOTE)
-    // O pulo do gato: Apenas as palavras "dupla" ou "tripla" puras ativam a ligação diferente.
     // =====================================
     let regexCadeia = /(\d+)\s*(carbono|oxigenio|hidrogenio|nitrogenio|enxofre|fosforo|cloro|fluor|bromo|iodo)s?/i;
     let matchCadeia = limpo.match(regexCadeia);
     if (matchCadeia && parseInt(matchCadeia[1]) >= 2) {
-        if (tem("cadeia", "fileira", "ligado", "ligados", "interligado", "interligados", "junto", "juntos", "conectados") || tem("cria", "adiciona", "coloca", "bota")) {
+        if (tem("cadeia", "fileira", "ligado", "ligados", "interligado", "interligados", "junto", "juntos", "conectados") || tem("cria", "criar", "adiciona", "adicionar", "coloca", "colocar")) {
             let qtd = parseInt(matchCadeia[1]);
             let atomo = matchCadeia[2];
-            let t = "simples"; if(tem("dupla")) t="dupla"; if(tem("tripla")) t="tripla";
+            let t = "simples"; if(tem("dupla", "duas")) t="dupla"; if(tem("tripla", "tres", "três")) t="tripla";
             return executarIntencao({acao: "CRIAR_CADEIA", detalhe: `${atomo}|${qtd}|${t}`});
         }
     }
 
-    if (tem("liga", "ligar", "coloca", "colocar", "adiciona", "insere") && tem("ligacao") && matchesPeca.length === 1) {
+    if (tem("liga", "ligar", "coloca", "colocar", "adiciona", "adicionar", "insere", "inserir") && tem("ligacao", "ligação") && matchesPeca.length === 1) {
         let pA = matchesPeca[0][0];
-        let t = "simples"; if(tem("dupla")) t="dupla"; if(tem("tripla")) t="tripla";
+        let t = "simples"; if(tem("dupla", "duas")) t="dupla"; if(tem("tripla", "tres", "três")) t="tripla";
         let d = "direita"; 
         if (tem("esquerda", "atras")) d = "esquerda";
         else if (tem("cima", "acima", "topo", "em cima")) d = "cima";
@@ -321,9 +319,9 @@ async function processarComandoVoz(comandoOriginal) {
         return executarIntencao({acao: "ADICIONAR_LIGACAO_ATOMO", detalhe: `${pA}|${t}|${d}`});
     }
 
-    if (tem("liga", "ligar", "conecta", "junta", "interliga", "une", "adiciona", "coloca") && matchesPeca.length >= 2) {
+    if (tem("liga", "ligar", "conecta", "conectar", "junta", "juntar", "interliga", "interligar", "une", "unir", "adiciona", "adicionar", "coloca", "colocar") && matchesPeca.length >= 2) {
         let pA = matchesPeca[0][0]; let pB = matchesPeca[1][0];
-        let t = "simples"; if(tem("dupla")) t="dupla"; if(tem("tripla")) t="tripla";
+        let t = "simples"; if(tem("dupla", "duas")) t="dupla"; if(tem("tripla", "tres", "três")) t="tripla";
         let d = ""; 
         if (tem("esquerda", "atras")) d = "esquerda";
         else if (tem("cima", "acima", "topo", "em cima")) d = "cima";
@@ -332,64 +330,73 @@ async function processarComandoVoz(comandoOriginal) {
         return executarIntencao({acao: "LIGAR_ATOMOS", detalhe: `${pA}|${pB}|${t}|${d}`});
     }
     
-    if (tem("coloca", "colocar", "cria", "crio", "adiciona", "insere") && tem("ligacao")) {
-        let t = "simples"; if(tem("dupla")) t="dupla"; if(tem("tripla")) t="tripla";
+    if (tem("coloca", "colocar", "cria", "criar", "adiciona", "adicionar", "insere", "inserir") && tem("ligacao", "ligação")) {
+        let t = "simples"; if(tem("dupla", "duas")) t="dupla"; if(tem("tripla", "tres", "três")) t="tripla";
         return executarIntencao({acao: "CRIAR_LIGACAO", detalhe: t});
     }
 
-    if (tem("completa", "completar", "hidrogenio", "encher") && !tem("cria", "coloca")) {
+    if (tem("completa", "completar", "hidrogenio", "encher", "preenche", "preencher") && !tem("cria", "criar", "coloca", "colocar")) {
         if (tem("todos", "tudo", "geral")) return executarIntencao({acao: "COMPLETAR_VALENCIA", detalhe: "todos"});
         if (matchesPeca.length >= 1) return executarIntencao({acao: "COMPLETAR_VALENCIA", detalhe: matchesPeca[0][0]});
     }
-    if (tem("desvincula", "desvincular", "separa", "solta", "desconecta")) {
+    if (tem("desvincula", "desvincular", "separa", "separar", "solta", "soltar", "desconecta", "desconectar")) {
         if (tem("todos", "tudo", "geral")) return executarIntencao({acao: "DESVINCULAR_PECA", detalhe: "todos"});
         if (matchesPeca.length >= 1) return executarIntencao({acao: "DESVINCULAR_PECA", detalhe: matchesPeca[0][0]});
     }
-    if (tem("exclui", "excluir", "apaga", "deleta", "remove", "tira")) {
+    if (tem("exclui", "excluir", "apaga", "apagar", "deleta", "deletar", "remove", "remover", "tira", "tirar")) {
         if (tem("todos", "tudo", "geral")) return executarIntencao({acao: "EXCLUIR_PECA", detalhe: "todos"});
         if (matchesPeca.length >= 1) return executarIntencao({acao: "EXCLUIR_PECA", detalhe: matchesPeca[0][0]});
     }
-    if (tem("coloca", "colocar", "cria", "adiciona", "bota", "pega") && matchesPeca.length >= 1) {
+    if (tem("coloca", "colocar", "cria", "criar", "adiciona", "adicionar", "bota", "botar", "pega", "pegar") && matchesPeca.length >= 1) {
         return executarIntencao({acao: "CRIAR_ATOMO", detalhe: matchesPeca[0][1] || matchesPeca[0][0]}); 
     }
     
-    if (tem("limpa quadro", "limpar quadro", "apaga tudo", "recomecar")) return executarIntencao({acao: "LIMPAR_QUADRO"});
-    if (tem("o que tem", "ler quadro", "minhas pecas")) return executarIntencao({acao: "LER_QUADRO"});
-    if (tem("gira", "girar", "rotacionar") && tem("molecula", "quadro")) return executarIntencao({acao: "GIRAR_MOLECULAS"});
-    if (tem("desfazer", "desfaz", "voltar acao")) return executarIntencao({acao: "DESFAZER_ACAO"});
+    if (tem("limpa quadro", "limpar quadro", "apaga tudo", "apagar tudo", "recomecar", "recomeçar")) return executarIntencao({acao: "LIMPAR_QUADRO"});
+    if (tem("o que tem", "ler quadro", "minhas pecas", "minhas peças", "minha estrutura")) return executarIntencao({acao: "LER_QUADRO"});
+    if (tem("gira", "girar", "rotaciona", "rotacionar") && tem("molecula", "quadro", "ligacao", "ligação")) return executarIntencao({acao: "GIRAR_MOLECULAS"});
+    if (tem("desfazer", "desfaz", "voltar acao", "voltar ação")) return executarIntencao({acao: "DESFAZER_ACAO"});
 
-    if (tem("confirma", "verifica", "completa", "envia", "terminei") && document.getElementById("modal-classificacao") && window.getComputedStyle(document.getElementById("modal-classificacao")).display !== "none") {
+    if (tem("confirma", "confirmar", "verifica", "verificar", "completa", "completar", "envia", "enviar", "terminei") && document.getElementById("modal-classificacao") && window.getComputedStyle(document.getElementById("modal-classificacao")).display !== "none") {
         return executarIntencao({acao: "CONFIRMAR_CLASSIFICACAO"});
     }
 
-    if (tem("cancela", "esquece", "deixa pra la")) return falarAssistente("Cancelado."); 
-    if (tem("verifica", "checa", "terminei a molecula", "corrigir estrutura", "verificar estrutura", "terminei a estrutura")) return executarIntencao({acao: "VERIFICAR_ESTRUTURA"});
+    if (tem("cancela", "cancelar", "esquece", "esquecer", "deixa pra la")) return falarAssistente("Cancelado."); 
     
-    if (tem("desmuta", "liga som", "ativa som", "volta som", "tira mudo", "tirar mudo", "com som", "com audio")) return executarIntencao({acao: "DESMUTAR_SOM"});
-    if (tem("muta", "mudo", "tira som", "silencio", "desliga som", "sem som")) return executarIntencao({acao: "MUTAR_SOM"});
+    // CORREÇÃO DO "VERIFICAR ESTRUTURA" -> Ele verifica aqui para não cair na linha de baixo de jogar.
+    if (tem("verifica", "verificar", "checa", "checar", "corrigir") || tem("terminei a molecula", "terminei a estrutura", "verificar estrutura", "veja se ta certo", "veja se esta certo")) {
+        return executarIntencao({acao: "VERIFICAR_ESTRUTURA"});
+    }
+    
+    if (tem("desmuta", "desmutar", "liga som", "ligar som", "ativa som", "ativar som", "volta som", "voltar som", "tira mudo", "tirar mudo", "com som", "com audio")) return executarIntencao({acao: "DESMUTAR_SOM"});
+    if (tem("muta", "mutar", "mudo", "tira som", "tirar som", "silencio", "desliga som", "desligar som", "sem som")) return executarIntencao({acao: "MUTAR_SOM"});
     
     if (tem("modo escuro", "tema escuro", "noturno", "escuro")) return executarIntencao({acao: "TEMA_ESCURO"});
     if (tem("modo claro", "tema claro", "dia", "claro")) return executarIntencao({acao: "TEMA_CLARO"});
 
-    if (tem("tira", "bater") && tem("foto", "print")) return executarIntencao({acao: "TIRAR_FOTO"});
-    if (tem("dica", "ajuda", "socorro") && tem("desafio", "fase")) return executarIntencao({acao: "DICA_DESAFIO"});
-    if (tem("quanto tempo", "tempo restante", "relogio")) return executarIntencao({acao: "STATUS_TEMPO"});
+    if (tem("tira", "tirar", "bater") && tem("foto", "print")) return executarIntencao({acao: "TIRAR_FOTO"});
+    if (tem("dica", "ajuda", "socorro") && tem("desafio", "fase", "molecula")) return executarIntencao({acao: "DICA_DESAFIO"});
+    if (tem("quanto tempo", "tempo restante", "relogio", "cronometro")) return executarIntencao({acao: "STATUS_TEMPO"});
     if (tem("quantas vidas", "minhas vidas", "coracoes")) return executarIntencao({acao: "STATUS_VIDAS"});
-    if (tem("quantas estrelas", "minhas estrelas")) return executarIntencao({acao: "STATUS_ESTRELAS"});
-    if (tem("aumenta", "mais") && tem("zoom")) return executarIntencao({acao: "ZOOM_MAIS"});
-    if (tem("diminui", "menos", "tira") && tem("zoom")) return executarIntencao({acao: "ZOOM_MENOS"});
-    if (tem("reseta", "zera", "centraliza") && tem("zoom", "visao")) return executarIntencao({acao: "ZOOM_RESET"});
-    if (tem("volta", "retorna", "anterior")) return executarIntencao({acao: "VOLTAR"});
+    if (tem("quantas estrelas", "minhas estrelas", "estrelas tenho")) return executarIntencao({acao: "STATUS_ESTRELAS"});
+    
+    if (tem("aumenta", "aumentar", "mais") && tem("zoom")) return executarIntencao({acao: "ZOOM_MAIS"});
+    if (tem("diminui", "diminuir", "menos", "tira", "tirar") && tem("zoom")) return executarIntencao({acao: "ZOOM_MENOS"});
+    if (tem("reseta", "resetar", "zera", "zerar", "centraliza", "centralizar") && tem("zoom", "visao")) return executarIntencao({acao: "ZOOM_RESET"});
+    
+    if (tem("volta", "voltar", "retorna", "retornar", "anterior")) return executarIntencao({acao: "VOLTAR"});
 
-    if (tem("estrutura", "estruturando") || (tem("inicia", "jogar") && tem("livre", "desafio"))) {
+    // REQUISITOS PARA ENTRAR NO MODO (Blindado para não confundir com verificar estrutura)
+    if ((tem("modo", "inicia", "iniciar", "joga", "jogar", "entra", "entrar", "abre", "abrir") && tem("estruturando")) || (tem("inicia", "iniciar", "joga", "jogar") && tem("livre", "desafio"))) {
         contextoAssistente = "escolher_modo_estruturando_base";
         return falarAssistente("Você quer jogar o modo livre ou o modo desafio?");
     }
 
-    if (tem("inclusivo", "inclusao", "inclusiva")) {
+    if ((tem("modo", "inicia", "iniciar", "joga", "jogar", "entra", "entrar") && tem("inclusivo", "inclusao", "inclusiva"))) {
         contextoAssistente = "escolher_modo_inclusivo"; 
         return falarAssistente("Entrar em qual nível inclusivo? Reconhecer, Relacionar ou Interpretar?");
     }
+
+    if (tem("inicia", "iniciar", "entra", "entrar", "joga", "jogar", "bora", "start", "comeca", "começar", "partiu")) return executarIntencao({acao: "IR_MODOS"});
 
     mostrarMensagemAssistente("🧠 Consultando IA...", true);
     try {
@@ -443,7 +450,7 @@ function executarIntencao(intencao, comandoFalado = "") {
                 localStorage.setItem("catalogoDesbloqueado", JSON.stringify(dbIds)); 
                 if(typeof window.verificarCatalogador === "function") window.verificarCatalogador();
                 falarAssistente("Cheats ativados. Catálogo completo desbloqueado.");
-            } else if (detalhe === "\\limpar" || detalhe === "limpar") {
+            } else if (detalhe === "\\limpar" || detalhe === "limpar" || detalhe === "resetar") {
                 localStorage.removeItem("conquistasDesbloqueadas"); localStorage.removeItem("catalogoDesbloqueado");
                 localStorage.removeItem("platinado"); localStorage.removeItem("catalogador");
                 if(typeof renderizarTrofeus === "function") renderizarTrofeus(); 
@@ -735,8 +742,8 @@ window.adicionarLigacaoEmAtomoVoz = function(nomeAtomo, tipo, dirDesejada) {
     falarAssistente(`Pronto. Coloquei uma ligação ${tipo} na ${direcao} do ${pA.dataset.idVoz}.${aviso}`);
 }
 
-window.ligarAtomosVoz = function(nA, nB, tipo, dirDesejada, silencioso = false) {
-    if (window.checagemBloqueioTela()) { if(!silencioso) falarAssistente("Feche a janela atual primeiro."); return; }
+window.ligarAtomosVoz = function(nA, nB, tipo, dirDesejada) {
+    if (window.checagemBloqueioTela()) return falarAssistente("Feche a janela atual primeiro.");
     
     let pA = window.encontrarPecaVoz(nA);
     let pB = window.encontrarPecaVoz(nB);
@@ -756,14 +763,6 @@ window.ligarAtomosVoz = function(nA, nB, tipo, dirDesejada, silencioso = false) 
         pA = ats.filter(a => window.obterNomeElemento(a.dataset.sigla).nome.toLowerCase() === nomeA.toLowerCase()).pop(); 
     }
     
-    let vl = tipo.includes("tripla") ? 3 : tipo.includes("dupla") ? 2 : 1;
-    
-    // CHECAGEM DE VALÊNCIA ANTES DE CRIAR A SEGUNDA PEÇA (IMPEDE SOBRAS)
-    if (!checarEspacoLivre(pA, vl)) {
-        if(!silencioso) falarAssistente(`O ${pA.dataset.idVoz} não tem mais ligações livres.`);
-        return;
-    }
-
     if (!pB || pA === pB) { 
         let nomeB = window.obterNomeElemento(nB).nome;
         if (!window.adicionarAtomoVoz(nomeB, true)) return;
@@ -771,15 +770,11 @@ window.ligarAtomosVoz = function(nA, nB, tipo, dirDesejada, silencioso = false) 
         pB = ats.filter(a => window.obterNomeElemento(a.dataset.sigla).nome.toLowerCase() === nomeB.toLowerCase()).pop(); 
     }
 
-    if(!pA || !pB || pA === pB) {
-        if(!silencioso) falarAssistente("Ocorreu um erro e não consegui montar a molécula.");
-        return;
-    }
+    if(!pA || !pB || pA === pB) return falarAssistente("Ocorreu um erro e não consegui montar a molécula.");
 
-    if (!checarEspacoLivre(pB, vl)) {
-        if(!silencioso) falarAssistente(`O ${pB.dataset.idVoz} não tem mais ligações livres.`);
-        return;
-    }
+    let vl = tipo.includes("tripla") ? 3 : tipo.includes("dupla") ? 2 : 1;
+    if (!checarEspacoLivre(pA, vl)) return falarAssistente(`O ${pA.dataset.idVoz} não tem mais ligações livres.`);
+    if (!checarEspacoLivre(pB, vl)) return falarAssistente(`O ${pB.dataset.idVoz} não tem mais ligações livres.`);
 
     let pontaExistente = getPontaLivreDeLigacao(pA);
 
@@ -800,13 +795,10 @@ window.ligarAtomosVoz = function(nA, nB, tipo, dirDesejada, silencioso = false) 
         else { if (pontaExistente.freePt.id === 'B') { bLeft = targetX - 20; bTop = targetY; } else { bLeft = targetX - 20; bTop = targetY - 40; } }
 
         moverPecaEGrupoVoz(pB, bLeft, bTop);
-        if(!silencioso) falarAssistente(`Liguei o ${pB.dataset.idVoz} ao ${pA.dataset.idVoz} usando a ligação já existente.`);
+        falarAssistente(`Liguei o ${pB.dataset.idVoz} ao ${pA.dataset.idVoz} usando a ligação já existente.`);
     } else {
         let dirA = obterPortaLivre(pA, dirDesejada || "direita");
-        if(!dirA) {
-            if(!silencioso) falarAssistente(`O ${pA.dataset.idVoz} está com todos os lados ocupados.`);
-            return;
-        }
+        if(!dirA) return falarAssistente(`O ${pA.dataset.idVoz} está com todos os lados ocupados.`);
 
         let cl = "lig-simples"; let ht = '<div class="linha"></div>';
         if(vl===2) { cl = "lig-dupla"; ht = '<div class="linha"></div><div class="linha"></div>'; }
@@ -831,7 +823,7 @@ window.ligarAtomosVoz = function(nA, nB, tipo, dirDesejada, silencioso = false) 
         else if(dirA === "baixo") { connectX = bondX - 10; connectY = bondY + 40; }
 
         moverPecaEGrupoVoz(pB, connectX, connectY);
-        if(!silencioso) falarAssistente(`Liguei o ${pB.dataset.idVoz} na ${dirA} do ${pA.dataset.idVoz}.`);
+        falarAssistente(`Liguei o ${pB.dataset.idVoz} na ${dirA} do ${pA.dataset.idVoz}.`);
     }
 
     if(typeof window.verificarLigacoesQuimicas === "function") window.verificarLigacoesQuimicas();
