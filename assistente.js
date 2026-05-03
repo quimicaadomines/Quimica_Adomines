@@ -1,5 +1,5 @@
 // ==========================================
-// ASSISTENTE DE VOZ ADÔMINES (V17 - ACESSIBILIDADE TOTAL E CORREÇÕES)
+// ASSISTENTE DE VOZ ADÔMINES (V18 - HIERARQUIA DE COMANDOS BLINDADA)
 // ==========================================
 let assistenteAtivo = sessionStorage.getItem("assistenteAtiva") === "true"; // Inicia DESLIGADA ao entrar no site
 let assistenteReconhecimento = null;
@@ -199,7 +199,7 @@ const observadorAutomatico = new MutationObserver(() => {
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-    window.atualizarIconeMic(); // Adiciona a linha vermelha ao iniciar
+    window.atualizarIconeMic(); // Adiciona a linha vermelha ao iniciar se estiver desativada
     observadorAutomatico.observe(document.body, { childList: true, subtree: true, characterData: true });
     
     setTimeout(() => {
@@ -283,7 +283,15 @@ async function processarComandoVoz(comandoOriginal) {
         }
     }
 
-    // 1. LEITURAS (Maior prioridade para não confundir com abrir)
+    // ABERTURA DE JANELAS E NAVEGAÇÃO
+    if (tem("abre", "abrir", "mostra", "mostrar", "como jogar") && tem("tutorial", "ajuda", "como jogar")) return executarIntencao({acao: "ABRIR_TUTORIAL"});
+    if (tem("configura", "configuracoes", "configurar", "ajuste", "opcao", "opcoes")) return executarIntencao({acao: "ABRIR_CONFIG"});
+    if (tem("tabela periodica", "tabela", "elementos")) return executarIntencao({acao: "ABRIR_TABELA"});
+    if (tem("conquista", "conquistas", "trofeu", "trofeus")) return executarIntencao({acao: "ABRIR_CONQUISTAS"});
+    if (tem("catalogo", "pokedex")) return executarIntencao({acao: "ABRIR_CATALOGO"});
+    if (tem("adm", "administrador", "chat de cheat", "cheats")) return executarIntencao({acao: "ABRIR_ADM"});
+
+    // LEITURAS DE TELA E DADOS LOCAIS
     if (tem("ler", "leia", "lê") && tem("tutorial", "ajuda")) return executarIntencao({acao: "LER_TUTORIAL"});
     if (tem("ler", "leia", "lê") && tem("tela", "tudo")) return executarIntencao({acao: "LER_TELA"});
     if (tem("ler", "leia", "lê") && tem("alternativa", "alternativas", "item", "opcoes", "resposta")) return executarIntencao({acao: "LER_ALTERNATIVAS"});
@@ -292,15 +300,6 @@ async function processarComandoVoz(comandoOriginal) {
     if (tem("quais", "qual", "que", "ler", "leia", "quantas") && tem("molecula", "moleculas", "estrutura", "catalogo", "cataloguei")) return executarIntencao({acao: "LER_CATALOGO"});
     if (tem("quais", "qual", "que", "ler", "leia", "quantas") && tem("conquista", "conquistas", "trofeu", "trofeus", "consegui", "desbloqueadas", "bloqueadas")) return executarIntencao({acao: "LER_CONQUISTAS"});
     if (tem("quais", "qual", "que", "ler", "leia", "quantos") && tem("atomo", "atomos", "elemento", "elementos", "disponivel", "disponiveis", "tenho")) return executarIntencao({acao: "LER_ATOMOS_DISPONIVEIS"});
-
-    // 2. ABERTURA DE JANELAS E NAVEGAÇÃO
-    if (tem("abre", "abrir", "mostra", "mostrar", "como jogar") && tem("tutorial", "ajuda", "como jogar")) return executarIntencao({acao: "ABRIR_TUTORIAL"});
-    if (tem("configura", "configuracoes", "configurar", "ajuste", "ajustes", "opcao", "opcoes")) return executarIntencao({acao: "ABRIR_CONFIG"});
-    if (tem("tabela periodica", "tabela", "elementos")) return executarIntencao({acao: "ABRIR_TABELA"});
-    if (tem("conquista", "conquistas", "trofeu", "trofeus")) return executarIntencao({acao: "ABRIR_CONQUISTAS"});
-    if (tem("catalogo", "pokedex")) return executarIntencao({acao: "ABRIR_CATALOGO"});
-    if (tem("quimichat", "kimichat", "chat da ia", "inteligencia artificial")) return executarIntencao({acao: "ABRIR_CHAT"});
-    if (tem("adm", "administrador", "chat de cheat", "cheats")) return executarIntencao({acao: "ABRIR_ADM"});
 
     // COMANDOS DE ADMINISTRAÇÃO DIRETO NA VEIA
     if (tem("comando") || tem("adm") || tem("administrador")) {
@@ -399,6 +398,7 @@ async function processarComandoVoz(comandoOriginal) {
 
     if (tem("cancela", "cancelar", "esquece", "esquecer", "deixa pra la")) return falarAssistente("Cancelado."); 
     
+    // VERIFICAÇÃO DE ESTRUTURA BLINDADA E COM PRIORIDADE ACIMA DE "MODOS"
     if (tem("verifica", "verificar", "checa", "checar", "corrigir") || tem("terminei a molecula", "terminei a estrutura", "verificar estrutura", "veja se ta certo", "veja se esta certo")) {
         return executarIntencao({acao: "VERIFICAR_ESTRUTURA"});
     }
@@ -425,7 +425,8 @@ async function processarComandoVoz(comandoOriginal) {
     
     if (tem("volta", "voltar", "retorna", "retornar", "anterior")) return executarIntencao({acao: "VOLTAR"});
 
-    if ((tem("modo", "inicia", "iniciar", "joga", "jogar", "entra", "entrar", "abre", "abrir") && tem("estruturando")) || (tem("inicia", "iniciar", "joga", "jogar") && tem("livre", "desafio"))) {
+    // REQUISITOS PARA ENTRAR NO MODO
+    if ((tem("modo", "inicia", "iniciar", "joga", "jogar", "entra", "entrar", "abre", "abrir") && tem("estruturando", "estrutura")) || (tem("inicia", "iniciar", "joga", "jogar") && tem("livre", "desafio"))) {
         contextoAssistente = "escolher_modo_estruturando_base";
         return falarAssistente("Você quer jogar o modo livre ou o modo desafio?");
     }
@@ -435,6 +436,7 @@ async function processarComandoVoz(comandoOriginal) {
         return falarAssistente("Entrar em qual nível inclusivo? Reconhecer, Relacionar ou Interpretar?");
     }
 
+    // "IR MODOS" GENÉRICO SEGURO NO FINAL DA LISTA DE VERIFICAÇÕES
     if (tem("inicia", "iniciar", "entra", "entrar", "joga", "jogar", "bora", "start", "comeca", "começar", "partiu")) return executarIntencao({acao: "IR_MODOS"});
 
     mostrarMensagemAssistente("🧠 Consultando IA...", true);
