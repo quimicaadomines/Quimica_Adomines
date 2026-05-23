@@ -17,12 +17,13 @@ Você DEVE obrigatoriamente responder usando APENAS o JSON, sem nenhum texto adi
 
 AÇÕES PERMITIDAS PARA O CAMPO "acao":
 - "FECHAR_CONFIG", "FECHAR_TABELA", "FECHAR_CONQUISTAS", "FECHAR_CHAT", "FECHAR_TUDO"
-- "ABRIR_CONFIG", "ABRIR_TABELA", "ABRIR_CONQUISTAS", "ABRIR_CHAT" (Para a Inteligência Artificial), "ABRIR_ADM" (Para a tela de cheats e administrador), "ABRIR_TUTORIAL", "IR_TUTORIAL", "ABRIR_CATALOGO"
+- "ABRIR_CONFIG", "ABRIR_TABELA", "ABRIR_CONQUISTAS", "ABRIR_CHAT", "ABRIR_ADM", "ABRIR_TUTORIAL", "IR_TUTORIAL", "ABRIR_CATALOGO"
 - "DIMINUIR_MUSICA", "DIMINUIR_EFEITOS", "DESLIGAR_VISUAIS", "LIGAR_VISUAIS"
 - "TEMA_CLARO", "TEMA_ESCURO", "MUTAR_SOM", "DESMUTAR_SOM"
 - "LER_TELA", "LER_ENUNCIADO", "LER_ALTERNATIVAS", "LER_TUTORIAL", "LER_CATALOGO", "LER_CONQUISTAS", "LER_ATOMOS_DISPONIVEIS"
 - "STATUS_VIDAS", "STATUS_ESTRELAS", "STATUS_TEMPO"
-- "IR_MODOS", "VOLTAR"
+- "IR_MODOS", "VOLTAR", "PULAR_FASE" (se o jogador quiser ir para o próximo desafio)
+- "VER_3D" (se o jogador quiser ver a molécula atual em formato 3D)
 - "JOGAR_ESTRUTURANDO" (detalhe: "livre", "facil", "medio", "dificil", "impossivel")
 - "JOGAR_INCLUSIVO" (detalhe: "reconhecer", "relacionar", "interpretar")
 
@@ -43,7 +44,7 @@ Ações de Quadro Estruturando (Montagem) e Ferramentas:
 - "COR_BORRACHA", "COR_VERMELHA", "COR_AZUL", "COR_AMARELA", "COR_PRETA", "COR_VERDE", "COR_CINZA"
 
 EXEMPLO DE RESPOSTA (Sempre neste formato exato):
-{"acao": "LER_CONQUISTAS", "detalhe": ""}
+{"acao": "VER_3D", "detalhe": ""}
     `;
 
     try {
