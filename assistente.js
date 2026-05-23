@@ -1,5 +1,5 @@
 // ==========================================
-// ASSISTENTE DE VOZ ADÔMINES (V19 - NAVEGAÇÃO DE DESAFIO)
+// ASSISTENTE DE VOZ ADÔMINES (V19 - MODO SILÊNCIO ABSOLUTO)
 // ==========================================
 let assistenteAtivo = sessionStorage.getItem("assistenteAtiva") === "true"; 
 let assistenteReconhecimento = null;
@@ -97,7 +97,10 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     };
 }
 
-window.falarAssistente = function(texto) {
+window.falarAssistente = function(texto, ignorarTrava = false) {
+    // REGRA DE SILÊNCIO ABSOLUTO: Se não estiver ativo, morre aqui!
+    if (!assistenteAtivo && !ignorarTrava) return;
+
     if(assistenteSintese.speaking) assistenteSintese.cancel(); 
     if(!vozAssistente) carregarVozes();
     
@@ -118,12 +121,15 @@ window.falarAssistente = function(texto) {
 window.toggleAssistenteVoz = function(silencioso = false) {
     if(!silencioso && typeof tocarSomClick === "function") tocarSomClick();
     if (assistenteAtivo) {
+        // CORTE IMEDIATO DE FALA
+        if(assistenteSintese.speaking) assistenteSintese.cancel();
+        
         assistenteAtivo = false; sessionStorage.setItem("assistenteAtiva", "false");
         contextoAssistente = null; 
         try { assistenteReconhecimento.stop(); } catch(e){} 
         window.atualizarIconeMic();
         let btn = document.getElementById("btnAssistente"); if(btn) btn.classList.remove("mic-ouvindo");
-        if(!silencioso) falarAssistente("Assistente desativada.");
+        if(!silencioso) falarAssistente("Assistente desativada.", true); // Ignora a trava apenas para dar tchau
     } else {
         assistenteAtivo = true; sessionStorage.setItem("assistenteAtiva", "true");
         contextoAssistente = null; 
@@ -304,6 +310,7 @@ async function processarComandoVoz(comandoOriginal) {
         if (tem("platinar", "platina")) return executarIntencao({acao: "COMANDO_ADM", detalhe: "\\platinar"});
         if (tem("catalogador", "catálogo completo")) return executarIntencao({acao: "COMANDO_ADM", detalhe: "\\catalogador"});
         if (tem("limpar", "limpa", "resetar")) return executarIntencao({acao: "COMANDO_ADM", detalhe: "\\limpar"});
+        if (tem("completar", "completa", "pular fase")) return executarIntencao({acao: "COMANDO_ADM", detalhe: "\\completar"});
     }
 
     if (tem("cor", "cores", "lapis", "pintar", "pinta")) {
@@ -344,7 +351,7 @@ async function processarComandoVoz(comandoOriginal) {
 
     if (tem("liga", "ligar", "coloca", "colocar", "adiciona", "adicionar", "insere", "inserir") && tem("ligacao", "ligação") && matchesPeca.length === 1) {
         let pA = matchesPeca[0][0];
-        let t = "simples"; if(tem("dupla", "duas")) t="dupla"; if(tem("tripla", "tres", "três")) t="tripla";
+        let t = "simples"; if(tem("dupla")) t="dupla"; if(tem("tripla")) t="tripla";
         let d = "direita"; 
         if (tem("esquerda", "atras")) d = "esquerda";
         else if (tem("cima", "acima", "topo", "em cima")) d = "cima";
@@ -354,7 +361,7 @@ async function processarComandoVoz(comandoOriginal) {
 
     if (tem("liga", "ligar", "conecta", "conectar", "junta", "juntar", "interliga", "interligar", "une", "unir", "adiciona", "adicionar", "coloca", "colocar") && matchesPeca.length >= 2) {
         let pA = matchesPeca[0][0]; let pB = matchesPeca[1][0];
-        let t = "simples"; if(tem("dupla", "duas")) t="dupla"; if(tem("tripla", "tres", "três")) t="tripla";
+        let t = "simples"; if(tem("dupla")) t="dupla"; if(tem("tripla")) t="tripla";
         let d = ""; 
         if (tem("esquerda", "atras")) d = "esquerda";
         else if (tem("cima", "acima", "topo", "em cima")) d = "cima";
@@ -364,7 +371,7 @@ async function processarComandoVoz(comandoOriginal) {
     }
     
     if (tem("coloca", "colocar", "cria", "crio", "adiciona", "insere") && tem("ligacao", "ligação")) {
-        let t = "simples"; if(tem("dupla", "duas")) t="dupla"; if(tem("tripla", "tres", "três")) t="tripla";
+        let t = "simples"; if(tem("dupla")) t="dupla"; if(tem("tripla")) t="tripla";
         return executarIntencao({acao: "CRIAR_LIGACAO", detalhe: t});
     }
 
@@ -419,7 +426,6 @@ async function processarComandoVoz(comandoOriginal) {
     if (tem("diminui", "diminuir", "menos", "tira", "tirar") && tem("zoom")) return executarIntencao({acao: "ZOOM_MENOS"});
     if (tem("reseta", "resetar", "zera", "zerar", "centraliza", "centralizar") && tem("zoom", "visao")) return executarIntencao({acao: "ZOOM_RESET"});
     
-    // Deixei o "volta" básico aqui embaixo para não conflitar com o "Voltar Fase" que já foi lido lá em cima!
     if (tem("volta", "voltar", "retorna", "retornar", "anterior")) return executarIntencao({acao: "VOLTAR"});
 
     if ((tem("modo", "inicia", "iniciar", "joga", "jogar", "entra", "entrar", "abre", "abrir") && tem("estruturando", "estrutura")) || (tem("inicia", "iniciar", "joga", "jogar") && tem("livre", "desafio"))) {
@@ -796,8 +802,8 @@ window.adicionarLigacaoEmAtomoVoz = function(nomeAtomo, tipo, dirDesejada) {
     falarAssistente(`Pronto. Coloquei uma ligação ${tipo} na ${direcao} do ${pA.dataset.idVoz}.${aviso}`);
 }
 
-window.ligarAtomosVoz = function(nA, nB, tipo, dirDesejada) {
-    if (window.checagemBloqueioTela()) return falarAssistente("Feche a janela atual primeiro.");
+window.ligarAtomosVoz = function(nA, nB, tipo, dirDesejada, silencioso = false) {
+    if (window.checagemBloqueioTela()) { if(!silencioso) falarAssistente("Feche a janela atual primeiro."); return; }
     
     let pA = window.encontrarPecaVoz(nA);
     let pB = window.encontrarPecaVoz(nB);
@@ -817,6 +823,13 @@ window.ligarAtomosVoz = function(nA, nB, tipo, dirDesejada) {
         pA = ats.filter(a => window.obterNomeElemento(a.dataset.sigla).nome.toLowerCase() === nomeA.toLowerCase()).pop(); 
     }
     
+    let vl = tipo.includes("tripla") ? 3 : tipo.includes("dupla") ? 2 : 1;
+    
+    if (!checarEspacoLivre(pA, vl)) {
+        if(!silencioso) falarAssistente(`O ${pA.dataset.idVoz} não tem mais ligações livres.`);
+        return;
+    }
+
     if (!pB || pA === pB) { 
         let nomeB = window.obterNomeElemento(nB).nome;
         if (!window.adicionarAtomoVoz(nomeB, true)) return;
@@ -824,11 +837,15 @@ window.ligarAtomosVoz = function(nA, nB, tipo, dirDesejada) {
         pB = ats.filter(a => window.obterNomeElemento(a.dataset.sigla).nome.toLowerCase() === nomeB.toLowerCase()).pop(); 
     }
 
-    if(!pA || !pB || pA === pB) return falarAssistente("Ocorreu um erro e não consegui montar a molécula.");
+    if(!pA || !pB || pA === pB) {
+        if(!silencioso) falarAssistente("Ocorreu um erro e não consegui montar a molécula.");
+        return;
+    }
 
-    let vl = tipo.includes("tripla") ? 3 : tipo.includes("dupla") ? 2 : 1;
-    if (!checarEspacoLivre(pA, vl)) return falarAssistente(`O ${pA.dataset.idVoz} não tem mais ligações livres.`);
-    if (!checarEspacoLivre(pB, vl)) return falarAssistente(`O ${pB.dataset.idVoz} não tem mais ligações livres.`);
+    if (!checarEspacoLivre(pB, vl)) {
+        if(!silencioso) falarAssistente(`O ${pB.dataset.idVoz} não tem mais ligações livres.`);
+        return;
+    }
 
     let pontaExistente = getPontaLivreDeLigacao(pA);
 
@@ -849,10 +866,13 @@ window.ligarAtomosVoz = function(nA, nB, tipo, dirDesejada) {
         else { if (pontaExistente.freePt.id === 'B') { bLeft = targetX - 20; bTop = targetY; } else { bLeft = targetX - 20; bTop = targetY - 40; } }
 
         moverPecaEGrupoVoz(pB, bLeft, bTop);
-        falarAssistente(`Liguei o ${pB.dataset.idVoz} ao ${pA.dataset.idVoz} usando a ligação já existente.`);
+        if(!silencioso) falarAssistente(`Liguei o ${pB.dataset.idVoz} ao ${pA.dataset.idVoz} usando a ligação já existente.`);
     } else {
         let dirA = obterPortaLivre(pA, dirDesejada || "direita");
-        if(!dirA) return falarAssistente(`O ${pA.dataset.idVoz} está com todos os lados ocupados.`);
+        if(!dirA) {
+            if(!silencioso) falarAssistente(`O ${pA.dataset.idVoz} está com todos os lados ocupados.`);
+            return;
+        }
 
         let cl = "lig-simples"; let ht = '<div class="linha"></div>';
         if(vl===2) { cl = "lig-dupla"; ht = '<div class="linha"></div><div class="linha"></div>'; }
@@ -877,7 +897,7 @@ window.ligarAtomosVoz = function(nA, nB, tipo, dirDesejada) {
         else if(dirA === "baixo") { connectX = bondX - 10; connectY = bondY + 40; }
 
         moverPecaEGrupoVoz(pB, connectX, connectY);
-        falarAssistente(`Liguei o ${pB.dataset.idVoz} na ${dirA} do ${pA.dataset.idVoz}.`);
+        if(!silencioso) falarAssistente(`Liguei o ${pB.dataset.idVoz} na ${dirA} do ${pA.dataset.idVoz}.`);
     }
 
     if(typeof window.verificarLigacoesQuimicas === "function") window.verificarLigacoesQuimicas();
