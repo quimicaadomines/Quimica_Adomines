@@ -1052,3 +1052,202 @@ function togglePainel(id) {
     tocarSomClick(); let p = document.getElementById(id); p.classList.toggle("painel-recolhido"); let btn = p.querySelector("button");
     if(p.classList.contains("painel-recolhido")) { btn.innerText = "▶ Mostrar"; } else { btn.innerText = id === 'painelInfo' ? "📊 Ocultar" : "🛠️ Ferramentas ⬇"; }
 }
+
+// ==========================================
+// FUNÇÃO PARA PULAR DE FASE
+// ==========================================
+window.pularFaseDesafio = function() {
+    if(typeof modoAtual !== 'undefined' && modoAtual === "livre") {
+        if(typeof mostrarMensagemGlob === "function") mostrarMensagemGlob("⚠️ O modo livre não possui fases para pular.");
+        if(typeof falarAssistente === "function") falarAssistente("O modo livre não possui fases para pular.");
+        return;
+    }
+    if(typeof tocarSomClick === "function") tocarSomClick();
+    if(typeof bancoDesafios !== 'undefined' && typeof indexDesafioAtual !== 'undefined') {
+        let desafiosDoModo = bancoDesafios[modoAtual];
+        if (indexDesafioAtual < desafiosDoModo.length - 1) {
+            indexDesafioAtual++;
+            if(typeof limparQuadro === "function") limparQuadro();
+            if(typeof iniciarRodadaDesafio === "function") iniciarRodadaDesafio();
+            if(typeof mostrarMensagemGlob === "function") mostrarMensagemGlob("⏭️ Fase pulada!");
+            if(typeof falarAssistente === "function") falarAssistente("Fase pulada com sucesso. Novo desafio na tela.");
+        } else {
+            if(typeof mostrarMensagemGlob === "function") mostrarMensagemGlob("⚠️ Esta já é a última fase deste nível!");
+            if(typeof falarAssistente === "function") falarAssistente("Você já está na última fase.");
+        }
+    }
+};
+
+// ==========================================
+// MOTOR DE RENDERIZAÇÃO 3D (THREE.JS INJETADO)
+// ==========================================
+window.abrirVisualizador3D = function() {
+    let atomosDOM = document.querySelectorAll('#quadro-inner .atomo.no-quadro');
+    if(atomosDOM.length === 0) {
+        if(typeof falarAssistente === "function") falarAssistente("O quadro está vazio. Monte uma molécula antes de ver em 3D.");
+        return;
+    }
+
+    if (!document.getElementById("modal-3d-overlay")) {
+        const html = `
+        <div id="modal-3d-overlay" class="modal-overlay" style="display:none; z-index:999999; background:rgba(0,0,0,0.9);">
+            <div style="position:absolute; top:20px; right:20px; z-index:10;">
+                <button onclick="fecharVisualizador3D()" style="background:#ef4444; color:white; border:none; padding:10px 20px; font-size:18px; border-radius:8px; cursor:pointer; font-weight:bold;">✖ Fechar 3D</button>
+            </div>
+            <div id="container-3d" style="width:100%; height:100%; cursor:grab;"></div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', html);
+    }
+
+    document.getElementById("modal-3d-overlay").style.display = "block";
+    document.body.style.overflow = "hidden";
+
+    if (typeof window.iniciarCena3D !== "function") {
+        if(typeof mostrarMensagemGlob === "function") mostrarMensagemGlob("🧊 Carregando Motor 3D...");
+        const script = document.createElement("script");
+        script.type = "module";
+        script.innerHTML = `
+            import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
+            import { OrbitControls } from 'https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js';
+            
+            window.iniciarCena3D = function() {
+                const container = document.getElementById("container-3d");
+                container.innerHTML = ""; 
+
+                const scene = new THREE.Scene();
+                scene.background = new THREE.Color(0x0f172a); // Azul bem escuro
+
+                const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+                camera.position.z = 8;
+
+                const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                container.appendChild(renderer.domElement);
+
+                const controls = new OrbitControls(camera, renderer.domElement);
+                controls.enableDamping = true;
+                controls.autoRotate = true; // Gira a molécula sozinha
+                controls.autoRotateSpeed = 2.0;
+
+                const luzAmbiente = new THREE.AmbientLight(0xffffff, 0.7);
+                scene.add(luzAmbiente);
+                const luzDir = new THREE.DirectionalLight(0xffffff, 1.2);
+                luzDir.position.set(10, 20, 10);
+                scene.add(luzDir);
+
+                const atomosDOM = document.querySelectorAll('#quadro-inner .atomo.no-quadro');
+                const ligacoesDOM = document.querySelectorAll('#quadro-inner .ligacao.no-quadro');
+
+                const cores = { 'C': 0x333333, 'O': 0xef4444, 'H': 0xffffff, 'N': 0x3b82f6, 'S': 0xeab308, 'P': 0xf97316, 'CL': 0x22c55e, 'F': 0x4ade80, 'BR': 0x991b1b, 'I': 0x8b5cf6 };
+                const raios = { 'H': 0.25, 'C': 0.45, 'O': 0.4, 'N': 0.4, 'S': 0.5, 'P': 0.5, 'CL': 0.5, 'F': 0.35, 'BR': 0.55, 'I': 0.6 };
+
+                let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+                atomosDOM.forEach(a => {
+                    let x = parseFloat(a.style.left); let y = parseFloat(a.style.top);
+                    if(x < minX) minX = x; if(x > maxX) maxX = x;
+                    if(y < minY) minY = y; if(y > maxY) maxY = y;
+                });
+                let centroX = (minX + maxX) / 2; let centroY = (minY + maxY) / 2;
+
+                const posicoes3D = [];
+
+                atomosDOM.forEach((a) => {
+                    let sigla = a.dataset.sigla.toUpperCase();
+                    let cor = cores[sigla] || 0xaaaaaa;
+                    let raio = raios[sigla] || 0.45;
+
+                    let x3d = (parseFloat(a.style.left) - centroX) / 35;
+                    let y3d = -(parseFloat(a.style.top) - centroY) / 35;
+                    let z3d = (Math.random() - 0.5) * 0.4; 
+
+                    const geo = new THREE.SphereGeometry(raio, 32, 32);
+                    const mat = new THREE.MeshPhongMaterial({ color: cor, shininess: 100 });
+                    const esfera = new THREE.Mesh(geo, mat);
+                    esfera.position.set(x3d, y3d, z3d);
+                    scene.add(esfera);
+                    
+                    posicoes3D.push({ idDOM: a.dataset.id, vec: esfera.position, sigla: sigla });
+
+                    let hExtras = parseInt(a.dataset.hExtras || 0);
+                    for(let h=0; h<hExtras; h++) {
+                        let dir = new THREE.Vector3((Math.random() - 0.5)*2, (Math.random() - 0.5)*2, (Math.random() - 0.5)*2).normalize();
+                        let hPos = new THREE.Vector3().copy(esfera.position).add(dir.multiplyScalar(1.2));
+                        
+                        const geoH = new THREE.SphereGeometry(0.25, 32, 32);
+                        const matH = new THREE.MeshPhongMaterial({ color: 0xffffff, shininess: 100 });
+                        const esfH = new THREE.Mesh(geoH, matH);
+                        esfH.position.copy(hPos);
+                        scene.add(esfH);
+
+                        criarCilindro(scene, esfera.position, esfH.position, 1);
+                    }
+                });
+
+                ligacoesDOM.forEach(lig => {
+                    let val = parseInt(lig.dataset.val || 1);
+                    let cX = parseFloat(lig.style.left) + 20; 
+                    let cY = parseFloat(lig.style.top) + 5;
+
+                    let proximos = Array.from(atomosDOM).map(a => {
+                        let ax = parseFloat(a.style.left) + 20; let ay = parseFloat(a.style.top) + 20;
+                        return { id: a.dataset.id, dist: Math.hypot(cX - ax, cY - ay) };
+                    }).sort((a,b) => a.dist - b.dist);
+
+                    if(proximos.length >= 2) {
+                        let pA = posicoes3D.find(p => p.idDOM === proximos[0].id);
+                        let pB = posicoes3D.find(p => p.idDOM === proximos[1].id);
+                        if(pA && pB) criarCilindro(scene, pA.vec, pB.vec, val);
+                    }
+                });
+
+                function criarCilindro(cena, v1, v2, valencia) {
+                    let dist = v1.distanceTo(v2);
+                    let meio = new THREE.Vector3().addVectors(v1, v2).multiplyScalar(0.5);
+                    let direcao = new THREE.Vector3().subVectors(v2, v1).normalize();
+                    
+                    let offsets = [0];
+                    if(valencia === 2) offsets = [-0.15, 0.15];
+                    if(valencia === 3) offsets = [-0.2, 0, 0.2];
+
+                    let eixoPerp = new THREE.Vector3(1, 0, 0);
+                    if (Math.abs(direcao.x) > 0.9) eixoPerp.set(0, 1, 0);
+                    eixoPerp.crossVectors(direcao, eixoPerp).normalize();
+
+                    offsets.forEach(off => {
+                        const geoC = new THREE.CylinderGeometry(0.08, 0.08, dist, 16);
+                        const matC = new THREE.MeshPhongMaterial({ color: 0xcccccc });
+                        const cilindro = new THREE.Mesh(geoC, matC);
+                        
+                        cilindro.position.copy(meio).add(new THREE.Vector3().copy(eixoPerp).multiplyScalar(off));
+                        cilindro.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direcao);
+                        cena.add(cilindro);
+                    });
+                }
+
+                let idAnimacao;
+                function animar() {
+                    idAnimacao = requestAnimationFrame(animar);
+                    controls.update();
+                    renderer.render(scene, camera);
+                }
+                animar();
+
+                window.limparCena3D = function() {
+                    cancelAnimationFrame(idAnimacao);
+                    renderer.dispose();
+                };
+            };
+            window.iniciarCena3D();
+        `;
+        document.body.appendChild(script);
+    } else {
+        window.iniciarCena3D();
+    }
+};
+
+window.fecharVisualizador3D = function() {
+    if(typeof tocarSomClick === "function") tocarSomClick();
+    document.getElementById("modal-3d-overlay").style.display = "none";
+    document.body.style.overflow = "auto";
+    if(typeof window.limparCena3D === "function") window.limparCena3D(); 
+};
