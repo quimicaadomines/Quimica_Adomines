@@ -7,6 +7,10 @@
   <link rel="stylesheet" href="global.css">
   <link rel="stylesheet" href="estruturando.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  
+  <!-- BIBLIOTECAS DO MOTOR 3D -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 </head>
 <body>
 
@@ -28,7 +32,6 @@
     <button class="icon-btn" onclick="toggleMute()" id="muteBtn">🔊</button>
     <button class="icon-btn" onclick="abrirConquistas()">🏅</button>
     
-    <!-- BOTÃO DO ASSISTENTE DE VOZ FIXADO -->
     <button class="icon-btn" onclick="toggleAssistenteVoz()" id="btnAssistente" title="Assistente de Voz">🎤</button>
     
     <div id="trofeus-globais" class="trofeus-container"></div>
@@ -43,7 +46,6 @@
   <div id="cronometro-desafio" class="cronometro escondido">03:00</div>
   
   <div class="direita">
-    <!-- BOTÕES DO CHAT E TABELA FIXADOS -->
     <button class="icon-btn btn-chat-global" onclick="abrirQuimiChat()" title="QuimiChat">💬</button>
     <button class="icon-btn btn-tabela-global" onclick="abrirTabelaPeriodica()" title="Tabela Periódica">📊</button>
     <button class="icon-btn" onclick="toggleModo()" id="temaBtn">🌙</button>
@@ -108,11 +110,10 @@
         <button class="btn-ferramenta" title="Limpar Quadro" onclick="limparQuadro()">🗑️ Limpar Tudo</button>
         <button class="btn-ferramenta" title="Centro/Normal" onclick="resetarVisao()">⌂ Centralizar</button>
         
-        <!-- NOVOS BOTÕES ADICIONADOS AQUI -->
+        <!-- BOTÕES 3D E PULAR FASE -->
         <button class="btn-ferramenta" title="Ver Molécula em 3D" onclick="abrirVisualizador3D()" style="background-color: #3b82f6; color: white;">🧊 Ver em 3D</button>
-        <button id="btn-pular-fase" class="btn-ferramenta escondido" title="Pular para o próximo desafio" onclick="pularFaseDesafio()" style="background-color: #f59e0b; color: white;">⏭️ Pular Fase</button>
-        <!-- ============================= -->
-
+        <button id="btn-pular-fase" class="btn-ferramenta" title="Pular para o próximo desafio" onclick="pularFaseDesafio()" style="background-color: #f59e0b; color: white;">⏭️ Pular Fase</button>
+        
         <button class="btn-ferramenta" title="Tirar Foto" onclick="tirarFoto()" style="grid-column: span 2; background: #0284c7; color: white;">📸 Tirar Foto da Molécula</button>
       </div>
     </div>
