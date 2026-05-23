@@ -60,24 +60,27 @@ let tempoMaximo = 180;
 let tempoRestante = tempoMaximo;
 let intervaloCronometro = null;
 
+// ==========================================
+// CONFIGURAÇÃO DOS BOTÕES POR MODO
+// ==========================================
 if (modoAtual === "livre") { 
     titulo.innerText = "ESTRUTURANDO (Modo Livre)"; 
     document.getElementById("texto-modo-livre").classList.remove("escondido");
     document.getElementById("btn-catalogo").classList.remove("escondido");
     
-    // Oculta os botões de fase no modo livre
-    let bPular = document.getElementById("btn-pular-fase"); if(bPular) bPular.style.display = "none";
-    let bVoltar = document.getElementById("btn-voltar-fase"); if(bVoltar) bVoltar.style.display = "none";
-    let bConcluir = document.getElementById("btn-completar-desafio"); if(bConcluir) bConcluir.style.display = "none";
+    // Força a remoção total dos botões de desafio
+    let btnP = document.getElementById("btn-pular-fase"); if(btnP) { btnP.style.display = "none"; btnP.classList.add("escondido"); }
+    let btnV = document.getElementById("btn-voltar-fase"); if(btnV) { btnV.style.display = "none"; btnV.classList.add("escondido"); }
+    let btnC = document.getElementById("btn-completar-desafio"); if(btnC) { btnC.style.display = "none"; btnC.classList.add("escondido"); }
 } else { 
     titulo.innerText = `ESTRUTURANDO (Modo ${modoAtual.toUpperCase()})`; 
     document.getElementById("hud-desafio").classList.remove("escondido");
     document.getElementById("btn-verificar-desafio").classList.remove("escondido");
     
-    // Mostra os botões de fase nos desafios
-    let bPular = document.getElementById("btn-pular-fase"); if(bPular) bPular.style.display = "inline-block";
-    let bVoltar = document.getElementById("btn-voltar-fase"); if(bVoltar) bVoltar.style.display = "inline-block";
-    let bConcluir = document.getElementById("btn-completar-desafio"); if(bConcluir) bConcluir.style.display = "inline-block";
+    // Força a exibição dos botões de desafio
+    let btnP = document.getElementById("btn-pular-fase"); if(btnP) { btnP.style.display = "inline-block"; btnP.classList.remove("escondido"); }
+    let btnV = document.getElementById("btn-voltar-fase"); if(btnV) { btnV.style.display = "inline-block"; btnV.classList.remove("escondido"); }
+    let btnC = document.getElementById("btn-completar-desafio"); if(btnC) { btnC.style.display = "inline-block"; btnC.classList.remove("escondido"); }
     
     if (modoAtual === "impossivel") { document.getElementById("cronometro-desafio").classList.remove("escondido"); }
     iniciarRodadaDesafio(true);
@@ -243,7 +246,6 @@ function finalizarDesafio(vitoria) {
         sub.innerText = `Você conseguiu ${estrelasGanhas} estrela(s). Sua habilidade em química estrutural é incrível!`;
         if(somGanhou) { somGanhou.currentTime=0; somGanhou.play().catch(()=>{}); }
         
-        // Se pegou 5 estrelas, ganha conquista do nível
         if(estrelasGanhas >= 5) {
             if(modoAtual === "facil" && typeof desbloquearConquista === "function") desbloquearConquista('c1');
             if(modoAtual === "medio" && typeof desbloquearConquista === "function") desbloquearConquista('c2');
