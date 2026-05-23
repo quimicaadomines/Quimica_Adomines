@@ -110,11 +110,14 @@
         <button class="btn-ferramenta" title="Limpar Quadro" onclick="limparQuadro()">🗑️ Limpar Tudo</button>
         <button class="btn-ferramenta" title="Centro/Normal" onclick="resetarVisao()">⌂ Centralizar</button>
         
-        <!-- BOTÕES 3D E PULAR FASE -->
+        <!-- BOTÕES 3D E FOTO -->
         <button class="btn-ferramenta" title="Ver Molécula em 3D" onclick="abrirVisualizador3D()" style="background-color: #3b82f6; color: white;">🧊 Ver em 3D</button>
-        <button id="btn-pular-fase" class="btn-ferramenta" title="Pular para o próximo desafio" onclick="pularFaseDesafio()" style="background-color: #f59e0b; color: white;">⏭️ Pular Fase</button>
-        
-        <button class="btn-ferramenta" title="Tirar Foto" onclick="tirarFoto()" style="grid-column: span 2; background: #0284c7; color: white;">📸 Tirar Foto da Molécula</button>
+        <button class="btn-ferramenta" title="Tirar Foto" onclick="tirarFoto()" style="background: #0284c7; color: white;">📸 Tirar Foto</button>
+
+        <!-- BOTÕES DE NAVEGAÇÃO DE DESAFIO (Ficam ocultos no modo livre) -->
+        <button id="btn-voltar-fase" class="btn-ferramenta escondido" title="Voltar para o desafio anterior" onclick="voltarFaseDesafio()" style="background-color: #8b5cf6; color: white;">⏮️ Voltar Fase</button>
+        <button id="btn-pular-fase" class="btn-ferramenta escondido" title="Pular para o próximo desafio" onclick="pularFaseDesafio()" style="background-color: #f59e0b; color: white;">⏭️ Pular Fase</button>
+        <button id="btn-completar-desafio" class="btn-ferramenta escondido" title="Encerrar o desafio com as estrelas atuais" onclick="encerrarDesafioCedo()" style="grid-column: span 2; background-color: #10b981; color: white;">🏁 Concluir Desafio</button>
       </div>
     </div>
   </div>

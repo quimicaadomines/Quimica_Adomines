@@ -21,9 +21,6 @@ function mostrarMensagemGlob(texto) {
 }
 function abrirAjuda() { tocarSomClick(); document.getElementById('ajuda-overlay').style.display = 'flex'; }
 
-// ==========================================
-// MODO DESAFIO (LÓGICA E CHEATS)
-// ==========================================
 const bancoDesafios = {
     "facil":[
         { nome: "Propan-2-ol", dica: "A terminação '-ol' indica um grupo Álcool (OH). E o '2' diz que está no meio!", chk: (c)=> c.C==3 && c.H==8 && c.O==1 && c.simples==11 },
@@ -67,10 +64,21 @@ if (modoAtual === "livre") {
     titulo.innerText = "ESTRUTURANDO (Modo Livre)"; 
     document.getElementById("texto-modo-livre").classList.remove("escondido");
     document.getElementById("btn-catalogo").classList.remove("escondido");
+    
+    // Oculta os botões de fase no modo livre
+    let bPular = document.getElementById("btn-pular-fase"); if(bPular) bPular.style.display = "none";
+    let bVoltar = document.getElementById("btn-voltar-fase"); if(bVoltar) bVoltar.style.display = "none";
+    let bConcluir = document.getElementById("btn-completar-desafio"); if(bConcluir) bConcluir.style.display = "none";
 } else { 
     titulo.innerText = `ESTRUTURANDO (Modo ${modoAtual.toUpperCase()})`; 
     document.getElementById("hud-desafio").classList.remove("escondido");
     document.getElementById("btn-verificar-desafio").classList.remove("escondido");
+    
+    // Mostra os botões de fase nos desafios
+    let bPular = document.getElementById("btn-pular-fase"); if(bPular) bPular.style.display = "inline-block";
+    let bVoltar = document.getElementById("btn-voltar-fase"); if(bVoltar) bVoltar.style.display = "inline-block";
+    let bConcluir = document.getElementById("btn-completar-desafio"); if(bConcluir) bConcluir.style.display = "inline-block";
+    
     if (modoAtual === "impossivel") { document.getElementById("cronometro-desafio").classList.remove("escondido"); }
     iniciarRodadaDesafio(true);
 }
@@ -122,7 +130,6 @@ window.mostrarDicaDesafio = function() {
 
 window.verificarMoleculaDesafio = function() {
     tocarSomClick();
-    
     let dAtual = bancoDesafios[modoAtual][indexDesafioAtual];
     let allPecas = Array.from(quadroInner.querySelectorAll(`.peca-draggable.no-quadro`));
     if(allPecas.length === 0) { mostrarMensagemGlob("⚠️ O quadro está vazio!"); return; }
@@ -136,7 +143,6 @@ window.verificarMoleculaDesafio = function() {
 
     grpUnicos.forEach(gId => {
         let pecasDoGrupo = gId.startsWith("solto_") ? allPecas.filter(p => p.dataset.id === gId.substring(6)) : allPecas.filter(p => p.dataset.grupo === gId);
-        
         let c = { C:0, H:0, O:0, N:0, S:0, P:0, Cl:0, F:0, Br:0, I:0, simples:0, dupla:0, tripla:0, total:0 };
         
         pecasDoGrupo.forEach(p => {
@@ -233,14 +239,17 @@ function finalizarDesafio(vitoria) {
         header.style.borderBottom = "4px solid #15803d";
         titulo.style.color = "#15803d";
         btn.style.background = "#16a34a";
-        titulo.innerText = "Excelente! Você ganhou cinco estrelas! ⭐⭐⭐⭐⭐";
-        sub.innerText = "Sua habilidade em química estrutural é incrível!";
+        titulo.innerText = "Excelente! Você completou o desafio! ⭐";
+        sub.innerText = `Você conseguiu ${estrelasGanhas} estrela(s). Sua habilidade em química estrutural é incrível!`;
         if(somGanhou) { somGanhou.currentTime=0; somGanhou.play().catch(()=>{}); }
         
-        if(modoAtual === "facil" && typeof desbloquearConquista === "function") desbloquearConquista('c1');
-        if(modoAtual === "medio" && typeof desbloquearConquista === "function") desbloquearConquista('c2');
-        if(modoAtual === "dificil" && typeof desbloquearConquista === "function") desbloquearConquista('c3');
-        if(modoAtual === "impossivel" && typeof desbloquearConquista === "function") desbloquearConquista('c4');
+        // Se pegou 5 estrelas, ganha conquista do nível
+        if(estrelasGanhas >= 5) {
+            if(modoAtual === "facil" && typeof desbloquearConquista === "function") desbloquearConquista('c1');
+            if(modoAtual === "medio" && typeof desbloquearConquista === "function") desbloquearConquista('c2');
+            if(modoAtual === "dificil" && typeof desbloquearConquista === "function") desbloquearConquista('c3');
+            if(modoAtual === "impossivel" && typeof desbloquearConquista === "function") desbloquearConquista('c4');
+        }
     } else {
         box.style.border = "4px solid #ef4444";
         box.style.background = "linear-gradient(135deg, #fef2f2, #fee2e2)";
@@ -276,9 +285,6 @@ window.cheatEstrelas = function(qtd) {
     }
 };
 
-// ==========================================
-// POKEDEX DO MODO LIVRE
-// ==========================================
 const dbCatalogo =[
     { id:1, form:"H2O", nome:"Água", desc:"Essencial para a vida, compõe a maior parte dos seres vivos.", chk:(c)=> c.O==1 && c.H==2 && c.total==3 && c.simples==2 },
     { id:2, form:"CH4", nome:"Metano", desc:"Principal componente do gás natural, usado como combustível.", chk:(c)=> c.C==1 && c.H==4 && c.total==5 && c.simples==4 },
@@ -350,9 +356,6 @@ function checarPokedex(grupoId) {
     });
 }
 
-// ==========================================
-// RENDERIZAÇÃO INICIAL DE ÁTOMOS
-// ==========================================
 const bancoDeAtomos = {
   "facil":[{sigla:"C",val:4}, {sigla:"H",val:1}, {sigla:"O",val:2}, {sigla:"N",val:3}],
   "medio":[{sigla:"S",val:2}, {sigla:"P",val:5}],
@@ -378,45 +381,14 @@ let pecaAlvoMenu = null;
 
 function salvarEstado() { historico.push(quadroInner.innerHTML); if(historico.length > 2) historico.shift(); }
 
-// ==========================================
-// NOVO TUTORIAL ESTILO GENSHIN IMPACT
-// ==========================================
 const tutorialGenshinData = [
-    {
-        type: 'video',
-        src: 'passo1.mp4',
-        text: '<b>Arraste os átomos</b> para o quadro branco para começar a montar as estruturas moleculares. No celular, <b>toque e segure</b> o átomo com o dedo e arraste até o local desejado. No computador, <b>clique com o botão esquerdo</b> do mouse, segure e mova o átomo até a posição adequada.'
-    },
-    {
-        type: 'video',
-        src: 'passo2.mp4',
-        text: 'Para criar ligações, aproxime os átomos até que fiquem encostados. Quando estiverem corretamente posicionados, a ligação será formada automaticamente.<br><br>Para verificar se estão realmente conectados, <b>mova uma das partes</b>: se a outra se mover junto, a ligação está correta.<br><br>Fique atento às cores: se um átomo piscar em <b><span style="color: #16a34a;">verde</span></b>, significa que sua valência está completa; se piscar em <b><span style="color: #ef4444;">vermelho</span></b>, indica que a valência foi excedida.'
-    },
-    {
-        type: 'video',
-        src: 'passo3.mp4',
-        text: 'Ao clicar com o botão direito sobre um átomo (ou pressioná-lo no celular), um menu surgirá:<br><br><b>🖨️ Copiar e colar:</b> cria uma cópia idêntica.<br><b>➕ Completar valência (H):</b> completa com Hidrogênios.<br><b>✂️ Desvincular peça:</b> separa o átomo da estrutura.<br><b>🗑️ Excluir molécula inteira:</b> remove toda a estrutura ligada.<br><b>🗑️ Excluir átomo:</b> remove apenas a peça.'
-    },
-    {
-        type: 'video',
-        src: 'passo4.mp4',
-        text: 'Ao clicar com o botão direito sobre uma ligação, o menu exibirá as opções anteriores e também a função:<br><br><b>🔄 Girar 90°:</b> rotaciona a ligação em 90 graus, permitindo ajustar a orientação da estrutura molecular no quadro.'
-    },
-    {
-        type: 'video',
-        src: 'passo5.mp4',
-        text: 'Ao dar <b>dois cliques</b> em uma ligação dentro do quadro branco, ela será rotacionada em 90 graus automaticamente, sem a necessidade de abrir o menu de opções. Esse recurso funciona como um atalho para agilizar a edição.'
-    },
-    {
-        type: 'video',
-        src: 'passo6.mp4',
-        text: 'Ao <b>clicar duas vezes</b> em um átomo ou em uma ligação na barra inferior de peças, ele será automaticamente adicionado ao centro do quadro branco, sem a necessidade de arrastá-lo manualmente. Mais um atalho para agilizar sua montagem!'
-    },
-    {
-        type: 'image',
-        src: 'passo7.png',
-        text: 'Dentro do quadro, atente-se aos menus:<br><br><b>🔧 Canto inferior direito:</b> ferramentas para dar zoom, desfazer ações, limpar o quadro e tirar foto da molécula.<br><b>❓ Canto superior direito:</b> botão de interrogação que exibe as explicações das ferramentas e permite <b>rever este tutorial</b>.<br><b>📊 Canto superior esquerdo:</b> mostra a quantidade de átomos e o número de valências livres.'
-    }
+    { type: 'video', src: 'passo1.mp4', text: '<b>Arraste os átomos</b> para o quadro branco para começar a montar as estruturas moleculares. No celular, <b>toque e segure</b> o átomo com o dedo e arraste até o local desejado. No computador, <b>clique com o botão esquerdo</b> do mouse, segure e mova o átomo até a posição adequada.' },
+    { type: 'video', src: 'passo2.mp4', text: 'Para criar ligações, aproxime os átomos até que fiquem encostados. Quando estiverem corretamente posicionados, a ligação será formada automaticamente.<br><br>Para verificar se estão realmente conectados, <b>mova uma das partes</b>: se a outra se mover junto, a ligação está correta.<br><br>Fique atento às cores: se um átomo piscar em <b><span style="color: #16a34a;">verde</span></b>, significa que sua valência está completa; se piscar em <b><span style="color: #ef4444;">vermelho</span></b>, indica que a valência foi excedida.' },
+    { type: 'video', src: 'passo3.mp4', text: 'Ao clicar com o botão direito sobre um átomo (ou pressioná-lo no celular), um menu surgirá:<br><br><b>🖨️ Copiar e colar:</b> cria uma cópia idêntica.<br><b>➕ Completar valência (H):</b> completa com Hidrogênios.<br><b>✂️ Desvincular peça:</b> separa o átomo da estrutura.<br><b>🗑️ Excluir molécula inteira:</b> remove toda a estrutura ligada.<br><b>🗑️ Excluir átomo:</b> remove apenas a peça.' },
+    { type: 'video', src: 'passo4.mp4', text: 'Ao clicar com o botão direito sobre uma ligação, o menu exibirá as opções anteriores e também a função:<br><br><b>🔄 Girar 90°:</b> rotaciona a ligação em 90 graus, permitindo ajustar a orientação da estrutura molecular no quadro.' },
+    { type: 'video', src: 'passo5.mp4', text: 'Ao dar <b>dois cliques</b> em uma ligação dentro do quadro branco, ela será rotacionada em 90 graus automaticamente, sem a necessidade de abrir o menu de opções. Esse recurso funciona como um atalho para agilizar a edição.' },
+    { type: 'video', src: 'passo6.mp4', text: 'Ao <b>clicar duas vezes</b> em um átomo ou em uma ligação na barra inferior de peças, ele será automaticamente adicionado ao centro do quadro branco, sem a necessidade de arrastá-lo manualmente. Mais um atalho para agilizar sua montagem!' },
+    { type: 'image', src: 'passo7.png', text: 'Dentro do quadro, atente-se aos menus:<br><br><b>🔧 Canto inferior direito:</b> ferramentas para dar zoom, desfazer ações, limpar o quadro e tirar foto da molécula.<br><b>❓ Canto superior direito:</b> botão de interrogação que exibe as explicações das ferramentas e permite <b>rever este tutorial</b>.<br><b>📊 Canto superior esquerdo:</b> mostra a quantidade de átomos e o número de valências livres.' }
 ];
 
 let tutorialGenshinStep = 0;
@@ -427,9 +399,7 @@ function checkTutorialOnLoad() {
         abrirNovoTutorial();
         localStorage.setItem(tutorialKey, "visto");
     } else {
-        if (modoAtual === "impossivel") {
-            iniciarCronometro();
-        }
+        if (modoAtual === "impossivel") { iniciarCronometro(); }
     }
 }
 
@@ -512,16 +482,11 @@ function fecharTutorialGenshin() {
     document.body.classList.remove("no-scroll");
     document.getElementById("tutorial-media-container").innerHTML = ""; 
     
-    if (modoAtual === "impossivel") {
-        iniciarCronometro();
-    }
+    if (modoAtual === "impossivel") { iniciarCronometro(); }
 }
 
 setTimeout(checkTutorialOnLoad, 500);
 
-// ==========================================
-// DRAG & DROP FÍSICO COM TOUCH INTENT E ZOOM FIX
-// ==========================================
 let ultimoCliqueTempo = 0;
 let toqueEmEspera = null; 
 let isDragging = false; 
@@ -576,7 +541,6 @@ document.addEventListener("pointerdown", (e) => {
     let tempoDesdeUltimo = agora - ultimoCliqueTempo;
     ultimoCliqueTempo = agora;
 
-    // Lógica do duplo clique (Spawn centralizado corrigido para lidar perfeitamente com zoom)
     if (tempoDesdeUltimo < 300) {
         clearTimeout(toqueEmEspera); 
         if (e.target.closest('.retangulo-pecas') || (pecaEmMovimento && pecaEmMovimento.dataset.recemCriada === "true")) {
@@ -589,7 +553,6 @@ document.addEventListener("pointerdown", (e) => {
             let oRect = quadroOuter.getBoundingClientRect();
             let iRect = quadroInner.getBoundingClientRect();
             
-            // O centro da tela visual, mapeado matematicamente para as coordenadas do quadro interno
             nova.style.left = ((oRect.left + oRect.width/2 - iRect.left)/zoomLevel - 20) + "px"; 
             nova.style.top = ((oRect.top + oRect.height/2 - iRect.top)/zoomLevel - 20) + "px";
             nova.dataset.noQuadro = "true"; nova.style.position = "absolute"; nova.style.zIndex = 10;
@@ -616,9 +579,7 @@ document.addEventListener("pointerdown", (e) => {
     let isTouch = e.pointerType === "touch" || e.pointerType === "pen";
 
     if (isNoMenu && isTouch) {
-        toqueEmEspera = setTimeout(() => {
-            iniciarArrastoReal(peca, startX, startY, true);
-        }, 250); 
+        toqueEmEspera = setTimeout(() => { iniciarArrastoReal(peca, startX, startY, true); }, 250); 
     } else {
         iniciarArrastoReal(peca, e.clientX, e.clientY, isNoMenu);
     }
@@ -627,34 +588,25 @@ document.addEventListener("pointerdown", (e) => {
 document.addEventListener("pointermove", (e) => {
     if (pecaPotencial && !isDragging) {
         if (Math.abs(e.clientX - startX) > 10 || Math.abs(e.clientY - startY) > 10) {
-            clearTimeout(toqueEmEspera); 
-            pecaPotencial = null;
+            clearTimeout(toqueEmEspera); pecaPotencial = null;
         }
         return; 
     }
-
     if (!isDragging || grupoEmMovimento.length === 0) return;
-    
-    e.preventDefault(); 
-    moverGrupo(e.clientX, e.clientY);
+    e.preventDefault(); moverGrupo(e.clientX, e.clientY);
 });
 
 document.addEventListener("pointerup", (e) => {
-    clearTimeout(toqueEmEspera);
-    pecaPotencial = null;
-
+    clearTimeout(toqueEmEspera); pecaPotencial = null;
     if (!isDragging || grupoEmMovimento.length === 0) return;
 
     let isNoQuadro = pecaEmMovimento.dataset.noQuadro === "true";
-
     let sobrePainel = false;
     let paineis = document.querySelectorAll('.painel-info, .painel-ferramentas, .btn-ajuda, .btn-catalogo, .btn-verificar');
     paineis.forEach(painel => {
         if(!painel.classList.contains("escondido") && painel.offsetParent !== null) {
             let rect = painel.getBoundingClientRect();
-            if(e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom) {
-                sobrePainel = true;
-            }
+            if(e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom) { sobrePainel = true; }
         }
     });
 
@@ -662,9 +614,7 @@ document.addEventListener("pointerup", (e) => {
         if (isNoQuadro) {
             grupoEmMovimento.forEach(p => { p.style.left = p.dataset.startX + "px"; p.style.top = p.dataset.startY + "px"; });
             mostrarMensagemGlob("⚠️ Área ocupada pela interface do jogo!");
-        } else {
-            grupoEmMovimento.forEach(p => p.remove()); 
-        }
+        } else { grupoEmMovimento.forEach(p => p.remove()); }
         atualizarContadores(); pecaEmMovimento = null; grupoEmMovimento = []; isDragging = false; return; 
     }
 
@@ -687,31 +637,21 @@ document.addEventListener("pointerup", (e) => {
                 mostrarMensagemGlob("🗑️ Peça sobreposta removida!");
             }
         }
-
         resolverColisaoGlobal(); verificarLigacoesQuimicas(); tocarSomClick();
-    } else {
-        grupoEmMovimento.forEach(p => p.remove());
-    }
+    } else { grupoEmMovimento.forEach(p => p.remove()); }
 
     atualizarContadores(); pecaEmMovimento = null; grupoEmMovimento = []; isDragging = false;
 });
 
-
-// ==========================================
-// MENU DE CONTEXTO (BOTÃO DIREITO)
-// ==========================================
 document.addEventListener("contextmenu", (e) => {
     let peca = e.target.closest(".peca-draggable.no-quadro");
     if(!peca) return;
-    e.preventDefault();
-    pecaAlvoMenu = peca;
-
+    e.preventDefault(); pecaAlvoMenu = peca;
     let menu = document.getElementById("menu-contexto");
     let lista = document.getElementById("lista-menu-contexto");
     lista.innerHTML = "";
 
     let isVinculado = peca.dataset.grupo ? true : false;
-    
     lista.innerHTML += `<li onclick="window.cmCopiar()">🖨️ Copiar e Colar</li>`;
 
     if(peca.dataset.tipo === "atomo") {
@@ -719,9 +659,7 @@ document.addEventListener("contextmenu", (e) => {
         if (isVinculado) {
             lista.innerHTML += `<li onclick="window.cmDesvincular()">✂️ Desvincular Peça</li>`;
             lista.innerHTML += `<li onclick="window.cmExcluirMolecula()">🗑️ Excluir Molécula Inteira</li>`;
-        } else {
-            lista.innerHTML += `<li onclick="window.cmExcluir()">🗑️ Excluir Átomo</li>`;
-        }
+        } else { lista.innerHTML += `<li onclick="window.cmExcluir()">🗑️ Excluir Átomo</li>`; }
     } else {
         if (isVinculado) {
             lista.innerHTML += `<li onclick="window.cmDesvincular()">✂️ Desvincular Ligação</li>`;
@@ -732,9 +670,7 @@ document.addEventListener("contextmenu", (e) => {
         }
     }
 
-    menu.style.left = e.clientX + "px";
-    menu.style.top = e.clientY + "px";
-    menu.classList.remove("escondido");
+    menu.style.left = e.clientX + "px"; menu.style.top = e.clientY + "px"; menu.classList.remove("escondido");
 });
 
 function curarQuadro() {
@@ -744,130 +680,75 @@ function curarQuadro() {
 }
 
 window.cmCopiar = function() {
-    if(!pecaAlvoMenu) return;
-    salvarEstado();
-    
+    if(!pecaAlvoMenu) return; salvarEstado();
     let nova = pecaAlvoMenu.cloneNode(true);
-    nova.dataset.id = Date.now();
-    nova.dataset.grupo = ""; 
+    nova.dataset.id = Date.now(); nova.dataset.grupo = ""; 
     nova.dataset.occL = ""; nova.dataset.occR = ""; nova.dataset.occT = ""; nova.dataset.occB = "";
-    nova.dataset.valUso = 0;
-    nova.classList.remove("atomo-erro", "atomo-sucesso");
+    nova.dataset.valUso = 0; nova.classList.remove("atomo-erro", "atomo-sucesso");
     
     let hSub = nova.querySelector('.hidrogenio-completo');
     if(hSub) { hSub.remove(); nova.dataset.hExtras = 0; }
 
-    let currX = parseFloat(pecaAlvoMenu.style.left);
-    let currY = parseFloat(pecaAlvoMenu.style.top);
-    nova.style.left = (currX + 30) + "px";
-    nova.style.top = (currY + 30) + "px";
-
-    quadroInner.appendChild(nova);
-    fecharMenuContexto();
+    let currX = parseFloat(pecaAlvoMenu.style.left); let currY = parseFloat(pecaAlvoMenu.style.top);
+    nova.style.left = (currX + 30) + "px"; nova.style.top = (currY + 30) + "px";
+    quadroInner.appendChild(nova); fecharMenuContexto();
     resolverColisaoGlobal(); verificarLigacoesQuimicas(); atualizarContadores(); tocarSomClick();
 };
 
-window.cmExcluir = function() { 
-    if(!pecaAlvoMenu) return; salvarEstado(); let p = pecaAlvoMenu; fecharMenuContexto(); p.remove(); curarQuadro(); atualizarContadores(); 
-};
+window.cmExcluir = function() { if(!pecaAlvoMenu) return; salvarEstado(); let p = pecaAlvoMenu; fecharMenuContexto(); p.remove(); curarQuadro(); atualizarContadores(); };
 
 window.cmExcluirMolecula = function() {
-    if(!pecaAlvoMenu) return;
-    salvarEstado();
-    let gid = pecaAlvoMenu.dataset.grupo;
-    fecharMenuContexto(); 
-    if(gid) {
-        let grupoInteiro = quadroInner.querySelectorAll(`[data-grupo="${gid}"]`);
-        grupoInteiro.forEach(p => p.remove());
-    } else { pecaAlvoMenu.remove(); }
+    if(!pecaAlvoMenu) return; salvarEstado();
+    let gid = pecaAlvoMenu.dataset.grupo; fecharMenuContexto(); 
+    if(gid) { document.querySelectorAll(`[data-grupo="${gid}"]`).forEach(p => p.remove()); } 
+    else { pecaAlvoMenu.remove(); }
     curarQuadro(); atualizarContadores();
 };
 
-window.cmGirar90 = function() { 
-    if(!pecaAlvoMenu) return; salvarEstado(); pecaAlvoMenu.style.transform = ""; pecaAlvoMenu.dataset.angle = 0; pecaAlvoMenu.classList.toggle("lig-vertical"); fecharMenuContexto(); 
-};
+window.cmGirar90 = function() { if(!pecaAlvoMenu) return; salvarEstado(); pecaAlvoMenu.style.transform = ""; pecaAlvoMenu.dataset.angle = 0; pecaAlvoMenu.classList.toggle("lig-vertical"); fecharMenuContexto(); };
 
 window.cmCompletar = function() {
-    if(!pecaAlvoMenu) return;
-    salvarEstado();
-    let valMax = parseInt(pecaAlvoMenu.dataset.valencia);
-    let valUso = parseInt(pecaAlvoMenu.dataset.valUso || 0);
-    let falta = valMax - valUso;
-
+    if(!pecaAlvoMenu) return; salvarEstado();
+    let valMax = parseInt(pecaAlvoMenu.dataset.valencia); let valUso = parseInt(pecaAlvoMenu.dataset.valUso || 0); let falta = valMax - valUso;
     if(falta > 0) {
-        let hAntigo = pecaAlvoMenu.querySelector(".hidrogenio-completo");
-        if(hAntigo) hAntigo.remove();
-        
-        let hidr = document.createElement("div"); 
-        hidr.className = "hidrogenio-completo"; 
-        hidr.innerHTML = `H<sub>${falta > 1 ? falta : ''}</sub>`;
-        pecaAlvoMenu.appendChild(hidr); 
-        pecaAlvoMenu.dataset.hExtras = falta; 
-        
+        let hAntigo = pecaAlvoMenu.querySelector(".hidrogenio-completo"); if(hAntigo) hAntigo.remove();
+        let hidr = document.createElement("div"); hidr.className = "hidrogenio-completo"; hidr.innerHTML = `H<sub>${falta > 1 ? falta : ''}</sub>`;
+        pecaAlvoMenu.appendChild(hidr); pecaAlvoMenu.dataset.hExtras = falta; 
         checarValidacaoAtomo(pecaAlvoMenu);
         if(pecaAlvoMenu.dataset.grupo) checarPokedex(pecaAlvoMenu.dataset.grupo);
-    } else { 
-        mostrarMensagemGlob("⚠️ Valência já está completa ou excedida!"); 
-    }
+    } else { mostrarMensagemGlob("⚠️ Valência já está completa ou excedida!"); }
     fecharMenuContexto(); atualizarContadores();
 };
 
 window.cmDesvincular = function() {
-    if(!pecaAlvoMenu) return;
-    salvarEstado();
-    let p = pecaAlvoMenu;
-    fecharMenuContexto();
-    
-    let hSub = p.querySelector('.hidrogenio-completo');
-    if (hSub) { hSub.remove(); p.dataset.hExtras = 0; }
-
+    if(!pecaAlvoMenu) return; salvarEstado(); let p = pecaAlvoMenu; fecharMenuContexto();
+    let hSub = p.querySelector('.hidrogenio-completo'); if (hSub) { hSub.remove(); p.dataset.hExtras = 0; }
     let currX = parseFloat(p.style.left); let currY = parseFloat(p.style.top);
     p.style.left = (currX + 30) + "px"; p.style.top = (currY + 30) + "px";
-
     resolverColisaoGlobal(); curarQuadro(); atualizarContadores(); 
 };
 
 function fecharMenuContexto() { document.getElementById("menu-contexto").classList.add("escondido"); pecaAlvoMenu = null; }
 
-// ==========================================
-// MOVIMENTO, FÍSICA E ÍMÃ (CORRIGIDO PARA ZOOM)
-// ==========================================
 function moverGrupo(mouseX, mouseY) {
-    let rawDx = (mouseX - mouseStartX) / zoomLevel; 
-    let rawDy = (mouseY - mouseStartY) / zoomLevel;
+    let rawDx = (mouseX - mouseStartX) / zoomLevel; let rawDy = (mouseY - mouseStartY) / zoomLevel;
     let isNoQuadro = grupoEmMovimento[0].dataset.noQuadro === "true";
-
     if (isNoQuadro) {
-        // Pega as bordas exatas visualizadas na tela neste exato segundo
-        let oRect = quadroOuter.getBoundingClientRect();
-        let iRect = quadroInner.getBoundingClientRect();
-        
-        // Mapeia essas bordas para o sistema de coordenadas de dentro do quadro (onde a peça mora)
-        let limMinX = (oRect.left - iRect.left) / zoomLevel;
-        let limMinY = (oRect.top - iRect.top) / zoomLevel;
-        let limMaxX = (oRect.right - iRect.left) / zoomLevel;
-        let limMaxY = (oRect.bottom - iRect.top) / zoomLevel;
+        let oRect = quadroOuter.getBoundingClientRect(); let iRect = quadroInner.getBoundingClientRect();
+        let limMinX = (oRect.left - iRect.left) / zoomLevel; let limMinY = (oRect.top - iRect.top) / zoomLevel;
+        let limMaxX = (oRect.right - iRect.left) / zoomLevel; let limMaxY = (oRect.bottom - iRect.top) / zoomLevel;
 
         let minDx = -Infinity, maxDx = Infinity, minDy = -Infinity, maxDy = Infinity;
-        
         grupoEmMovimento.forEach(p => {
-            let sX = parseFloat(p.dataset.startX); 
-            let sY = parseFloat(p.dataset.startY);
-            
+            let sX = parseFloat(p.dataset.startX); let sY = parseFloat(p.dataset.startY);
             if (limMinX - sX > minDx) minDx = limMinX - sX;
             if (limMaxX - p.offsetWidth - sX < maxDx) maxDx = limMaxX - p.offsetWidth - sX;
             if (limMinY - sY > minDy) minDy = limMinY - sY;
             if (limMaxY - p.offsetHeight - sY < maxDy) maxDy = limMaxY - p.offsetHeight - sY;
         });
-        
-        rawDx = Math.max(minDx, Math.min(rawDx, maxDx)); 
-        rawDy = Math.max(minDy, Math.min(rawDy, maxDy));
+        rawDx = Math.max(minDx, Math.min(rawDx, maxDx)); rawDy = Math.max(minDy, Math.min(rawDy, maxDy));
     }
-    
-    grupoEmMovimento.forEach(p => { 
-        p.style.left = (parseFloat(p.dataset.startX) + rawDx) + "px"; 
-        p.style.top = (parseFloat(p.dataset.startY) + rawDy) + "px"; 
-    });
+    grupoEmMovimento.forEach(p => { p.style.left = (parseFloat(p.dataset.startX) + rawDx) + "px"; p.style.top = (parseFloat(p.dataset.startY) + rawDy) + "px"; });
 }
 
 const oppos = { 'R':'L', 'L':'R', 'T':'B', 'B':'T' };
@@ -892,33 +773,23 @@ function getSnapPoints(peca) {
     return pts;
 }
 
-function verificarLigacoesQuimicas() {
-    let allPecas = Array.from(quadroInner.querySelectorAll('.peca-draggable.no-quadro'));
-    recalcularTudo(allPecas);
-}
+function verificarLigacoesQuimicas() { let allPecas = Array.from(quadroInner.querySelectorAll('.peca-draggable.no-quadro')); recalcularTudo(allPecas); }
 
 function recalcularTudo(allPecas) {
-    allPecas.forEach(p => {
-        p.dataset.occL = ""; p.dataset.occR = ""; p.dataset.occT = ""; p.dataset.occB = "";
-        let hExtras = parseInt(p.dataset.hExtras || 0);
-        p.dataset.valUso = hExtras;
-    });
+    allPecas.forEach(p => { p.dataset.occL = ""; p.dataset.occR = ""; p.dataset.occT = ""; p.dataset.occB = ""; p.dataset.valUso = parseInt(p.dataset.hExtras || 0); });
 
     for(let i=0; i < allPecas.length; i++){
         for(let j=i+1; j < allPecas.length; j++){
             let p1 = allPecas[i], p2 = allPecas[j];
             if(p1.dataset.tipo === p2.dataset.tipo) continue;
-
             let pts1 = getSnapPoints(p1), pts2 = getSnapPoints(p2);
             pts1.forEach(pt1 => {
                 pts2.forEach(pt2 => {
                     if(pt1.dir === pt2.dir && pt1.id === oppos[pt2.id] && Math.hypot(pt1.x - pt2.x, pt1.y - pt2.y) < 10) {
-                        
                         if(grupoEmMovimento.includes(p1) && !grupoEmMovimento.includes(p2)) {
                             let diffX = pt2.x - pt1.x, diffY = pt2.y - pt1.y;
                             grupoEmMovimento.forEach(g => { g.style.left = (parseFloat(g.style.left)+diffX)+"px"; g.style.top = (parseFloat(g.style.top)+diffY)+"px"; });
                         }
-                        
                         let gId1 = p1.dataset.grupo; let gId2 = p2.dataset.grupo;
                         let novoG = gId1 || gId2 || ("g" + groupIdCounter++);
                         allPecas.forEach(p => { if ((gId1 && p.dataset.grupo === gId1) || (gId2 && p.dataset.grupo === gId2)) { p.dataset.grupo = novoG; } });
@@ -938,23 +809,15 @@ function recalcularTudo(allPecas) {
         if(atomo.dataset.tipo === "atomo") checarValidacaoAtomo(atomo); 
         if(atomo.dataset.grupo) grpUnicos.add(atomo.dataset.grupo);
     });
-
     if(modoAtual === "livre") { grpUnicos.forEach(gId => checarPokedex(gId)); }
 }
 
 function resolverColisaoGlobal() {
     let all = Array.from(quadroInner.querySelectorAll('.peca-draggable.no-quadro'));
     if(all.length === 0) return;
-    
-    let oRect = quadroOuter.getBoundingClientRect();
-    let iRect = quadroInner.getBoundingClientRect();
-    
-    // Projeta as bordas visuais para o espaço 2D interno da tela
-    let limMinX = (oRect.left - iRect.left) / zoomLevel;
-    let limMinY = (oRect.top - iRect.top) / zoomLevel;
-    let limMaxX = (oRect.right - iRect.left) / zoomLevel;
-    let limMaxY = (oRect.bottom - iRect.top) / zoomLevel;
-
+    let oRect = quadroOuter.getBoundingClientRect(); let iRect = quadroInner.getBoundingClientRect();
+    let limMinX = (oRect.left - iRect.left) / zoomLevel; let limMinY = (oRect.top - iRect.top) / zoomLevel;
+    let limMaxX = (oRect.right - iRect.left) / zoomLevel; let limMaxY = (oRect.bottom - iRect.top) / zoomLevel;
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     
     all.forEach(p => {
@@ -965,57 +828,33 @@ function resolverColisaoGlobal() {
     });
 
     let shiftX = 0, shiftY = 0;
-    
-    if (minX < limMinX) shiftX = limMinX - minX; 
-    else if (maxX > limMaxX) shiftX = limMaxX - maxX;
-    
-    if (minY < limMinY) shiftY = limMinY - minY; 
-    else if (maxY > limMaxY) shiftY = limMaxY - maxY;
-
-    if (shiftX !== 0 || shiftY !== 0) {
-        all.forEach(p => { p.style.left = (parseFloat(p.style.left) + shiftX) + "px"; p.style.top = (parseFloat(p.style.top) + shiftY) + "px"; });
-    }
+    if (minX < limMinX) shiftX = limMinX - minX; else if (maxX > limMaxX) shiftX = limMaxX - maxX;
+    if (minY < limMinY) shiftY = limMinY - minY; else if (maxY > limMaxY) shiftY = limMaxY - maxY;
+    if (shiftX !== 0 || shiftY !== 0) { all.forEach(p => { p.style.left = (parseFloat(p.style.left) + shiftX) + "px"; p.style.top = (parseFloat(p.style.top) + shiftY) + "px"; }); }
 }
 
 function checarValidacaoAtomo(atomo) {
     let max = parseInt(atomo.dataset.valencia); let uso = parseInt(atomo.dataset.valUso);
-    atomo.classList.remove("atomo-erro", "atomo-sucesso");
-    void atomo.offsetWidth; 
-    
+    atomo.classList.remove("atomo-erro", "atomo-sucesso"); void atomo.offsetWidth; 
     if(uso > max) {
         atomo.classList.add("atomo-erro"); atomo.dataset.tocado = "false";
         somErro.currentTime = 0; somErro.play().catch(()=>{}); mostrarMensagemGlob("🚨 Valência Excedida!");
     } else if (uso === max && uso > 0) {
         atomo.classList.add("atomo-sucesso");
-        if(atomo.dataset.tocado !== "true") {
-            somCorreto.currentTime = 0; somCorreto.play().catch(()=>{}); atomo.dataset.tocado = "true";
-        }
+        if(atomo.dataset.tocado !== "true") { somCorreto.currentTime = 0; somCorreto.play().catch(()=>{}); atomo.dataset.tocado = "true"; }
     } else { atomo.dataset.tocado = "false"; }
 }
 
-// ==========================================
-// FERRAMENTAS DO QUADRO E ATUALIZAÇÕES
-// ==========================================
-function mudarZoom(d) { 
-    tocarSomClick(); zoomLevel = Math.max(0.5, Math.min(2, zoomLevel+d)); atualizarVisao(); resolverColisaoGlobal(); 
-}
-function resetarVisao() { 
-    tocarSomClick(); zoomLevel = 1; atualizarVisao(); resolverColisaoGlobal(); 
-}
+function mudarZoom(d) { tocarSomClick(); zoomLevel = Math.max(0.5, Math.min(2, zoomLevel+d)); atualizarVisao(); resolverColisaoGlobal(); }
+function resetarVisao() { tocarSomClick(); zoomLevel = 1; atualizarVisao(); resolverColisaoGlobal(); }
 function atualizarVisao() { quadroInner.style.transform = `scale(${zoomLevel})`; }
-
-function limparQuadro() { 
-    salvarEstado(); tocarSomClick(); quadroInner.innerHTML = ""; atualizarContadores(); 
-}
-function desfazerAcao() { 
-    tocarSomClick(); if(historico.length > 0){ quadroInner.innerHTML = historico.pop(); verificarLigacoesQuimicas(); atualizarContadores(); } 
-}
+function limparQuadro() { salvarEstado(); tocarSomClick(); quadroInner.innerHTML = ""; atualizarContadores(); }
+function desfazerAcao() { tocarSomClick(); if(historico.length > 0){ quadroInner.innerHTML = historico.pop(); verificarLigacoesQuimicas(); atualizarContadores(); } }
 
 window.girarMoleculas = function() {
     salvarEstado(); tocarSomClick();
     let allPecas = Array.from(quadroInner.querySelectorAll('.peca-draggable.no-quadro'));
     if(allPecas.length === 0) return;
-
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     allPecas.forEach(p => {
         let x = parseFloat(p.style.left); let y = parseFloat(p.style.top); let w = p.offsetWidth; let h = p.offsetHeight;
@@ -1027,11 +866,9 @@ window.girarMoleculas = function() {
     allPecas.forEach(p => {
         let x = parseFloat(p.style.left); let y = parseFloat(p.style.top); let w = p.offsetWidth; let h = p.offsetHeight;
         let px = x + w/2 - cx; let py = y + h/2 - cy; let nx = -py; let ny = px;
-
         if (p.dataset.tipo === "ligacao") { p.classList.toggle("lig-vertical"); p.style.transform = ""; p.dataset.angle = 0; let temp = w; w = h; h = temp; }
         p.style.left = (cx + nx - w/2) + "px"; p.style.top = (cy + ny - h/2) + "px";
     });
-
     resolverColisaoGlobal(); verificarLigacoesQuimicas(); atualizarContadores();
 };
 
@@ -1054,37 +891,71 @@ function togglePainel(id) {
 }
 
 // ==========================================
-// FUNÇÃO PARA PULAR DE FASE
+// FUNÇÕES DE NAVEGAÇÃO DE DESAFIO
 // ==========================================
 window.pularFaseDesafio = function() {
-    if(typeof modoAtual !== 'undefined' && modoAtual === "livre") {
-        if(typeof mostrarMensagemGlob === "function") mostrarMensagemGlob("⚠️ O modo livre não possui fases para pular.");
+    if(modoAtual === "livre") {
+        mostrarMensagemGlob("⚠️ O modo livre não possui fases.");
         if(typeof falarAssistente === "function") falarAssistente("O modo livre não possui fases para pular.");
         return;
     }
-    if(typeof tocarSomClick === "function") tocarSomClick();
-    if(typeof bancoDesafios !== 'undefined' && typeof indexDesafioAtual !== 'undefined') {
-        let desafiosDoModo = bancoDesafios[modoAtual];
-        if (indexDesafioAtual < desafiosDoModo.length - 1) {
-            indexDesafioAtual++;
-            if(typeof limparQuadro === "function") limparQuadro();
-            if(typeof iniciarRodadaDesafio === "function") iniciarRodadaDesafio();
-            if(typeof mostrarMensagemGlob === "function") mostrarMensagemGlob("⏭️ Fase pulada!");
-            if(typeof falarAssistente === "function") falarAssistente("Fase pulada com sucesso. Novo desafio na tela.");
-        } else {
-            if(typeof mostrarMensagemGlob === "function") mostrarMensagemGlob("⚠️ Esta já é a última fase deste nível!");
-            if(typeof falarAssistente === "function") falarAssistente("Você já está na última fase.");
-        }
+    tocarSomClick();
+    let desafiosDoModo = bancoDesafios[modoAtual];
+    if (indexDesafioAtual < desafiosDoModo.length - 1) {
+        indexDesafioAtual++;
+        limparQuadro();
+        iniciarRodadaDesafio();
+        mostrarMensagemGlob("⏭️ Fase pulada!");
+        if(typeof falarAssistente === "function") falarAssistente("Fase pulada. Novo desafio na tela.");
+    } else {
+        mostrarMensagemGlob("⚠️ Esta já é a última fase deste nível!");
+        if(typeof falarAssistente === "function") falarAssistente("Você já está na última fase.");
     }
 };
 
+window.voltarFaseDesafio = function() {
+    if(modoAtual === "livre") {
+        mostrarMensagemGlob("⚠️ O modo livre não possui fases.");
+        if(typeof falarAssistente === "function") falarAssistente("O modo livre não possui fases.");
+        return;
+    }
+    tocarSomClick();
+    if (indexDesafioAtual > 0) {
+        indexDesafioAtual--;
+        limparQuadro();
+        iniciarRodadaDesafio();
+        mostrarMensagemGlob("⏮️ Fase anterior!");
+        if(typeof falarAssistente === "function") falarAssistente("Voltando para a fase anterior.");
+    } else {
+        mostrarMensagemGlob("⚠️ Esta já é a primeira fase!");
+        if(typeof falarAssistente === "function") falarAssistente("Você já está na primeira fase.");
+    }
+};
+
+window.encerrarDesafioCedo = function() {
+    if(modoAtual === "livre") {
+        mostrarMensagemGlob("⚠️ O modo livre não possui conclusão.");
+        if(typeof falarAssistente === "function") falarAssistente("O modo livre não possui um fim específico.");
+        return;
+    }
+    tocarSomClick();
+    finalizarDesafio(estrelasGanhas >= 5);
+};
+
 // ==========================================
-// MOTOR DE RENDERIZAÇÃO 3D (THREE.JS INJETADO)
+// MOTOR 3D
 // ==========================================
+let idAnimacao3D = null;
 window.abrirVisualizador3D = function() {
     let atomosDOM = document.querySelectorAll('#quadro-inner .atomo.no-quadro');
     if(atomosDOM.length === 0) {
+        mostrarMensagemGlob("⚠️ O quadro está vazio!");
         if(typeof falarAssistente === "function") falarAssistente("O quadro está vazio. Monte uma molécula antes de ver em 3D.");
+        return;
+    }
+
+    if (!window.THREE) {
+        mostrarMensagemGlob("⚠️ Erro: Biblioteca 3D não carregou. Verifique a sua internet.");
         return;
     }
 
@@ -1102,152 +973,129 @@ window.abrirVisualizador3D = function() {
     document.getElementById("modal-3d-overlay").style.display = "block";
     document.body.style.overflow = "hidden";
 
-    if (typeof window.iniciarCena3D !== "function") {
-        if(typeof mostrarMensagemGlob === "function") mostrarMensagemGlob("🧊 Carregando Motor 3D...");
-        const script = document.createElement("script");
-        script.type = "module";
-        script.innerHTML = `
-            import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
-            import { OrbitControls } from 'https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js';
+    const container = document.getElementById("container-3d");
+    container.innerHTML = ""; 
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0f172a); 
+
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.z = 8;
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    container.appendChild(renderer.domElement);
+
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.autoRotate = true; 
+    controls.autoRotateSpeed = 2.0;
+
+    const luzAmbiente = new THREE.AmbientLight(0xffffff, 0.7);
+    scene.add(luzAmbiente);
+    const luzDir = new THREE.DirectionalLight(0xffffff, 1.2);
+    luzDir.position.set(10, 20, 10);
+    scene.add(luzDir);
+
+    const ligacoesDOM = document.querySelectorAll('#quadro-inner .ligacao.no-quadro');
+
+    const cores = { 'C': 0x333333, 'O': 0xef4444, 'H': 0xffffff, 'N': 0x3b82f6, 'S': 0xeab308, 'P': 0xf97316, 'CL': 0x22c55e, 'F': 0x4ade80, 'BR': 0x991b1b, 'I': 0x8b5cf6 };
+    const raios = { 'H': 0.25, 'C': 0.45, 'O': 0.4, 'N': 0.4, 'S': 0.5, 'P': 0.5, 'CL': 0.5, 'F': 0.35, 'BR': 0.55, 'I': 0.6 };
+
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    atomosDOM.forEach(a => {
+        let x = parseFloat(a.style.left); let y = parseFloat(a.style.top);
+        if(x < minX) minX = x; if(x > maxX) maxX = x;
+        if(y < minY) minY = y; if(y > maxY) maxY = y;
+    });
+    let centroX = (minX + maxX) / 2; let centroY = (minY + maxY) / 2;
+
+    const posicoes3D = [];
+
+    atomosDOM.forEach((a) => {
+        let sigla = a.dataset.sigla.toUpperCase();
+        let cor = cores[sigla] || 0xaaaaaa;
+        let raio = raios[sigla] || 0.45;
+
+        let x3d = (parseFloat(a.style.left) - centroX) / 35;
+        let y3d = -(parseFloat(a.style.top) - centroY) / 35;
+        let z3d = (Math.random() - 0.5) * 0.4; 
+
+        const geo = new THREE.SphereGeometry(raio, 32, 32);
+        const mat = new THREE.MeshPhongMaterial({ color: cor, shininess: 100 });
+        const esfera = new THREE.Mesh(geo, mat);
+        esfera.position.set(x3d, y3d, z3d);
+        scene.add(esfera);
+        
+        posicoes3D.push({ idDOM: a.dataset.id, vec: esfera.position, sigla: sigla });
+
+        let hExtras = parseInt(a.dataset.hExtras || 0);
+        for(let h=0; h<hExtras; h++) {
+            let dir = new THREE.Vector3((Math.random() - 0.5)*2, (Math.random() - 0.5)*2, (Math.random() - 0.5)*2).normalize();
+            let hPos = new THREE.Vector3().copy(esfera.position).add(dir.multiplyScalar(1.2));
             
-            window.iniciarCena3D = function() {
-                const container = document.getElementById("container-3d");
-                container.innerHTML = ""; 
+            const geoH = new THREE.SphereGeometry(0.25, 32, 32);
+            const matH = new THREE.MeshPhongMaterial({ color: 0xffffff, shininess: 100 });
+            const esfH = new THREE.Mesh(geoH, matH);
+            esfH.position.copy(hPos);
+            scene.add(esfH);
 
-                const scene = new THREE.Scene();
-                scene.background = new THREE.Color(0x0f172a); // Azul bem escuro
+            criarCilindro(scene, esfera.position, esfH.position, 1);
+        }
+    });
 
-                const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-                camera.position.z = 8;
+    ligacoesDOM.forEach(lig => {
+        let val = parseInt(lig.dataset.val || 1);
+        let cX = parseFloat(lig.style.left) + 20; 
+        let cY = parseFloat(lig.style.top) + 5;
 
-                const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-                renderer.setSize(window.innerWidth, window.innerHeight);
-                container.appendChild(renderer.domElement);
+        let proximos = Array.from(atomosDOM).map(a => {
+            let ax = parseFloat(a.style.left) + 20; let ay = parseFloat(a.style.top) + 20;
+            return { id: a.dataset.id, dist: Math.hypot(cX - ax, cY - ay) };
+        }).sort((a,b) => a.dist - b.dist);
 
-                const controls = new OrbitControls(camera, renderer.domElement);
-                controls.enableDamping = true;
-                controls.autoRotate = true; // Gira a molécula sozinha
-                controls.autoRotateSpeed = 2.0;
+        if(proximos.length >= 2) {
+            let pA = posicoes3D.find(p => p.idDOM === proximos[0].id);
+            let pB = posicoes3D.find(p => p.idDOM === proximos[1].id);
+            if(pA && pB) criarCilindro(scene, pA.vec, pB.vec, val);
+        }
+    });
 
-                const luzAmbiente = new THREE.AmbientLight(0xffffff, 0.7);
-                scene.add(luzAmbiente);
-                const luzDir = new THREE.DirectionalLight(0xffffff, 1.2);
-                luzDir.position.set(10, 20, 10);
-                scene.add(luzDir);
+    function criarCilindro(cena, v1, v2, valencia) {
+        let dist = v1.distanceTo(v2);
+        let meio = new THREE.Vector3().addVectors(v1, v2).multiplyScalar(0.5);
+        let direcao = new THREE.Vector3().subVectors(v2, v1).normalize();
+        
+        let offsets = [0];
+        if(valencia === 2) offsets = [-0.15, 0.15];
+        if(valencia === 3) offsets = [-0.2, 0, 0.2];
 
-                const atomosDOM = document.querySelectorAll('#quadro-inner .atomo.no-quadro');
-                const ligacoesDOM = document.querySelectorAll('#quadro-inner .ligacao.no-quadro');
+        let eixoPerp = new THREE.Vector3(1, 0, 0);
+        if (Math.abs(direcao.x) > 0.9) eixoPerp.set(0, 1, 0);
+        eixoPerp.crossVectors(direcao, eixoPerp).normalize();
 
-                const cores = { 'C': 0x333333, 'O': 0xef4444, 'H': 0xffffff, 'N': 0x3b82f6, 'S': 0xeab308, 'P': 0xf97316, 'CL': 0x22c55e, 'F': 0x4ade80, 'BR': 0x991b1b, 'I': 0x8b5cf6 };
-                const raios = { 'H': 0.25, 'C': 0.45, 'O': 0.4, 'N': 0.4, 'S': 0.5, 'P': 0.5, 'CL': 0.5, 'F': 0.35, 'BR': 0.55, 'I': 0.6 };
-
-                let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-                atomosDOM.forEach(a => {
-                    let x = parseFloat(a.style.left); let y = parseFloat(a.style.top);
-                    if(x < minX) minX = x; if(x > maxX) maxX = x;
-                    if(y < minY) minY = y; if(y > maxY) maxY = y;
-                });
-                let centroX = (minX + maxX) / 2; let centroY = (minY + maxY) / 2;
-
-                const posicoes3D = [];
-
-                atomosDOM.forEach((a) => {
-                    let sigla = a.dataset.sigla.toUpperCase();
-                    let cor = cores[sigla] || 0xaaaaaa;
-                    let raio = raios[sigla] || 0.45;
-
-                    let x3d = (parseFloat(a.style.left) - centroX) / 35;
-                    let y3d = -(parseFloat(a.style.top) - centroY) / 35;
-                    let z3d = (Math.random() - 0.5) * 0.4; 
-
-                    const geo = new THREE.SphereGeometry(raio, 32, 32);
-                    const mat = new THREE.MeshPhongMaterial({ color: cor, shininess: 100 });
-                    const esfera = new THREE.Mesh(geo, mat);
-                    esfera.position.set(x3d, y3d, z3d);
-                    scene.add(esfera);
-                    
-                    posicoes3D.push({ idDOM: a.dataset.id, vec: esfera.position, sigla: sigla });
-
-                    let hExtras = parseInt(a.dataset.hExtras || 0);
-                    for(let h=0; h<hExtras; h++) {
-                        let dir = new THREE.Vector3((Math.random() - 0.5)*2, (Math.random() - 0.5)*2, (Math.random() - 0.5)*2).normalize();
-                        let hPos = new THREE.Vector3().copy(esfera.position).add(dir.multiplyScalar(1.2));
-                        
-                        const geoH = new THREE.SphereGeometry(0.25, 32, 32);
-                        const matH = new THREE.MeshPhongMaterial({ color: 0xffffff, shininess: 100 });
-                        const esfH = new THREE.Mesh(geoH, matH);
-                        esfH.position.copy(hPos);
-                        scene.add(esfH);
-
-                        criarCilindro(scene, esfera.position, esfH.position, 1);
-                    }
-                });
-
-                ligacoesDOM.forEach(lig => {
-                    let val = parseInt(lig.dataset.val || 1);
-                    let cX = parseFloat(lig.style.left) + 20; 
-                    let cY = parseFloat(lig.style.top) + 5;
-
-                    let proximos = Array.from(atomosDOM).map(a => {
-                        let ax = parseFloat(a.style.left) + 20; let ay = parseFloat(a.style.top) + 20;
-                        return { id: a.dataset.id, dist: Math.hypot(cX - ax, cY - ay) };
-                    }).sort((a,b) => a.dist - b.dist);
-
-                    if(proximos.length >= 2) {
-                        let pA = posicoes3D.find(p => p.idDOM === proximos[0].id);
-                        let pB = posicoes3D.find(p => p.idDOM === proximos[1].id);
-                        if(pA && pB) criarCilindro(scene, pA.vec, pB.vec, val);
-                    }
-                });
-
-                function criarCilindro(cena, v1, v2, valencia) {
-                    let dist = v1.distanceTo(v2);
-                    let meio = new THREE.Vector3().addVectors(v1, v2).multiplyScalar(0.5);
-                    let direcao = new THREE.Vector3().subVectors(v2, v1).normalize();
-                    
-                    let offsets = [0];
-                    if(valencia === 2) offsets = [-0.15, 0.15];
-                    if(valencia === 3) offsets = [-0.2, 0, 0.2];
-
-                    let eixoPerp = new THREE.Vector3(1, 0, 0);
-                    if (Math.abs(direcao.x) > 0.9) eixoPerp.set(0, 1, 0);
-                    eixoPerp.crossVectors(direcao, eixoPerp).normalize();
-
-                    offsets.forEach(off => {
-                        const geoC = new THREE.CylinderGeometry(0.08, 0.08, dist, 16);
-                        const matC = new THREE.MeshPhongMaterial({ color: 0xcccccc });
-                        const cilindro = new THREE.Mesh(geoC, matC);
-                        
-                        cilindro.position.copy(meio).add(new THREE.Vector3().copy(eixoPerp).multiplyScalar(off));
-                        cilindro.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direcao);
-                        cena.add(cilindro);
-                    });
-                }
-
-                let idAnimacao;
-                function animar() {
-                    idAnimacao = requestAnimationFrame(animar);
-                    controls.update();
-                    renderer.render(scene, camera);
-                }
-                animar();
-
-                window.limparCena3D = function() {
-                    cancelAnimationFrame(idAnimacao);
-                    renderer.dispose();
-                };
-            };
-            window.iniciarCena3D();
-        `;
-        document.body.appendChild(script);
-    } else {
-        window.iniciarCena3D();
+        offsets.forEach(off => {
+            const geoC = new THREE.CylinderGeometry(0.08, 0.08, dist, 16);
+            const matC = new THREE.MeshPhongMaterial({ color: 0xcccccc });
+            const cilindro = new THREE.Mesh(geoC, matC);
+            
+            cilindro.position.copy(meio).add(new THREE.Vector3().copy(eixoPerp).multiplyScalar(off));
+            cilindro.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direcao);
+            cena.add(cilindro);
+        });
     }
+
+    function animar() {
+        idAnimacao3D = requestAnimationFrame(animar);
+        controls.update();
+        renderer.render(scene, camera);
+    }
+    animar();
 };
 
 window.fecharVisualizador3D = function() {
     if(typeof tocarSomClick === "function") tocarSomClick();
     document.getElementById("modal-3d-overlay").style.display = "none";
     document.body.style.overflow = "auto";
-    if(typeof window.limparCena3D === "function") window.limparCena3D(); 
+    if(idAnimacao3D) cancelAnimationFrame(idAnimacao3D);
 };
