@@ -10,6 +10,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    padding-bottom: 60px; /* EMPURRA O JOGO PARA LONGE DO RODAPÉ */
 }
 
 .hud-desafio {
@@ -34,19 +35,9 @@
     margin-bottom: 10px;
 }
 
-.estrelas-hud {
-    font-size: 20px;
-    color: #475569;
-}
-.estrelas-hud .ganha {
-    color: #eab308;
-    text-shadow: 0 0 8px gold;
-}
-
-.vidas-hud {
-    font-size: 20px;
-    letter-spacing: 2px;
-}
+.estrelas-hud { font-size: 20px; color: #475569; }
+.estrelas-hud .ganha { color: #eab308; text-shadow: 0 0 8px gold; }
+.vidas-hud { font-size: 20px; letter-spacing: 2px; }
 
 .hud-pergunta {
     font-size: 18px;
@@ -145,6 +136,7 @@
     align-items: flex-end;
 }
 
+/* CAIXA DE EMPILHAMENTO (GAP ZERO PARA JUNTAR AS MOLÉCULAS) */
 .conteudo-prato {
     position: absolute;
     bottom: 20px;
@@ -152,10 +144,10 @@
     display: flex;
     flex-direction: column-reverse; 
     align-items: center;
-    gap: 0;
+    gap: -5px; /* Empurra uma por cima da outra para tirar qualquer buraco */
 }
 
-/* CAIXA GEOMÉTRICA DA MOLÉCULA (Bolas grudadas sem espaço) */
+/* CAIXA GEOMÉTRICA DA MOLÉCULA */
 .molecula-visual {
     display: flex;
     justify-content: center;
@@ -163,6 +155,7 @@
     position: relative;
     padding: 0;
     margin: 0;
+    height: 25px; /* Altura fixa menor para matar espaços mortos verticais */
     animation: cair 0.4s ease-out;
 }
 
@@ -200,11 +193,7 @@
     flex-wrap: wrap;
 }
 
-.termo-equacao {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
+.termo-equacao { display: flex; align-items: center; gap: 10px; }
 
 .bloco-coeficiente {
     display: flex;
@@ -246,19 +235,18 @@
 .btn-coeficiente.minus { background: #ef4444; }
 .btn-coeficiente.minus:hover { background: #b91c1c; transform: scale(1.1); }
 
-.texto-molecula {
-    font-size: 28px;
-    font-weight: bold;
-    font-family: monospace;
-    letter-spacing: 2px;
-}
-
-.sinal-mais, .sinal-seta {
-    font-size: 30px;
-    font-weight: bold;
-    color: #94a3b8;
-}
+.texto-molecula { font-size: 28px; font-weight: bold; font-family: monospace; letter-spacing: 2px; }
+.sinal-mais, .sinal-seta { font-size: 30px; font-weight: bold; color: #94a3b8; }
 .sinal-seta { color: #10b981; }
+
+.controles-fase {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    margin-top: 20px;
+    width: 100%;
+}
 
 .btn-controle-balanca {
     background: #0ea5e9;
@@ -304,4 +292,10 @@
     50% { transform: translate(-50%, 0) rotate(5deg); }
     75% { transform: translate(-50%, 0) rotate(-5deg); }
     100% { transform: translate(-50%, 0) rotate(0deg); }
+}
+
+@keyframes flutuarGigante {
+    0% { transform: translateY(0px) scale(1); }
+    50% { transform: translateY(-20px) scale(1.1); }
+    100% { transform: translateY(0px) scale(1); }
 }

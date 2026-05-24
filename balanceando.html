@@ -15,6 +15,7 @@
 <audio id="somCorreto" src="correto.mp3"></audio>
 <audio id="somGanhou" src="ganhou.mp3"></audio>
 <audio id="somPerdeu" src="perdeu.mp3"></audio>
+<audio id="somEstrela" src="estrela.mp3"></audio>
 
 <header class="topo">
   <div class="esquerda">
@@ -41,7 +42,6 @@
 
 <main class="game-container">
   
-  <!-- TÍTULO E BOTÃO VOLTAR ALINHADOS À ESQUERDA -->
   <div class="header-modo" style="width: 90%; margin: 0 auto; display: flex; flex-direction: column; align-items: flex-start; padding-bottom: 5px;">
     <h1 id="titulo-modo" style="margin: 0 0 5px 0;">BALANCEANDO</h1>
     <button class="btn-voltar" onclick="mudarTela('modos.html')" style="margin:0;">⬅ Voltar para Modos</button>
@@ -49,7 +49,6 @@
 
   <div id="toast-mensagem" class="toast escondido"></div>
 
-  <!-- HUD COM CONTORNO AZUL E ESTRELAS / CORAÇÕES -->
   <div id="hud-desafio" class="hud-desafio" style="border: 2px solid #0ea5e9;">
       <div class="hud-topo">
           <div id="estrelas-container" class="estrelas-hud">
@@ -61,14 +60,12 @@
       <div class="hud-pergunta" style="text-align: center;">
           <strong style="font-size: 20px;">Equilibre a balança química!</strong><br>
           <span style="font-size: 16px; opacity: 0.9;">Adicione moléculas aos pratos.<br>
-          <!-- FRASE DA DICA EM AZUL -->
           <span style="color: #0ea5e9; font-weight: bold;">(Dica: Simplifique a equação final para ganhar 2 estrelas!)</span>
           </span>
       </div>
   </div>
 
   <div class="area-trabalho" style="background: transparent; border: none; box-shadow: none;">
-    
     <div class="area-balanca">
         <div class="balanca-haste" id="balanca-haste">
             <div class="corda-prato corda-esquerda" id="corda-esquerda">
@@ -83,13 +80,10 @@
         <div class="balanca-base"><div class="balanca-pe"></div></div>
     </div>
 
-    <!-- AREA DA EQUAÇÃO -->
     <div class="area-equacao" id="area-equacao"></div>
 
-    <!-- BOTÕES AJEITADOS: VERIFICAR NO CENTRO E O RESTO EMBAIXO -->
-    <div class="controles-fase" style="display: flex; flex-direction: column; align-items: center; gap: 15px; margin-top: 10px; width: 100%;">
+    <div class="controles-fase">
         <button id="btn-verificar" onclick="verificarBalanceamento()" class="btn-verificar-master">✅ Verificar Balança</button>
-        
         <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
             <button id="btn-voltar-fase" class="btn-controle-balanca" title="Voltar Fase" onclick="voltarFaseBalanceando()" style="background-color: #8b5cf6;">⏮️ Voltar Fase</button>
             <button id="btn-pular-fase" class="btn-controle-balanca" title="Pular Fase" onclick="pularFaseBalanceando()" style="background-color: #f59e0b;">⏭️ Pular Fase</button>
@@ -105,6 +99,15 @@
   <div class="creditos"><p class="creditos-titulo">Desenvolvido por</p><p class="autor">Zayde CASTRO</p><p class="email">zayde.lucas@aluno.uece.br</p><div class="logos"><img src="pibid.png"><img src="faced.png"><img src="uece.png"></div></div>
 </footer>
 
+<!-- MODAL DA ESTRELA QUE TINHA SUMIDO -->
+<div id="modal-estrela" class="modal-overlay" style="z-index: 100000; display: none;">
+    <div class="modal-box modal-box-epic" style="background: transparent; box-shadow: none; text-align: center; color: white;">
+        <div id="animacao-estrela" style="font-size: 150px; text-shadow: 0 0 30px gold; animation: flutuarGigante 2s infinite ease-in-out;">⭐</div>
+        <h2 id="texto-estrela" style="font-size: 30px; margin: 20px 0; text-shadow: 2px 2px 4px black;">Você ganhou uma estrela!</h2>
+        <button type="button" onclick="continuarModoBalanceando()" class="btn-epic-green" style="background: #16a34a; font-size: 20px;">Continuar</button>
+    </div>
+</div>
+
 <div id="modal-erro-desafio" class="modal-overlay" style="z-index: 100000; display: none;">
     <div class="modal-box modal-box-epic" style="border: 4px solid #ef4444; background: linear-gradient(135deg, #fef2f2, #fee2e2); animation: tremer 0.4s;">
         <div class="modal-header" style="background: #ef4444; justify-content: center; font-size: 24px; border-bottom: 4px solid #b91c1c;">
@@ -113,7 +116,7 @@
         <div class="modal-body" style="text-align: center;">
             <div style="font-size: 60px; margin-bottom: 10px;">⚠️</div>
             <p id="texto-erro-desafio" style="font-size: 20px; margin-bottom: 25px; color: #b91c1c; font-weight: bold;"></p>
-            <button type="button" onclick="document.getElementById('modal-erro-desafio').style.display='none'" class="btn-epic-red">Tentar Novamente</button>
+            <button type="button" onclick="document.getElementById('modal-erro-desafio').style.display='none'" class="btn-epic-red" style="background: #ef4444; font-size: 20px;">Tentar Novamente</button>
         </div>
     </div>
 </div>
@@ -127,7 +130,7 @@
             <div id="icone-resultado" style="font-size: 60px; margin-bottom: 10px;">🏆</div>
             <h1 id="texto-resultado-desafio" style="font-size: 32px; margin-bottom: 15px;">Excelente!</h1>
             <p id="subtexto-resultado-desafio" style="margin-bottom: 30px; font-size: 18px; color: #334155; font-weight: 500;"></p>
-            <button type="button" onclick="mudarTela('modos.html')" id="btn-resultado-desafio" class="btn-epic-green">Voltar ao Menu</button>
+            <button type="button" onclick="mudarTela('modos.html')" id="btn-resultado-desafio" class="btn-epic-green" style="background: #16a34a; font-size: 20px;">Voltar ao Menu</button>
         </div>
     </div>
 </div>

@@ -147,9 +147,6 @@ function extrairElementos(formula) {
     return elementos;
 }
 
-// =====================================
-// GEOMETRIA MOLECULAR - O DESENHO CIENTÍFICO DA MOLÉCULA NAS CAIXAS
-// =====================================
 function criarBolinha(nomeElemento, transX, transY, zIndex = 5) {
     let bolinha = document.createElement("div");
     bolinha.className = "atomo-bolinha";
@@ -171,7 +168,7 @@ function desenharMoleculaGeometria(formula) {
     let caixa = document.createElement("div");
     caixa.className = "molecula-visual";
     caixa.style.width = "40px"; 
-    caixa.style.height = "40px";
+    caixa.style.height = "25px";
 
     if (atomos.length === 1) {
         caixa.appendChild(criarBolinha(atomos[0], 0, 0));
@@ -212,7 +209,6 @@ function desenharMoleculaGeometria(formula) {
     else {
         let central = criarBolinha(atomos[0], 0, 0, 10);
         caixa.appendChild(central);
-        
         let raio = atomos.length > 8 ? 16 : 12;
         caixa.style.width = (raio * 2 + 20) + "px";
         caixa.style.height = (raio * 2 + 20) + "px";
@@ -229,7 +225,6 @@ function desenharMoleculaGeometria(formula) {
 
 function desenharPrato(pratoElemento, moleculas, coeficientes) {
     pratoElemento.innerHTML = "";
-    
     let totalMols = coeficientes.reduce((a,b)=>a+b, 0);
     let scale = 1;
     if(totalMols > 6) scale = 0.8;
@@ -251,13 +246,11 @@ function atualizarBalanca() {
     desenharPrato(pratoProdutos, faseAtual.produtos, coeficientesProdutos);
 
     let massaEsq = 0; let massaDir = 0;
-    
     faseAtual.reagentes.forEach((mol, idx) => { massaEsq += (extrairElementos(mol).length * coeficientesReagentes[idx]); });
     faseAtual.produtos.forEach((mol, idx) => { massaDir += (extrairElementos(mol).length * coeficientesProdutos[idx]); });
     
     let diferenca = massaEsq - massaDir;
     let angulo = diferenca * 2.5; 
-    
     angulo = Math.max(-25, Math.min(25, angulo));
 
     hasteBalanca.style.transform = `translate(-50%, 0) rotate(${angulo}deg)`;
@@ -266,7 +259,7 @@ function atualizarBalanca() {
 }
 
 // -----------------------------------------------------
-// LÓGICA DE JOGO E CONTROLES
+// LÓGICA DE VERIFICAÇÃO COM ANIMAÇÃO DA ESTRELA
 // -----------------------------------------------------
 window.verificarBalanceamento = function() {
     if(typeof tocarSomClick === "function") tocarSomClick();
@@ -278,7 +271,6 @@ window.verificarBalanceamento = function() {
     }
 
     let todosCoeficientes = [...coeficientesReagentes, ...coeficientesProdutos];
-    
     let mdc = todosCoeficientes[0];
     for (let i = 1; i < todosCoeficientes.length; i++) {
         let a = mdc; let b = todosCoeficientes[i];
@@ -287,19 +279,44 @@ window.verificarBalanceamento = function() {
     }
 
     if (mdc > 1) {
-        if(typeof mostrarMensagemGlob === "function") mostrarMensagemGlob(`✅ Balanceado! (1 Estrela)\nDivida todos os números por ${mdc} para ganhar a segunda estrela!`);
-        ganharEstrela();
+        if(typeof mostrarMensagemGlob === "function") mostrarMensagemGlob(`✅ Balanceado! (1 Estrela)\nDivida os coeficientes por ${mdc} para a 2ª estrela!`);
+        estrelasGanhas++;
+        dispararEstrelaAnimacao("Você ganhou 1 estrela! Simplifique para a próxima!");
     } else {
         if(somCorreto) { somCorreto.currentTime=0; somCorreto.play().catch(()=>{}); }
-        ganharEstrela();
-        setTimeout(() => { ganharEstrela(); }, 800); 
-        
-        setTimeout(() => {
-            if(estrelasGanhas >= 10) { window.encerrarDesafioBalanceando(true); } 
-            else { window.pularFaseBalanceando(); }
-        }, 1500);
+        estrelasGanhas += 2; // Ganha as duas!
+        dispararEstrelaAnimacao("Perfeito! 2 estrelas garantidas!");
     }
 };
+
+function dispararEstrelaAnimacao(texto) {
+    atualizarHUD();
+    if(somEstrela) { somEstrela.currentTime=0; somEstrela.play().catch(()=>{}); }
+    
+    document.getElementById("texto-estrela").innerText = texto;
+    document.getElementById("modal-estrela").style.display = "flex";
+}
+
+window.continuarModoBalanceando = function() {
+    if(typeof tocarSomClick === "function") tocarSomClick();
+    document.getElementById("modal-estrela").style.display = "none";
+    
+    // Se o balanço já estava perfeito, ele avança de fase
+    let todosCoeficientes = [...coeficientesReagentes, ...coeficientesProdutos];
+    let mdc = todosCoeficientes[0];
+    for (let i = 1; i < todosCoeficientes.length; i++) {
+        let a = mdc; let b = todosCoeficientes[i];
+        while (b !== 0) { let temp = b; b = a % b; a = temp; }
+        mdc = a;
+    }
+    if (mdc === 1) {
+        if(estrelasGanhas >= 10 || indexFaseAtual >= bancoFases[modoAtual].length - 1) { 
+            window.encerrarDesafioBalanceando(true); 
+        } else { 
+            window.pularFaseBalanceando(true); // Pula silencioso
+        }
+    }
+}
 
 function perderVidaDesafio(motivo) {
     if(somErro) { somErro.currentTime=0; somErro.play().catch(()=>{}); }
@@ -307,21 +324,15 @@ function perderVidaDesafio(motivo) {
     atualizarHUD();
     
     if(vidasRestantes <= 0) { 
-        window.encerrarDesafioBalanceando(false); 
+        window.encerrarDesafioBalanceando(); 
     } else { 
         document.getElementById("texto-erro-desafio").innerText = motivo;
         document.getElementById("modal-erro-desafio").style.display = "flex";
     }
 }
 
-function ganharEstrela() {
-    estrelasGanhas++;
-    if(somEstrela) { somEstrela.currentTime=0; somEstrela.play().catch(()=>{}); }
-    atualizarHUD();
-}
-
-window.pularFaseBalanceando = function() {
-    if(typeof tocarSomClick === "function") tocarSomClick();
+window.pularFaseBalanceando = function(silencioso = false) {
+    if(!silencioso && typeof tocarSomClick === "function") tocarSomClick();
     if (indexFaseAtual < bancoFases[modoAtual].length - 1) {
         indexFaseAtual++;
         iniciarFase();
@@ -340,9 +351,8 @@ window.voltarFaseBalanceando = function() {
     }
 };
 
-window.encerrarDesafioBalanceando = function(vitoria = true) {
+window.encerrarDesafioBalanceando = function() {
     if(typeof tocarSomClick === "function") tocarSomClick();
-    clearInterval(intervaloCronometro);
     
     document.getElementById("modal-resultado-desafio").style.display = "flex";
     let box = document.getElementById("box-resultado-desafio");
@@ -351,13 +361,13 @@ window.encerrarDesafioBalanceando = function(vitoria = true) {
     let sub = document.getElementById("subtexto-resultado-desafio");
     let btn = document.getElementById("btn-resultado-desafio");
 
-    if (estrelasGanhas > 0 && vitoria) {
+    if (estrelasGanhas > 0) {
         box.style.border = "4px solid #16a34a";
         box.style.background = "linear-gradient(135deg, #f0fdf4, #dcfce7)";
         header.style.background = "#16a34a"; header.style.borderBottom = "4px solid #15803d";
         titulo.style.color = "#15803d"; btn.style.background = "#16a34a";
         titulo.innerText = "Desafio Concluído! ⭐";
-        sub.innerText = `Você levou ${estrelasGanhas} estrela(s). Bom trabalho!`;
+        sub.innerText = `Você escolheu encerrar e salvou ${estrelasGanhas} estrela(s). Bom trabalho!`;
         if(somGanhou) { somGanhou.currentTime=0; somGanhou.play().catch(()=>{}); }
     } else {
         box.style.border = "4px solid #ef4444";
@@ -367,8 +377,7 @@ window.encerrarDesafioBalanceando = function(vitoria = true) {
         titulo.innerText = "Fim do Teste!";
         
         if(somPerdeu) { somPerdeu.currentTime=0; somPerdeu.play().catch(()=>{}); }
-        if (estrelasGanhas > 0) { sub.innerText = `Você salvou ${estrelasGanhas} estrela(s).`; } 
-        else { sub.innerText = "Não desanime! Ajustar coeficientes requer muita atenção."; }
+        sub.innerText = "Não desanime! Ajustar coeficientes requer muita atenção."; 
     }
 };
 
