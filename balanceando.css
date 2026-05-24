@@ -7,7 +7,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: flex-end;
-    height: 50vh;
+    height: 40vh;
     position: relative;
     margin-top: 20px;
     padding-bottom: 30px;
@@ -42,10 +42,10 @@
     height: 12px;
     background: linear-gradient(180deg, #94a3b8, #64748b);
     position: absolute;
-    top: 10px;
+    top: 30px;
     left: 50%;
     transform-origin: center center;
-    transform: translate(-50%, 0) rotate(0deg); /* O JS vai mudar os graus aqui */
+    transform: translate(-50%, 0) rotate(0deg); 
     transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
     border-radius: 10px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.3);
@@ -59,7 +59,7 @@
     background: #fbbf24;
     border-radius: 50%;
     position: absolute;
-    top: 5px;
+    top: 25px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 15;
@@ -67,7 +67,7 @@
     border: 2px solid #b45309;
 }
 
-/* Estrutura que segura os pratos (Sempre em pé independente do giro da haste) */
+/* Estrutura que segura os pratos */
 .corda-prato {
     position: absolute;
     top: 12px;
@@ -77,7 +77,6 @@
     border-bottom: none;
     border-radius: 50% 50% 0 0;
     transform-origin: top center;
-    /* O JS vai aplicar a rotação inversa aqui para a corda ficar reta */
 }
 
 .corda-esquerda { left: 10px; }
@@ -99,18 +98,16 @@
     align-items: flex-end;
 }
 
-/* Onde as moléculas caem e ficam empilhadas (por cima do prato) */
 .conteudo-prato {
     position: absolute;
-    bottom: 25px;
+    bottom: 20px;
     width: 100%;
     display: flex;
-    flex-direction: column-reverse; /* Empilha de baixo pra cima */
+    flex-direction: column-reverse; 
     align-items: center;
     gap: 2px;
 }
 
-/* Molécula Visual */
 .molecula-visual {
     display: flex;
     justify-content: center;
@@ -135,6 +132,7 @@
     font-weight: bold;
     box-shadow: inset -2px -2px 5px rgba(0,0,0,0.5), 1px 1px 3px rgba(0,0,0,0.3);
     border: 1px solid rgba(255,255,255,0.2);
+    margin: -2px; /* Faz elas ficarem "grudadinhas" */
 }
 
 /* Área da Equação (Rodapé) */
@@ -211,4 +209,13 @@
 
 .sinal-seta {
     color: #10b981;
+}
+
+/* Treme a balança quando erra */
+@keyframes tremer {
+    0% { transform: translate(-50%, 0) rotate(0deg); }
+    25% { transform: translate(-50%, 0) rotate(-5deg); }
+    50% { transform: translate(-50%, 0) rotate(5deg); }
+    75% { transform: translate(-50%, 0) rotate(-5deg); }
+    100% { transform: translate(-50%, 0) rotate(0deg); }
 }

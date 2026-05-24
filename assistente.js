@@ -1,5 +1,5 @@
 // ==========================================
-// ASSISTENTE DE VOZ ADÔMINES (V19 - MODO SILÊNCIO ABSOLUTO)
+// ASSISTENTE DE VOZ ADÔMINES (V20 - INTEGRAÇÃO MODO BALANCEANDO)
 // ==========================================
 let assistenteAtivo = sessionStorage.getItem("assistenteAtiva") === "true"; 
 let assistenteReconhecimento = null;
@@ -97,10 +97,7 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     };
 }
 
-window.falarAssistente = function(texto, ignorarTrava = false) {
-    // REGRA DE SILÊNCIO ABSOLUTO: Se não estiver ativo, morre aqui!
-    if (!assistenteAtivo && !ignorarTrava) return;
-
+window.falarAssistente = function(texto) {
     if(assistenteSintese.speaking) assistenteSintese.cancel(); 
     if(!vozAssistente) carregarVozes();
     
@@ -121,15 +118,12 @@ window.falarAssistente = function(texto, ignorarTrava = false) {
 window.toggleAssistenteVoz = function(silencioso = false) {
     if(!silencioso && typeof tocarSomClick === "function") tocarSomClick();
     if (assistenteAtivo) {
-        // CORTE IMEDIATO DE FALA
-        if(assistenteSintese.speaking) assistenteSintese.cancel();
-        
         assistenteAtivo = false; sessionStorage.setItem("assistenteAtiva", "false");
         contextoAssistente = null; 
         try { assistenteReconhecimento.stop(); } catch(e){} 
         window.atualizarIconeMic();
         let btn = document.getElementById("btnAssistente"); if(btn) btn.classList.remove("mic-ouvindo");
-        if(!silencioso) falarAssistente("Assistente desativada.", true); // Ignora a trava apenas para dar tchau
+        if(!silencioso) falarAssistente("Assistente desativada.");
     } else {
         assistenteAtivo = true; sessionStorage.setItem("assistenteAtiva", "true");
         contextoAssistente = null; 
@@ -231,6 +225,8 @@ async function processarComandoVoz(comandoOriginal) {
 
     if (contextoAssistente) {
         if (tem("cancela", "cancelar", "esquece", "esquecer", "sair", "para", "parar")) { contextoAssistente = null; return falarAssistente("Cancelado."); }
+        
+        // CONTEXTOS DE MODOS
         if (contextoAssistente === "escolher_modo_estruturando_base") {
             if (tem("livre")) { contextoAssistente = null; return executarIntencao({acao: "JOGAR_ESTRUTURANDO", detalhe: "livre"}); }
             if (tem("desafio")) { contextoAssistente = "escolher_submodo_estruturando"; return falarAssistente("O modo desafio contém: fácil, médio, difícil e impossível. Qual você quer jogar?"); }
@@ -243,6 +239,15 @@ async function processarComandoVoz(comandoOriginal) {
             if (tem("impossivel", "impossível")) { contextoAssistente = null; return executarIntencao({acao: "JOGAR_ESTRUTURANDO", detalhe: "impossivel"}); }
             return falarAssistente("Diga um nível válido: fácil, médio, difícil ou impossível.");
         }
+        
+        if (contextoAssistente === "escolher_modo_balanceando_base") {
+            if (tem("facil", "fácil")) { contextoAssistente = null; return executarIntencao({acao: "JOGAR_BALANCEANDO", detalhe: "balanceando-facil"}); }
+            if (tem("medio", "media", "médio")) { contextoAssistente = null; return executarIntencao({acao: "JOGAR_BALANCEANDO", detalhe: "balanceando-medio"}); }
+            if (tem("dificil", "difícil")) { contextoAssistente = null; return executarIntencao({acao: "JOGAR_BALANCEANDO", detalhe: "balanceando-dificil"}); }
+            if (tem("impossivel", "impossível")) { contextoAssistente = null; return executarIntencao({acao: "JOGAR_BALANCEANDO", detalhe: "balanceando-impossivel"}); }
+            return falarAssistente("Escolha a dificuldade do balanceamento: fácil, médio, difícil ou impossível.");
+        }
+
         if (contextoAssistente === "escolher_modo_inclusivo") {
             if (tem("reconhecer", "reconhece")) { contextoAssistente = null; return executarIntencao({acao: "JOGAR_INCLUSIVO", detalhe: "reconhecer"}); }
             if (tem("relacionar", "relaciona")) { contextoAssistente = null; return executarIntencao({acao: "JOGAR_INCLUSIVO", detalhe: "relacionar"}); }
@@ -281,12 +286,10 @@ async function processarComandoVoz(comandoOriginal) {
         }
     }
 
-    // NAVEGAÇÕES DE FASE
     if (tem("voltar fase", "fase anterior", "desafio anterior")) return executarIntencao({acao: "VOLTAR_FASE"});
     if (tem("encerrar desafio", "completar desafio", "finalizar desafio", "terminar desafio", "encerrar fase", "completar fase")) return executarIntencao({acao: "ENCERRAR_DESAFIO"});
     if (tem("pular fase", "pula a fase", "proximo desafio", "proxima fase", "pular desafio", "outra fase")) return executarIntencao({acao: "PULAR_FASE"});
     
-    // NAVEGAÇÃO E ABERTURA
     if (tem("ver em 3d", "mostrar em 3d", "modo 3d", "abrir 3d", "tres de", "3 d", "3d", "molecula em 3d")) return executarIntencao({acao: "VER_3D"});
     if (tem("abre", "abrir", "mostra", "mostrar", "como jogar") && tem("tutorial", "ajuda", "como jogar")) return executarIntencao({acao: "ABRIR_TUTORIAL"});
     if (tem("configura", "configuracoes", "configurar", "ajuste", "opcao", "opcoes")) return executarIntencao({acao: "ABRIR_CONFIG"});
@@ -295,7 +298,6 @@ async function processarComandoVoz(comandoOriginal) {
     if (tem("catalogo", "pokedex")) return executarIntencao({acao: "ABRIR_CATALOGO"});
     if (tem("adm", "administrador", "chat de cheat", "cheats")) return executarIntencao({acao: "ABRIR_ADM"});
 
-    // LEITURAS DE TELA E DADOS LOCAIS
     if (tem("ler", "leia", "lê") && tem("tutorial", "ajuda")) return executarIntencao({acao: "LER_TUTORIAL"});
     if (tem("ler", "leia", "lê") && tem("tela", "tudo")) return executarIntencao({acao: "LER_TELA"});
     if (tem("ler", "leia", "lê") && tem("alternativa", "alternativas", "item", "opcoes", "resposta")) return executarIntencao({acao: "LER_ALTERNATIVAS"});
@@ -305,12 +307,10 @@ async function processarComandoVoz(comandoOriginal) {
     if (tem("quais", "qual", "que", "ler", "leia", "quantas") && tem("conquista", "conquistas", "trofeu", "trofeus", "consegui", "desbloqueadas", "bloqueadas")) return executarIntencao({acao: "LER_CONQUISTAS"});
     if (tem("quais", "qual", "que", "ler", "leia", "quantos") && tem("atomo", "atomos", "elemento", "elementos", "disponivel", "disponiveis", "tenho")) return executarIntencao({acao: "LER_ATOMOS_DISPONIVEIS"});
 
-    // COMANDOS DE ADMINISTRAÇÃO DIRETO NA VEIA
     if (tem("comando") || tem("adm") || tem("administrador")) {
         if (tem("platinar", "platina")) return executarIntencao({acao: "COMANDO_ADM", detalhe: "\\platinar"});
         if (tem("catalogador", "catálogo completo")) return executarIntencao({acao: "COMANDO_ADM", detalhe: "\\catalogador"});
         if (tem("limpar", "limpa", "resetar")) return executarIntencao({acao: "COMANDO_ADM", detalhe: "\\limpar"});
-        if (tem("completar", "completa", "pular fase")) return executarIntencao({acao: "COMANDO_ADM", detalhe: "\\completar"});
     }
 
     if (tem("cor", "cores", "lapis", "pintar", "pinta")) {
@@ -402,7 +402,9 @@ async function processarComandoVoz(comandoOriginal) {
 
     if (tem("cancela", "cancelar", "esquece", "esquecer", "deixa pra la")) return falarAssistente("Cancelado."); 
     
+    // VERIFICAR A ESTRUTURA E A BALANÇA
     if (tem("verifica", "verificar", "checa", "checar", "corrigir") || tem("terminei a molecula", "terminei a estrutura", "verificar estrutura", "veja se ta certo", "veja se esta certo")) {
+        if(window.location.pathname.includes('balanceando')) return executarIntencao({acao: "VERIFICAR_BALANCA"});
         return executarIntencao({acao: "VERIFICAR_ESTRUTURA"});
     }
     
@@ -427,6 +429,12 @@ async function processarComandoVoz(comandoOriginal) {
     if (tem("reseta", "resetar", "zera", "zerar", "centraliza", "centralizar") && tem("zoom", "visao")) return executarIntencao({acao: "ZOOM_RESET"});
     
     if (tem("volta", "voltar", "retorna", "retornar", "anterior")) return executarIntencao({acao: "VOLTAR"});
+
+    // NOVO GATILHO: ENTRAR NO MODO BALANCEANDO
+    if (tem("modo", "inicia", "iniciar", "joga", "jogar", "entra", "entrar", "abre", "abrir") && tem("balancear", "balanceando", "balanca")) {
+        contextoAssistente = "escolher_modo_balanceando_base";
+        return falarAssistente("Escolha a dificuldade do modo Balanceando: fácil, médio, difícil ou impossível.");
+    }
 
     if ((tem("modo", "inicia", "iniciar", "joga", "jogar", "entra", "entrar", "abre", "abrir") && tem("estruturando", "estrutura")) || (tem("inicia", "iniciar", "joga", "jogar") && tem("livre", "desafio"))) {
         contextoAssistente = "escolher_modo_estruturando_base";
@@ -579,6 +587,11 @@ function executarIntencao(intencao, comandoFalado = "") {
             i = i.includes("reconhecer") ? "reconhecer" : i.includes("relacionar") ? "relacionar" : i.includes("interpretar") ? "interpretar" : "reconhecer";
             localStorage.setItem("modoAtual", `inclusao-${i}`); falarAssistente(`Iniciando inclusivo ${i}.`);
             if(typeof window.mudarTela === "function") window.mudarTela('inclusao.html'); break;
+
+        case "JOGAR_BALANCEANDO":
+            let dBal = normalizarVozNum(detalhe);
+            localStorage.setItem("modoAtual", dBal); falarAssistente("Iniciando o modo Balanceando.");
+            if(typeof window.mudarTela === "function") window.mudarTela('balanceando.html'); break;
 
         case "PULAR_FASE": 
             if(typeof window.pularFaseDesafio === "function") window.pularFaseDesafio(); 

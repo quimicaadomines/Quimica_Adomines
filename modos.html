@@ -52,6 +52,7 @@
 
   <div id="toast-mensagem" class="toast escondido"></div>
 
+  <!-- CARTÃO: MODO ESTRUTURANDO -->
   <div class="card-mundo">
     <div class="card-topo">
       <div class="card-esquerda">
@@ -68,6 +69,7 @@
       </div>
     </div>
 
+    <!-- Submenus do Estruturando -->
     <div id="submenu-normal" class="submenu escondido">
       <div class="linha-botoes">
         <button class="btn-nivel btn-verde" onclick="iniciarModo('livre')">Livre</button>
@@ -89,6 +91,34 @@
       </div>
     </div>
   </div>
+
+  <!-- CARTÃO: MODO BALANCEANDO -->
+  <div class="card-mundo" style="margin-top: 30px;">
+    <div class="card-topo">
+      <div class="card-esquerda">
+        <div style="font-size: 60px; display: flex; align-items: center; justify-content: center; width: 90px; height: 90px; background: rgba(0,0,0,0.2); border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">⚖️</div>
+        <div class="textos-modo">
+          <h2>BALANCEANDO</h2>
+          <p>Ajuste os coeficientes e equilibre os pratos da balança para completar as equações estequiométricas.</p>
+        </div>
+      </div>
+     
+      <div class="card-direita">
+        <button class="btn-acao btn-play-normal" onclick="abrirSubmenu('balanceando')">▶</button>
+      </div>
+    </div>
+
+    <!-- Submenu do Balanceando -->
+    <div id="submenu-balanceando" class="submenu escondido">
+      <div class="linha-botoes">
+        <button class="btn-nivel btn-verde" onclick="iniciarModo('balanceando-facil')">Fácil</button>
+        <button class="btn-nivel btn-amarelo" onclick="iniciarModo('balanceando-medio')">Médio</button>
+        <button class="btn-nivel btn-laranja" onclick="iniciarModo('balanceando-dificil')">Difícil</button>
+        <button class="btn-nivel btn-vermelho" onclick="iniciarModo('balanceando-impossivel')">Impossível</button>
+      </div>
+    </div>
+  </div>
+
 </main>
 
 <footer class="rodape">

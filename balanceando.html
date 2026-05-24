@@ -51,7 +51,7 @@
 
   <div id="hud-desafio" class="hud-desafio">
       <div class="hud-topo">
-          <!-- AQUI O CONTADOR AGORA PODE CHEGAR ATÉ 10 ESTRELAS -->
+          <!-- O CONTADOR DE 10 ESTRELAS -->
           <div id="estrelas-container" class="estrelas-hud">
               <span class="estrela-vazia">★</span><span class="estrela-vazia">★</span><span class="estrela-vazia">★</span><span class="estrela-vazia">★</span><span class="estrela-vazia">★</span>
               <span class="estrela-vazia">★</span><span class="estrela-vazia">★</span><span class="estrela-vazia">★</span><span class="estrela-vazia">★</span><span class="estrela-vazia">★</span>
@@ -60,7 +60,7 @@
       </div>
       <div class="hud-pergunta">
           Equilibre a balança química! Adicione moléculas aos pratos.<br>
-          (Para ganhar 2 estrelas, não esqueça de simplificar a equação!)
+          <span style="font-size: 12px; opacity: 0.8;">(Para ganhar 2 estrelas, não esqueça de simplificar a equação!)</span>
       </div>
   </div>
 
@@ -86,16 +86,16 @@
     <div class="area-equacao" id="area-equacao"></div>
 
     <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
-        <button id="btn-verificar" onclick="verificarBalanceamento()" class="btn-verificar" style="position: relative; right: 0; bottom: 0;">✅ Verificar Balança</button>
-        <button onclick="pularFaseBalanceando()" class="btn-ferramenta" style="background: #f59e0b; color: white;">⏭️ Pular Fase</button>
-        <button onclick="voltarFaseBalanceando()" class="btn-ferramenta" style="background: #8b5cf6; color: white;">⏮️ Voltar Fase</button>
-        <button onclick="encerrarDesafioBalanceando()" class="btn-ferramenta" style="background: #10b981; color: white;">🏁 Concluir Desafio</button>
+        <button id="btn-verificar" onclick="verificarBalanceamento()" class="btn-verificar" style="position: relative; right: 0; bottom: 0; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">✅ Verificar Balança</button>
+        <button id="btn-pular-fase" onclick="pularFaseBalanceando()" class="btn-ferramenta" style="background: #f59e0b; color: white;">⏭️ Pular Fase</button>
+        <button id="btn-voltar-fase" onclick="voltarFaseBalanceando()" class="btn-ferramenta" style="background: #8b5cf6; color: white;">⏮️ Voltar Fase</button>
+        <button id="btn-completar-desafio" onclick="encerrarDesafioBalanceando()" class="btn-ferramenta" style="background: #10b981; color: white;">🏁 Concluir Desafio</button>
     </div>
 
   </div>
 </main>
 
-<div id="modal-erro-desafio" class="modal-overlay" style="z-index: 100000;">
+<div id="modal-erro-desafio" class="modal-overlay" style="z-index: 100000; display: none;">
     <div class="modal-box modal-box-epic" style="border: 4px solid #ef4444; background: linear-gradient(135deg, #fef2f2, #fee2e2); animation: tremer 0.4s;">
         <div class="modal-header" style="background: #ef4444; justify-content: center; font-size: 24px; border-bottom: 4px solid #b91c1c;">
             <h3 style="text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">❌ Balança Torta!</h3>
@@ -108,7 +108,7 @@
     </div>
 </div>
 
-<div id="modal-resultado-desafio" class="modal-overlay" style="z-index: 100000;">
+<div id="modal-resultado-desafio" class="modal-overlay" style="z-index: 100000; display: none;">
     <div class="modal-box modal-box-epic" id="box-resultado-desafio">
         <div class="modal-header" id="header-resultado-desafio" style="justify-content: center; font-size: 26px;">
             <h3 style="text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">🏁 Fim do Desafio!</h3>
@@ -122,7 +122,7 @@
     </div>
 </div>
 
-<div id="chat-overlay" class="modal-overlay" onclick="fecharModais(event)"><div class="modal-box"><div class="modal-header"><h3>Painel ADM</h3><button onclick="fecharChatBtn()">✖</button></div><div class="modal-body chat-body"><div id="chat-mensagens" style="height: 200px; overflow-y: auto; text-align: left; margin-bottom: 10px; background: rgba(0,0,0,0.05); padding: 10px; border-radius: 5px; font-family: monospace;"></div><input type="text" id="chat-input" placeholder="Digite um comando e aperte ENTER..." style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px;" onkeypress="processarChat(event)"></div></div></div>
+<div id="chat-overlay" class="modal-overlay" onclick="fecharModais(event)" style="display: none;"><div class="modal-box"><div class="modal-header"><h3>Painel ADM</h3><button onclick="fecharChatBtn()">✖</button></div><div class="modal-body chat-body"><div id="chat-mensagens" style="height: 200px; overflow-y: auto; text-align: left; margin-bottom: 10px; background: rgba(0,0,0,0.05); padding: 10px; border-radius: 5px; font-family: monospace;"></div><input type="text" id="chat-input" placeholder="Digite um comando e aperte ENTER..." style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px;" onkeypress="processarChat(event)"></div></div></div>
 
 <script src="global.js"></script>
 <script src="assistente.js"></script>

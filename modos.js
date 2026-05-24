@@ -3,15 +3,21 @@ function abrirSubmenu(tipo) {
   let menuNormal = document.getElementById("submenu-normal");
   let menuInclusao = document.getElementById("submenu-inclusao");
   let menuDificuldades = document.getElementById("submenu-dificuldades");
+  let menuBalanceando = document.getElementById("submenu-balanceando");
 
+  // Esconde tudo primeiro
   menuNormal.classList.add("escondido");
   menuInclusao.classList.add("escondido");
   menuDificuldades.classList.add("escondido");
+  if(menuBalanceando) menuBalanceando.classList.add("escondido");
 
+  // Abre apenas o clicado
   if (tipo === 'normal') {
     menuNormal.classList.remove("escondido");
   } else if (tipo === 'inclusao') {
     menuInclusao.classList.remove("escondido");
+  } else if (tipo === 'balanceando') {
+    menuBalanceando.classList.remove("escondido");
   }
 }
 
@@ -30,9 +36,11 @@ function iniciarModo(modoEscolhido) {
  
   localStorage.setItem("modoAtual", modoEscolhido);
 
-  // Se for o modo inclusivo, vai pra tela nova. Se não, vai pro Estruturando!
+  // Redirecionamento correto conforme o prefixo do modo
   if(modoEscolhido.includes("inclusao")) {
       mudarTela("inclusao.html");
+  } else if(modoEscolhido.includes("balanceando")) {
+      mudarTela("balanceando.html");
   } else {
       mudarTela("estruturando.html");
   }
