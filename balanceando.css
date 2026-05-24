@@ -1,5 +1,5 @@
 /* ==========================================
-   ESTILOS DO MODO BALANCEANDO (VISUAL ADÔMINES)
+   ESTILOS DO MODO BALANCEANDO E MODAIS (VISUAL ADÔMINES)
    ========================================== */
 
 .game-container {
@@ -10,7 +10,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding-bottom: 60px; /* EMPURRA O JOGO PARA LONGE DO RODAPÉ */
+    padding-bottom: 60px;
 }
 
 .hud-desafio {
@@ -43,6 +43,14 @@
     font-size: 18px;
     line-height: 1.4;
     color: var(--text-color);
+}
+
+.hud-dica-simplifica {
+    font-size: 14px;
+    color: #0ea5e9;
+    font-weight: bold;
+    display: block;
+    margin-top: 5px;
 }
 
 .area-balanca {
@@ -136,7 +144,6 @@
     align-items: flex-end;
 }
 
-/* CAIXA DE EMPILHAMENTO (GAP ZERO PARA JUNTAR AS MOLÉCULAS) */
 .conteudo-prato {
     position: absolute;
     bottom: 20px;
@@ -144,10 +151,9 @@
     display: flex;
     flex-direction: column-reverse; 
     align-items: center;
-    gap: -5px; /* Empurra uma por cima da outra para tirar qualquer buraco */
+    gap: -5px; 
 }
 
-/* CAIXA GEOMÉTRICA DA MOLÉCULA */
 .molecula-visual {
     display: flex;
     justify-content: center;
@@ -155,7 +161,7 @@
     position: relative;
     padding: 0;
     margin: 0;
-    height: 25px; /* Altura fixa menor para matar espaços mortos verticais */
+    height: 25px; 
     animation: cair 0.4s ease-out;
 }
 
@@ -178,6 +184,7 @@
     100% { transform: translateY(0) scale(1); opacity: 1; }
 }
 
+/* ÁREA DA EQUAÇÃO NO RODAPÉ - AGORA NÃO QUEBRA A LINHA DE JEITO NENHUM */
 .area-equacao {
     display: flex;
     align-items: center;
@@ -190,7 +197,8 @@
     width: 90%;
     max-width: 900px;
     border: 2px solid var(--bordas);
-    flex-wrap: wrap;
+    flex-wrap: nowrap; /* FORÇA UMA LINHA SÓ */
+    overflow-x: auto; /* Se a tela for muito pequena, adiciona scrollbar interna invisível para não quebrar */
 }
 
 .termo-equacao { display: flex; align-items: center; gap: 10px; }
@@ -284,6 +292,57 @@
     transform: translateY(-5px) scale(1.08);
     box-shadow: 0 8px 15px rgba(16, 185, 129, 0.5);
     background: #059669;
+}
+
+/* ====================================================
+   ESTILOS ÉPICOS PARA OS MODAIS (VITÓRIA, ESTRELA, ETC)
+   ==================================================== */
+.modal-box-epic {
+    padding: 40px;
+    border-radius: 20px;
+    color: var(--text-color);
+}
+
+.btn-epic-green {
+    background: #16a34a;
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+    padding: 15px 35px;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: 0.3s;
+    box-shadow: 0 4px 15px rgba(22, 163, 74, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-epic-green:hover {
+    transform: scale(1.1) translateY(-3px);
+    background: #15803d;
+    box-shadow: 0 6px 20px rgba(22, 163, 74, 0.6);
+}
+
+.btn-epic-red {
+    background: #ef4444;
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+    padding: 15px 35px;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: 0.3s;
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-epic-red:hover {
+    transform: scale(1.1) translateY(-3px);
+    background: #dc2626;
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.6);
 }
 
 @keyframes tremer {
