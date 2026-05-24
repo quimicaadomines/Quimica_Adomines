@@ -9,7 +9,7 @@
     justify-content: flex-end;
     height: 40vh;
     position: relative;
-    margin-top: 20px;
+    margin-top: 10px;
     padding-bottom: 30px;
 }
 
@@ -52,7 +52,6 @@
     z-index: 10;
 }
 
-/* O pino que prende a haste na base */
 .balanca-pino {
     width: 20px;
     height: 20px;
@@ -67,7 +66,6 @@
     border: 2px solid #b45309;
 }
 
-/* Estrutura que segura os pratos */
 .corda-prato {
     position: absolute;
     top: 12px;
@@ -78,7 +76,6 @@
     border-radius: 50% 50% 0 0;
     transform-origin: top center;
 }
-
 .corda-esquerda { left: 10px; }
 .corda-direita { right: 10px; }
 
@@ -98,6 +95,7 @@
     align-items: flex-end;
 }
 
+/* CONTAINER DAS MOLÉCULAS */
 .conteudo-prato {
     position: absolute;
     bottom: 20px;
@@ -105,9 +103,10 @@
     display: flex;
     flex-direction: column-reverse; 
     align-items: center;
-    gap: 2px;
+    gap: 4px;
 }
 
+/* CAIXA GEOMÉTRICA DA MOLÉCULA (Regra Universal da Química) */
 .molecula-visual {
     display: flex;
     justify-content: center;
@@ -117,34 +116,36 @@
     animation: cair 0.4s ease-out;
 }
 
-@keyframes cair {
-    0% { transform: translateY(-50px) scale(1.2); opacity: 0; }
-    100% { transform: translateY(0) scale(1); opacity: 1; }
-}
-
+/* Átomos redondos individuais */
 .atomo-bolinha {
     border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
     color: white;
-    font-size: 10px;
+    font-size: 11px;
     font-weight: bold;
     box-shadow: inset -2px -2px 5px rgba(0,0,0,0.5), 1px 1px 3px rgba(0,0,0,0.3);
-    border: 1px solid rgba(255,255,255,0.2);
-    margin: -2px; /* Faz elas ficarem "grudadinhas" */
+    border: 1px solid rgba(255,255,255,0.3);
+    position: absolute; /* Para permitir geometria */
 }
 
-/* Área da Equação (Rodapé) */
+/* Animação de queda do bloco de moléculas */
+@keyframes cair {
+    0% { transform: translateY(-50px) scale(1.2); opacity: 0; }
+    100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+/* ÁREA DA EQUAÇÃO NO RODAPÉ */
 .area-equacao {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 15px;
     background: var(--painel-bg);
-    padding: 20px;
+    padding: 15px;
     border-radius: 15px;
-    margin: 20px auto;
+    margin: 10px auto;
     width: 90%;
     max-width: 900px;
     border: 2px solid var(--bordas);
@@ -192,7 +193,9 @@
     cursor: pointer;
     margin: 2px 0;
 }
+.btn-coeficiente:hover { background: #0284c7; transform: scale(1.1); }
 .btn-coeficiente.minus { background: #ef4444; }
+.btn-coeficiente.minus:hover { background: #b91c1c; }
 
 .texto-molecula {
     font-size: 28px;
@@ -207,11 +210,16 @@
     color: #94a3b8;
 }
 
-.sinal-seta {
-    color: #10b981;
+.sinal-seta { color: #10b981; }
+
+.controles-fase {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-top: 15px;
 }
 
-/* Treme a balança quando erra */
 @keyframes tremer {
     0% { transform: translate(-50%, 0) rotate(0deg); }
     25% { transform: translate(-50%, 0) rotate(-5deg); }
