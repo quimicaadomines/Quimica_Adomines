@@ -1,5 +1,5 @@
 // ==========================================
-// MODO BALANCEANDO - QUÍMICA ADÔMINES
+// MODO BALANCEANDO - QUÍMICA ADÔMINES (COM FÍSICA E GEOMETRIA MOLECULAR)
 // ==========================================
 let modoAtual = localStorage.getItem("modoAtual") || "balanceando-facil";
 let titulo = document.getElementById("titulo-modo");
@@ -16,25 +16,25 @@ let somEstrela = document.getElementById("somEstrela");
 let somGanhou = document.getElementById("somGanhou");
 let somPerdeu = document.getElementById("somPerdeu");
 
-// Tabela Padrão CPK (Cores e Tamanhos dos Átomos)
+// Cores e Tamanhos dos Átomos 
 const CORES_ATOMOS = {
-    'H': { cor: '#ffffff', texto: '#000', size: 14 },
-    'O': { cor: '#ef4444', texto: '#fff', size: 20 },
-    'C': { cor: '#333333', texto: '#fff', size: 22 },
-    'N': { cor: '#3b82f6', texto: '#fff', size: 20 },
-    'Fe':{ cor: '#d97706', texto: '#fff', size: 24 },
-    'Na':{ cor: '#8b5cf6', texto: '#fff', size: 22 },
-    'Cl':{ cor: '#22c55e', texto: '#fff', size: 22 },
-    'K': { cor: '#a855f7', texto: '#fff', size: 24 },
-    'Al':{ cor: '#94a3b8', texto: '#000', size: 22 },
-    'Ca':{ cor: '#cbd5e1', texto: '#000', size: 24 },
-    'Zn':{ cor: '#64748b', texto: '#fff', size: 22 },
-    'Mg':{ cor: '#84cc16', texto: '#000', size: 22 },
-    'S': { cor: '#eab308', texto: '#000', size: 22 },
-    'Mn':{ cor: '#ec4899', texto: '#fff', size: 22 },
-    'P': { cor: '#f97316', texto: '#fff', size: 22 },
-    'Si':{ cor: '#6ee7b7', texto: '#000', size: 22 },
-    'Cu':{ cor: '#b45309', texto: '#fff', size: 22 }
+    'H': { cor: '#ffffff', texto: '#000', size: 16 },
+    'O': { cor: '#ef4444', texto: '#fff', size: 24 },
+    'C': { cor: '#333333', texto: '#fff', size: 26 },
+    'N': { cor: '#3b82f6', texto: '#fff', size: 24 },
+    'Fe':{ cor: '#d97706', texto: '#fff', size: 28 },
+    'Na':{ cor: '#8b5cf6', texto: '#fff', size: 26 },
+    'Cl':{ cor: '#22c55e', texto: '#fff', size: 26 },
+    'K': { cor: '#a855f7', texto: '#fff', size: 28 },
+    'Al':{ cor: '#94a3b8', texto: '#000', size: 26 },
+    'Ca':{ cor: '#cbd5e1', texto: '#000', size: 28 },
+    'Zn':{ cor: '#64748b', texto: '#fff', size: 26 },
+    'Mg':{ cor: '#84cc16', texto: '#000', size: 26 },
+    'S': { cor: '#eab308', texto: '#000', size: 26 },
+    'Mn':{ cor: '#ec4899', texto: '#fff', size: 26 },
+    'P': { cor: '#f97316', texto: '#fff', size: 26 },
+    'Si':{ cor: '#6ee7b7', texto: '#000', size: 26 },
+    'Cu':{ cor: '#b45309', texto: '#fff', size: 26 }
 };
 
 const bancoFases = {
@@ -98,19 +98,13 @@ function atualizarHUD() {
     document.getElementById("vidas-container").innerHTML = "❤️".repeat(vidasRestantes) + "🖤".repeat(vidasIniciais - vidasRestantes);
 }
 
-function formatarFormula(texto) {
-    return texto.replace(/(\d+)/g, '<sub>$1</sub>');
-}
+function formatarFormula(texto) { return texto.replace(/(\d+)/g, '<sub>$1</sub>'); }
 
 function alterarCoeficiente(tipo, indice, valor) {
     if(typeof tocarSomClick === "function") tocarSomClick();
-    if(tipo === 'R') {
-        coeficientesReagentes[indice] = Math.max(1, coeficientesReagentes[indice] + valor);
-    } else {
-        coeficientesProdutos[indice] = Math.max(1, coeficientesProdutos[indice] + valor);
-    }
-    renderizarEquacao();
-    atualizarBalanca();
+    if(tipo === 'R') { coeficientesReagentes[indice] = Math.max(1, coeficientesReagentes[indice] + valor); } 
+    else { coeficientesProdutos[indice] = Math.max(1, coeficientesProdutos[indice] + valor); }
+    renderizarEquacao(); atualizarBalanca();
 }
 
 function renderizarEquacao() {
@@ -145,13 +139,8 @@ function renderizarEquacao() {
     });
 }
 
-// -----------------------------------------------------
-// ENGINE GEOMÉTRICA DE MOLÉCULAS (REGRA UNIVERSAL)
-// -----------------------------------------------------
-
 function extrairElementos(formula) {
     let elementos = [];
-    // Um regex ninja que lê Fe2, S, O4 e lida com números escondidos
     let regex = /([A-Z][a-z]*)(\d*)/g;
     let match;
     while((match = regex.exec(formula)) !== null) {
@@ -162,80 +151,13 @@ function extrairElementos(formula) {
     return elementos;
 }
 
-function desenharMoleculaGeometria(formula) {
-    let atomos = extrairElementos(formula);
-    let caixa = document.createElement("div");
-    caixa.className = "molecula-visual";
-    
-    // Altura e largura base da caixa invisível que segura os átomos
-    caixa.style.width = "40px"; 
-    caixa.style.height = "40px";
-
-    if (atomos.length === 1) {
-        // Átomo solto (Ex: Fe)
-        caixa.appendChild(criarBolinha(atomos[0], 0, 0));
-    } 
-    else if (atomos.length === 2) {
-        // Molécula Diatômica (Ex: O2, H2, NaCl) -> Ficam lado a lado
-        caixa.style.width = "50px";
-        caixa.appendChild(criarBolinha(atomos[0], -12, 0));
-        caixa.appendChild(criarBolinha(atomos[1], 12, 0));
-    } 
-    else if (formula === "H2O") {
-        // H2O Geometria Angular (Oxigênio no centro, H nas diagonais baixas)
-        caixa.appendChild(criarBolinha('O', 0, -8)); 
-        caixa.appendChild(criarBolinha('H', -14, 8)); 
-        caixa.appendChild(criarBolinha('H', 14, 8)); 
-    } 
-    else if (formula === "CO2" || formula === "SO2" || formula === "NO2") {
-        // Geometria Linear (Ex: O-C-O)
-        caixa.style.width = "60px";
-        caixa.appendChild(criarBolinha(atomos[0], 0, 0)); // Central
-        caixa.appendChild(criarBolinha(atomos[1], -18, 0)); // Esquerda
-        caixa.appendChild(criarBolinha(atomos[2], 18, 0)); // Direita
-    }
-    else if (formula === "NH3" || formula === "AlCl3") {
-        // Geometria Piramidal (Ex: N no centro, 3 H em volta)
-        caixa.appendChild(criarBolinha(atomos[0], 0, -10)); // Central sobe um pouco
-        caixa.appendChild(criarBolinha(atomos[1], -15, 10)); // Esq baixo
-        caixa.appendChild(criarBolinha(atomos[2], 15, 10)); // Dir baixo
-        caixa.appendChild(criarBolinha(atomos[3], 0, 15)); // Meio baixo
-    }
-    else if (formula === "CH4") {
-        // Tetraédrica
-        caixa.appendChild(criarBolinha('C', 0, 0)); 
-        caixa.appendChild(criarBolinha('H', 0, -18)); // Cima
-        caixa.appendChild(criarBolinha('H', -18, 6)); // Esq
-        caixa.appendChild(criarBolinha('H', 18, 6)); // Dir
-        caixa.appendChild(criarBolinha('H', 0, 18)); // Baixo
-    }
-    else {
-        // Moléculas complexas (Ex: Fe2(SO4)3, C6H12O6)
-        // Para não estourar a tela, eu faço um "Cacho de Uva" simétrico.
-        let central = criarBolinha(atomos[0], 0, 0);
-        central.style.zIndex = 10;
-        caixa.appendChild(central);
-        
-        let raioAgrupamento = atomos.length > 8 ? 20 : 15;
-        caixa.style.width = (raioAgrupamento * 2 + 20) + "px";
-        caixa.style.height = (raioAgrupamento * 2 + 20) + "px";
-
-        for (let i = 1; i < atomos.length; i++) {
-            let angulo = (i / (atomos.length - 1)) * (Math.PI * 2);
-            let px = Math.cos(angulo) * raioAgrupamento;
-            let py = Math.sin(angulo) * raioAgrupamento;
-            let b = criarBolinha(atomos[i], px, py);
-            b.style.zIndex = 5;
-            caixa.appendChild(b);
-        }
-    }
-    return caixa;
-}
-
-function criarBolinha(nomeElemento, offsetX, offsetY) {
+// =====================================
+// GEOMETRIA MOLECULAR - O DESENHO CIENTÍFICO DA MOLÉCULA NAS CAIXAS
+// =====================================
+function criarBolinha(nomeElemento, transX, transY, zIndex = 5) {
     let bolinha = document.createElement("div");
     bolinha.className = "atomo-bolinha";
-    let estilo = CORES_ATOMOS[nomeElemento] || { cor: '#555', texto: '#fff', size: 15 };
+    let estilo = CORES_ATOMOS[nomeElemento] || { cor: '#555', texto: '#fff', size: 18 };
     
     bolinha.style.backgroundColor = estilo.cor;
     bolinha.style.color = estilo.texto;
@@ -243,19 +165,88 @@ function criarBolinha(nomeElemento, offsetX, offsetY) {
     bolinha.style.height = estilo.size + "px";
     bolinha.innerText = nomeElemento;
     
-    // Posicionamento exato fornecido pela função de geometria
-    bolinha.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+    bolinha.style.transform = `translate(${transX}px, ${transY}px)`;
+    bolinha.style.zIndex = zIndex;
     return bolinha;
+}
+
+function desenharMoleculaGeometria(formula) {
+    let atomos = extrairElementos(formula);
+    let caixa = document.createElement("div");
+    caixa.className = "molecula-visual";
+    caixa.style.width = "40px"; 
+    caixa.style.height = "40px";
+
+    if (atomos.length === 1) {
+        // Átomo isolado
+        caixa.appendChild(criarBolinha(atomos[0], 0, 0));
+    } 
+    else if (atomos.length === 2) {
+        // Diatômica grudada: (O2, H2, NaCl)
+        caixa.style.width = "46px";
+        let r1 = CORES_ATOMOS[atomos[0]] ? CORES_ATOMOS[atomos[0]].size/2 : 9;
+        let r2 = CORES_ATOMOS[atomos[1]] ? CORES_ATOMOS[atomos[1]].size/2 : 9;
+        let offset = (r1 + r2) / 2 - 2; // Menos 2 pixels para elas se "funderem" visualmente
+        caixa.appendChild(criarBolinha(atomos[0], -offset, 0));
+        caixa.appendChild(criarBolinha(atomos[1], offset, 0));
+    } 
+    else if (formula === "H2O") {
+        // Água (H-O-H angular)
+        caixa.appendChild(criarBolinha('O', 0, -5, 10)); 
+        caixa.appendChild(criarBolinha('H', -12, 6, 5)); 
+        caixa.appendChild(criarBolinha('H', 12, 6, 5)); 
+    } 
+    else if (formula === "CO2" || formula === "SO2" || formula === "NO2") {
+        // Linear (O=C=O)
+        caixa.style.width = "60px";
+        caixa.appendChild(criarBolinha(atomos[0], 0, 0, 10)); 
+        caixa.appendChild(criarBolinha(atomos[1], -18, 0, 5)); 
+        caixa.appendChild(criarBolinha(atomos[2], 18, 0, 5)); 
+    }
+    else if (formula === "NH3" || formula === "AlCl3") {
+        // Piramidal (Ex: N com 3 H)
+        caixa.appendChild(criarBolinha(atomos[0], 0, -8, 10)); 
+        caixa.appendChild(criarBolinha(atomos[1], -14, 8, 5)); 
+        caixa.appendChild(criarBolinha(atomos[2], 14, 8, 5)); 
+        caixa.appendChild(criarBolinha(atomos[3], 0, 14, 5)); 
+    }
+    else if (formula === "CH4") {
+        // Tetraédrica
+        caixa.style.height = "50px";
+        caixa.appendChild(criarBolinha('C', 0, 0, 10)); 
+        caixa.appendChild(criarBolinha('H', 0, -18, 5)); 
+        caixa.appendChild(criarBolinha('H', -16, 6, 5)); 
+        caixa.appendChild(criarBolinha('H', 16, 6, 5)); 
+        caixa.appendChild(criarBolinha('H', 0, 18, 5)); 
+    }
+    else {
+        // Moléculas Gigantes (Polímeros/Sais Complexos) - Desenha um cacho grudado ao redor de 1 central
+        let central = criarBolinha(atomos[0], 0, 0, 10);
+        caixa.appendChild(central);
+        
+        let raio = atomos.length > 8 ? 16 : 12;
+        caixa.style.width = (raio * 2 + 20) + "px";
+        caixa.style.height = (raio * 2 + 20) + "px";
+
+        for (let i = 1; i < atomos.length; i++) {
+            let angulo = (i / (atomos.length - 1)) * (Math.PI * 2);
+            let px = Math.cos(angulo) * raio;
+            let py = Math.sin(angulo) * raio;
+            caixa.appendChild(criarBolinha(atomos[i], px, py, 5));
+        }
+    }
+    return caixa;
 }
 
 function desenharPrato(pratoElemento, moleculas, coeficientes) {
     pratoElemento.innerHTML = "";
     
+    // Zoom dinâmico para os "cachos" não estourarem a tela
     let totalMols = coeficientes.reduce((a,b)=>a+b, 0);
     let scale = 1;
     if(totalMols > 6) scale = 0.8;
     if(totalMols > 10) scale = 0.6;
-    if(totalMols > 15) scale = 0.45; // Para as equações impossíveis brutais
+    if(totalMols > 15) scale = 0.45; 
 
     moleculas.forEach((mol, idx) => {
         let coef = coeficientes[idx];
@@ -271,19 +262,12 @@ function atualizarBalanca() {
     desenharPrato(pratoReagentes, faseAtual.reagentes, coeficientesReagentes);
     desenharPrato(pratoProdutos, faseAtual.produtos, coeficientesProdutos);
 
-    // Simplificação de massa rápida: cada átomo vale 1 ponto de peso
     let massaEsq = 0; let massaDir = 0;
-    
-    faseAtual.reagentes.forEach((mol, idx) => {
-        massaEsq += (extrairElementos(mol).length * coeficientesReagentes[idx]);
-    });
-    faseAtual.produtos.forEach((mol, idx) => {
-        massaDir += (extrairElementos(mol).length * coeficientesProdutos[idx]);
-    });
+    faseAtual.reagentes.forEach((mol, idx) => { massaEsq += (extrairElementos(mol).length * coeficientesReagentes[idx]); });
+    faseAtual.produtos.forEach((mol, idx) => { massaDir += (extrairElementos(mol).length * coeficientesProdutos[idx]); });
     
     let diferenca = massaEsq - massaDir;
     let angulo = diferenca * 2.5; 
-    
     angulo = Math.max(-25, Math.min(25, angulo));
 
     hasteBalanca.style.transform = `translate(-50%, 0) rotate(${angulo}deg)`;
@@ -295,14 +279,14 @@ function atualizarBalanca() {
 // LÓGICA DE JOGO, VERIFICAÇÃO E NAVEGAÇÃO
 // -----------------------------------------------------
 window.verificarBalanceamento = function() {
-    // Se a balança não estiver perfeitamente reta (ângulo zero), errou!
+    if(typeof tocarSomClick === "function") tocarSomClick();
+
     let angHaste = hasteBalanca.style.transform;
     if (!angHaste.includes("rotate(0deg)")) {
-        perderVidaDesafio("A balança não está equilibrada! Ajuste os botões de mais e menos e tente novamente.");
+        perderVidaDesafio("A balança não está equilibrada! Ajuste os botões de (+) e (-) e tente novamente.");
         return;
     }
 
-    // Se está equilibrada, vamos checar a simplificação Matemática (MDC)
     let todosCoeficientes = [...coeficientesReagentes, ...coeficientesProdutos];
     
     let mdc = todosCoeficientes[0];
@@ -313,15 +297,12 @@ window.verificarBalanceamento = function() {
     }
 
     if (mdc > 1) {
-        // Balança tá certa, mas dá pra simplificar!
-        mostrarMensagemGlob("✅ Balanceado! (1 Estrela)\nDivida todos os números por " + mdc + " para ganhar a segunda estrela!");
+        mostrarMensagemGlob(`✅ Balanceado! (1 Estrela)\nDivida todos os números por ${mdc} para ganhar a segunda estrela!`);
         ganharEstrela();
-        // Não avança de fase, deixa ele continuar mexendo pra ganhar a outra
     } else {
-        // Perfeito e simplificado! Duas estrelas!
         if(somCorreto) { somCorreto.currentTime=0; somCorreto.play().catch(()=>{}); }
         ganharEstrela();
-        setTimeout(() => { ganharEstrela(); }, 800); // Dá as duas de uma vez
+        setTimeout(() => { ganharEstrela(); }, 800); 
         
         setTimeout(() => {
             if(estrelasGanhas >= 10) { encerrarDesafioBalanceando(); } 
@@ -388,7 +369,6 @@ window.encerrarDesafioBalanceando = function() {
         titulo.innerText = "Mestre da Estequiometria! ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐";
         sub.innerText = "Você balanceou tudo com perfeição!";
         if(somGanhou) { somGanhou.currentTime=0; somGanhou.play().catch(()=>{}); }
-        // Daria a conquista do balanceando aqui!
     } else {
         box.style.border = "4px solid #ef4444";
         box.style.background = "linear-gradient(135deg, #fef2f2, #fee2e2)";
@@ -402,5 +382,4 @@ window.encerrarDesafioBalanceando = function() {
     }
 };
 
-// Start automático ao abrir a tela
 iniciarFase();

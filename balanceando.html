@@ -22,9 +22,7 @@
     <button class="icon-btn" onclick="toggleMute()" id="muteBtn">🔊</button>
     <button class="icon-btn" onclick="abrirConquistas()">🏅</button>
     <button class="icon-btn" onclick="toggleAssistenteVoz()" id="btnAssistente" title="Assistente de Voz">🎤</button>
-    
     <div id="trofeus-globais" class="trofeus-container"></div>
-
     <div id="menu" class="menu">
       <div class="menu-item"><p>🎵 Volume da música</p><input type="range" id="rangeMusica" min="0" max="1" step="0.1" onchange="volumeMusica(this.value)"></div>
       <div class="menu-item"><p>🔊 Volume dos efeitos</p><input type="range" id="rangeEfeitos" min="0" max="1" step="0.1" onchange="volumeEfeitos(this.value)"></div>
@@ -49,8 +47,8 @@
 
   <div id="toast-mensagem" class="toast escondido"></div>
 
-  <!-- HUD CENTRALIZADO PADRÃO ESTRUTURANDO -->
-  <div id="hud-desafio" class="hud-desafio" style="margin-top: 20px;">
+  <!-- A CAIXA DO HUD IGUAL A DO MODO ESTRUTURANDO -->
+  <div id="hud-desafio" class="hud-desafio">
       <div class="hud-topo">
           <div id="estrelas-container" class="estrelas-hud">
               <span class="estrela-vazia">★</span><span class="estrela-vazia">★</span><span class="estrela-vazia">★</span><span class="estrela-vazia">★</span><span class="estrela-vazia">★</span>
@@ -58,15 +56,16 @@
           </div>
           <div id="vidas-container" class="vidas-hud"></div>
       </div>
-      <div class="hud-pergunta">
-          Equilibre a balança química! Adicione moléculas aos pratos.<br>
-          <span style="font-size: 14px; color: #fbbf24;">(Dica: Para ganhar as 2 estrelas da rodada, não esqueça de simplificar a equação!)</span>
+      <div class="hud-pergunta" style="text-align: center;">
+          <strong style="font-size: 20px;">Equilibre a balança química!</strong><br>
+          <span style="font-size: 16px; opacity: 0.9;">Adicione moléculas aos pratos.<br>
+          (Simplifique a equação no final para ganhar 2 estrelas!)</span>
       </div>
   </div>
 
   <div class="area-trabalho" style="background: transparent; border: none; box-shadow: none;">
     
-    <!-- DESENHO FÍSICO DA BALANÇA -->
+    <!-- DESENHO DA BALANÇA -->
     <div class="area-balanca">
         <div class="balanca-haste" id="balanca-haste">
             <div class="corda-prato corda-esquerda" id="corda-esquerda">
@@ -77,7 +76,6 @@
                 <div class="prato"><div class="conteudo-prato" id="prato-produtos"></div></div>
             </div>
         </div>
-        
         <div class="balanca-pino"></div>
         <div class="balanca-base"><div class="balanca-pe"></div></div>
     </div>
@@ -86,19 +84,18 @@
     <div class="area-equacao" id="area-equacao"></div>
 
     <!-- BOTÕES AJEITADOS E ESTILIZADOS -->
-    <div class="controles-fase">
-        <button id="btn-voltar-fase" class="btn-ferramenta" title="Voltar Fase" onclick="voltarFaseBalanceando()" style="background-color: #8b5cf6; color: white;">⏮️ Voltar Fase</button>
-        <button id="btn-verificar" onclick="verificarBalanceamento()" class="btn-verificar" style="position: relative; margin: 0; box-shadow: 0 4px 6px rgba(0,0,0,0.3); font-size: 18px;">✅ Verificar Balança</button>
-        <button id="btn-pular-fase" class="btn-ferramenta" title="Pular Fase" onclick="pularFaseBalanceando()" style="background-color: #f59e0b; color: white;">⏭️ Pular Fase</button>
-    </div>
-    <div style="text-align: center; margin-top: 15px;">
-        <button id="btn-completar-desafio" class="btn-ferramenta" title="Concluir Desafio" onclick="encerrarDesafioBalanceando()" style="background-color: #10b981; color: white;">🏁 Concluir Desafio Cedo</button>
+    <div class="controles-fase" style="display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 20px;">
+        <button id="btn-verificar" onclick="verificarBalanceamento()" class="btn-verificar" style="position: relative; right: auto; bottom: auto; padding: 15px 40px; font-size: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">✅ Verificar Balança</button>
+        <div style="display: flex; gap: 15px; margin-top: 10px;">
+            <button id="btn-voltar-fase" class="btn-ferramenta" title="Voltar Fase" onclick="voltarFaseBalanceando()" style="background-color: #8b5cf6; color: white;">⏮️ Voltar</button>
+            <button id="btn-pular-fase" class="btn-ferramenta" title="Pular Fase" onclick="pularFaseBalanceando()" style="background-color: #f59e0b; color: white;">⏭️ Pular</button>
+            <button id="btn-completar-desafio" class="btn-ferramenta" title="Concluir Desafio" onclick="encerrarDesafioBalanceando()" style="background-color: #10b981; color: white;">🏁 Concluir Desafio</button>
+        </div>
     </div>
 
   </div>
 </main>
 
-<!-- CRÉDITOS QUE ESTAVAM FALTANDO -->
 <footer class="rodape">
   <div class="adm"><button class="btn-adm" onclick="abrirChat()">[ADM]</button></div>
   <div class="creditos"><p class="creditos-titulo">Desenvolvido por</p><p class="autor">Zayde CASTRO</p><p class="email">zayde.lucas@aluno.uece.br</p><div class="logos"><img src="pibid.png"><img src="faced.png"><img src="uece.png"></div></div>
