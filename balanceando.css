@@ -1,0 +1,214 @@
+/* ==========================================
+   ESTILOS DO MODO BALANCEANDO
+   ========================================== */
+
+.area-balanca {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    height: 50vh;
+    position: relative;
+    margin-top: 20px;
+    padding-bottom: 30px;
+}
+
+/* Base fixa da balança */
+.balanca-base {
+    width: 30px;
+    height: 180px;
+    background: linear-gradient(90deg, #64748b, #94a3b8);
+    position: relative;
+    border-radius: 5px 5px 0 0;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+    z-index: 5;
+}
+
+.balanca-pe {
+    width: 120px;
+    height: 20px;
+    background: #475569;
+    border-radius: 10px 10px 0 0;
+    position: absolute;
+    bottom: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    box-shadow: inset 0 2px 4px rgba(255,255,255,0.2);
+}
+
+/* Haste horizontal que gira */
+.balanca-haste {
+    width: 600px;
+    height: 12px;
+    background: linear-gradient(180deg, #94a3b8, #64748b);
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform-origin: center center;
+    transform: translate(-50%, 0) rotate(0deg); /* O JS vai mudar os graus aqui */
+    transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    z-index: 10;
+}
+
+/* O pino que prende a haste na base */
+.balanca-pino {
+    width: 20px;
+    height: 20px;
+    background: #fbbf24;
+    border-radius: 50%;
+    position: absolute;
+    top: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 15;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    border: 2px solid #b45309;
+}
+
+/* Estrutura que segura os pratos (Sempre em pé independente do giro da haste) */
+.corda-prato {
+    position: absolute;
+    top: 12px;
+    width: 150px;
+    height: 120px;
+    border: 3px solid #cbd5e1;
+    border-bottom: none;
+    border-radius: 50% 50% 0 0;
+    transform-origin: top center;
+    /* O JS vai aplicar a rotação inversa aqui para a corda ficar reta */
+}
+
+.corda-esquerda { left: 10px; }
+.corda-direita { right: 10px; }
+
+/* Pratos da Balança */
+.prato {
+    width: 160px;
+    height: 30px;
+    background: linear-gradient(180deg, #94a3b8, #475569);
+    position: absolute;
+    bottom: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 50% / 100%;
+    box-shadow: inset 0 -3px 5px rgba(0,0,0,0.5), 0 5px 10px rgba(0,0,0,0.4);
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+}
+
+/* Onde as moléculas caem e ficam empilhadas (por cima do prato) */
+.conteudo-prato {
+    position: absolute;
+    bottom: 25px;
+    width: 100%;
+    display: flex;
+    flex-direction: column-reverse; /* Empilha de baixo pra cima */
+    align-items: center;
+    gap: 2px;
+}
+
+/* Molécula Visual */
+.molecula-visual {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    padding: 2px;
+    animation: cair 0.4s ease-out;
+}
+
+@keyframes cair {
+    0% { transform: translateY(-50px) scale(1.2); opacity: 0; }
+    100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.atomo-bolinha {
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 10px;
+    font-weight: bold;
+    box-shadow: inset -2px -2px 5px rgba(0,0,0,0.5), 1px 1px 3px rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+/* Área da Equação (Rodapé) */
+.area-equacao {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    background: var(--painel-bg);
+    padding: 20px;
+    border-radius: 15px;
+    margin: 20px auto;
+    width: 90%;
+    max-width: 900px;
+    border: 2px solid var(--bordas);
+    flex-wrap: wrap;
+}
+
+.termo-equacao {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.bloco-coeficiente {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 5px;
+    border-radius: 8px;
+}
+
+.valor-coeficiente {
+    font-size: 26px;
+    font-weight: bold;
+    color: #eab308;
+    background: #1e293b;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px;
+    border: 2px solid #475569;
+}
+
+.btn-coeficiente {
+    width: 30px;
+    height: 30px;
+    background: #0ea5e9;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    margin: 2px 0;
+}
+.btn-coeficiente.minus { background: #ef4444; }
+
+.texto-molecula {
+    font-size: 28px;
+    font-weight: bold;
+    font-family: monospace;
+    letter-spacing: 2px;
+}
+
+.sinal-mais, .sinal-seta {
+    font-size: 30px;
+    font-weight: bold;
+    color: #94a3b8;
+}
+
+.sinal-seta {
+    color: #10b981;
+}

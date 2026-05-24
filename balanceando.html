@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Balanceando - Química Adômines</title>
+  <link rel="stylesheet" href="global.css">
+  <link rel="stylesheet" href="balanceando.css">
+</head>
+<body>
+
+<audio id="musica" src="musica.mp3" loop></audio>
+<audio id="click" src="click.mp3"></audio>
+<audio id="somErro" src="erro.mp3"></audio>
+<audio id="somCorreto" src="correto.mp3"></audio>
+<audio id="somGanhou" src="ganhou.mp3"></audio>
+<audio id="somPerdeu" src="perdeu.mp3"></audio>
+
+<header class="topo">
+  <div class="esquerda">
+    <button class="icon-btn" onclick="toggleMenu(event)">⚙️</button>
+    <button class="icon-btn" onclick="toggleMute()" id="muteBtn">🔊</button>
+    <button class="icon-btn" onclick="abrirConquistas()">🏅</button>
+    <button class="icon-btn" onclick="toggleAssistenteVoz()" id="btnAssistente" title="Assistente de Voz">🎤</button>
+    
+    <div id="trofeus-globais" class="trofeus-container"></div>
+
+    <div id="menu" class="menu">
+      <div class="menu-item"><p>🎵 Volume da música</p><input type="range" id="rangeMusica" min="0" max="1" step="0.1" onchange="volumeMusica(this.value)"></div>
+      <div class="menu-item"><p>🔊 Volume dos efeitos</p><input type="range" id="rangeEfeitos" min="0" max="1" step="0.1" onchange="volumeEfeitos(this.value)"></div>
+    </div>
+  </div>
+  
+  <div id="cronometro-desafio" class="cronometro escondido">01:30</div>
+  
+  <div class="direita">
+    <button class="icon-btn btn-chat-global" onclick="abrirQuimiChat()" title="QuimiChat">💬</button>
+    <button class="icon-btn btn-tabela-global" onclick="abrirTabelaPeriodica()" title="Tabela Periódica">📊</button>
+    <button class="icon-btn" onclick="toggleModo()" id="temaBtn">🌙</button>
+  </div>
+</header>
+
+<main class="game-container">
+  
+  <div class="header-modo">
+    <h1 id="titulo-modo">BALANCEANDO</h1>
+    <button class="btn-voltar" onclick="mudarTela('modos.html')">⬅ Voltar para Modos</button>
+  </div>
+
+  <div id="toast-mensagem" class="toast escondido"></div>
+
+  <div id="hud-desafio" class="hud-desafio">
+      <div class="hud-topo">
+          <!-- AQUI O CONTADOR AGORA PODE CHEGAR ATÉ 10 ESTRELAS -->
+          <div id="estrelas-container" class="estrelas-hud">
+              <span class="estrela-vazia">★</span><span class="estrela-vazia">★</span><span class="estrela-vazia">★</span><span class="estrela-vazia">★</span><span class="estrela-vazia">★</span>
+              <span class="estrela-vazia">★</span><span class="estrela-vazia">★</span><span class="estrela-vazia">★</span><span class="estrela-vazia">★</span><span class="estrela-vazia">★</span>
+          </div>
+          <div id="vidas-container" class="vidas-hud"></div>
+      </div>
+      <div class="hud-pergunta">
+          Equilibre a balança química! Adicione moléculas aos pratos.<br>
+          (Para ganhar 2 estrelas, não esqueça de simplificar a equação!)
+      </div>
+  </div>
+
+  <div class="area-trabalho" style="background: transparent; border: none; box-shadow: none;">
+    
+    <!-- DESENHO FÍSICO DA BALANÇA -->
+    <div class="area-balanca">
+        <div class="balanca-haste" id="balanca-haste">
+            <div class="corda-prato corda-esquerda" id="corda-esquerda">
+                <div class="prato"><div class="conteudo-prato" id="prato-reagentes"></div></div>
+            </div>
+            
+            <div class="corda-prato corda-direita" id="corda-direita">
+                <div class="prato"><div class="conteudo-prato" id="prato-produtos"></div></div>
+            </div>
+        </div>
+        
+        <div class="balanca-pino"></div>
+        <div class="balanca-base"><div class="balanca-pe"></div></div>
+    </div>
+
+    <!-- AREA DA EQUAÇÃO MATEMÁTICA (O JS VAI RENDERIZAR AQUI DENTRO) -->
+    <div class="area-equacao" id="area-equacao"></div>
+
+    <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
+        <button id="btn-verificar" onclick="verificarBalanceamento()" class="btn-verificar" style="position: relative; right: 0; bottom: 0;">✅ Verificar Balança</button>
+        <button onclick="pularFaseBalanceando()" class="btn-ferramenta" style="background: #f59e0b; color: white;">⏭️ Pular Fase</button>
+        <button onclick="voltarFaseBalanceando()" class="btn-ferramenta" style="background: #8b5cf6; color: white;">⏮️ Voltar Fase</button>
+        <button onclick="encerrarDesafioBalanceando()" class="btn-ferramenta" style="background: #10b981; color: white;">🏁 Concluir Desafio</button>
+    </div>
+
+  </div>
+</main>
+
+<div id="modal-erro-desafio" class="modal-overlay" style="z-index: 100000;">
+    <div class="modal-box modal-box-epic" style="border: 4px solid #ef4444; background: linear-gradient(135deg, #fef2f2, #fee2e2); animation: tremer 0.4s;">
+        <div class="modal-header" style="background: #ef4444; justify-content: center; font-size: 24px; border-bottom: 4px solid #b91c1c;">
+            <h3 style="text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">❌ Balança Torta!</h3>
+        </div>
+        <div class="modal-body" style="text-align: center;">
+            <div style="font-size: 60px; margin-bottom: 10px;">⚠️</div>
+            <p id="texto-erro-desafio" style="font-size: 20px; margin-bottom: 25px; color: #b91c1c; font-weight: bold;"></p>
+            <button type="button" onclick="document.getElementById('modal-erro-desafio').style.display='none'" class="btn-epic-red">Tentar Novamente</button>
+        </div>
+    </div>
+</div>
+
+<div id="modal-resultado-desafio" class="modal-overlay" style="z-index: 100000;">
+    <div class="modal-box modal-box-epic" id="box-resultado-desafio">
+        <div class="modal-header" id="header-resultado-desafio" style="justify-content: center; font-size: 26px;">
+            <h3 style="text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">🏁 Fim do Desafio!</h3>
+        </div>
+        <div class="modal-body" style="text-align: center;">
+            <div id="icone-resultado" style="font-size: 60px; margin-bottom: 10px;">🏆</div>
+            <h1 id="texto-resultado-desafio" style="font-size: 32px; margin-bottom: 15px;">Excelente!</h1>
+            <p id="subtexto-resultado-desafio" style="margin-bottom: 30px; font-size: 18px; color: #334155; font-weight: 500;"></p>
+            <button type="button" onclick="mudarTela('modos.html')" id="btn-resultado-desafio" class="btn-epic-green">Voltar ao Menu</button>
+        </div>
+    </div>
+</div>
+
+<div id="chat-overlay" class="modal-overlay" onclick="fecharModais(event)"><div class="modal-box"><div class="modal-header"><h3>Painel ADM</h3><button onclick="fecharChatBtn()">✖</button></div><div class="modal-body chat-body"><div id="chat-mensagens" style="height: 200px; overflow-y: auto; text-align: left; margin-bottom: 10px; background: rgba(0,0,0,0.05); padding: 10px; border-radius: 5px; font-family: monospace;"></div><input type="text" id="chat-input" placeholder="Digite um comando e aperte ENTER..." style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px;" onkeypress="processarChat(event)"></div></div></div>
+
+<script src="global.js"></script>
+<script src="assistente.js"></script>
+<script src="balanceando.js"></script>
+</body>
+</html>
