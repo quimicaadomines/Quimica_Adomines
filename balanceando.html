@@ -29,8 +29,6 @@
     </div>
   </div>
   
-  <div id="cronometro-desafio" class="cronometro escondido">01:30</div>
-  
   <div class="direita">
     <button class="icon-btn btn-chat-global" onclick="abrirQuimiChat()" title="QuimiChat">💬</button>
     <button class="icon-btn btn-tabela-global" onclick="abrirTabelaPeriodica()" title="Tabela Periódica">📊</button>
@@ -38,16 +36,17 @@
   </div>
 </header>
 
+<!-- A main inteira desce graças ao padding-top do CSS -->
 <main class="game-container">
   
-  <div class="header-modo">
-    <h1 id="titulo-modo">BALANCEANDO</h1>
-    <button class="btn-voltar" onclick="mudarTela('modos.html')">⬅ Voltar para Modos</button>
+  <div class="header-modo" style="width: 90%; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+    <h1 id="titulo-modo" style="margin:0;">BALANCEANDO</h1>
+    <button class="btn-voltar" onclick="mudarTela('modos.html')" style="margin:0;">⬅ Voltar para Modos</button>
   </div>
 
   <div id="toast-mensagem" class="toast escondido"></div>
 
-  <!-- A CAIXA DO HUD IGUAL A DO MODO ESTRUTURANDO -->
+  <!-- HUD CENTRALIZADO PADRÃO ESTRUTURANDO -->
   <div id="hud-desafio" class="hud-desafio">
       <div class="hud-topo">
           <div id="estrelas-container" class="estrelas-hud">
@@ -56,16 +55,15 @@
           </div>
           <div id="vidas-container" class="vidas-hud"></div>
       </div>
-      <div class="hud-pergunta" style="text-align: center;">
-          <strong style="font-size: 20px;">Equilibre a balança química!</strong><br>
-          <span style="font-size: 16px; opacity: 0.9;">Adicione moléculas aos pratos.<br>
-          (Simplifique a equação no final para ganhar 2 estrelas!)</span>
+      <div class="hud-pergunta">
+          <strong>Equilibre a balança química!</strong><br>Adicione moléculas aos pratos.<br>
+          <span class="hud-dica-simplifica">(Dica: Simplifique a equação final para ganhar 2 estrelas!)</span>
       </div>
   </div>
 
-  <div class="area-trabalho" style="background: transparent; border: none; box-shadow: none;">
+  <div class="area-trabalho" style="background: transparent; border: none; box-shadow: none; width: 100%;">
     
-    <!-- DESENHO DA BALANÇA -->
+    <!-- DESENHO FÍSICO DA BALANÇA -->
     <div class="area-balanca">
         <div class="balanca-haste" id="balanca-haste">
             <div class="corda-prato corda-esquerda" id="corda-esquerda">
@@ -76,6 +74,7 @@
                 <div class="prato"><div class="conteudo-prato" id="prato-produtos"></div></div>
             </div>
         </div>
+        
         <div class="balanca-pino"></div>
         <div class="balanca-base"><div class="balanca-pe"></div></div>
     </div>
@@ -83,14 +82,12 @@
     <!-- AREA DA EQUAÇÃO MATEMÁTICA -->
     <div class="area-equacao" id="area-equacao"></div>
 
-    <!-- BOTÕES AJEITADOS E ESTILIZADOS -->
-    <div class="controles-fase" style="display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 20px;">
-        <button id="btn-verificar" onclick="verificarBalanceamento()" class="btn-verificar" style="position: relative; right: auto; bottom: auto; padding: 15px 40px; font-size: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">✅ Verificar Balança</button>
-        <div style="display: flex; gap: 15px; margin-top: 10px;">
-            <button id="btn-voltar-fase" class="btn-ferramenta" title="Voltar Fase" onclick="voltarFaseBalanceando()" style="background-color: #8b5cf6; color: white;">⏮️ Voltar</button>
-            <button id="btn-pular-fase" class="btn-ferramenta" title="Pular Fase" onclick="pularFaseBalanceando()" style="background-color: #f59e0b; color: white;">⏭️ Pular</button>
-            <button id="btn-completar-desafio" class="btn-ferramenta" title="Concluir Desafio" onclick="encerrarDesafioBalanceando()" style="background-color: #10b981; color: white;">🏁 Concluir Desafio</button>
-        </div>
+    <!-- BOTÕES AJEITADOS E COM EFEITO HOVER -->
+    <div class="controles-fase">
+        <button id="btn-voltar-fase" class="btn-controle-balanca" title="Voltar Fase" onclick="voltarFaseBalanceando()">⏮️ Voltar Fase</button>
+        <button id="btn-verificar" onclick="verificarBalanceamento()" class="btn-verificar-master">✅ Verificar Balança</button>
+        <button id="btn-pular-fase" class="btn-controle-balanca" title="Pular Fase" onclick="pularFaseBalanceando()">⏭️ Pular Fase</button>
+        <button id="btn-completar-desafio" class="btn-controle-balanca" title="Concluir Desafio" onclick="encerrarDesafioBalanceando()">🏁 Concluir Desafio</button>
     </div>
 
   </div>
