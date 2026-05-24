@@ -93,22 +93,18 @@
   font-size: 24px;
 }
 
-/* Fundo Branco Puro para os botões secundários da Tela de Modos */
 .btn-inclusao {
-  background-color: #ffffff; /* FORÇA O FUNDO BRANCO P/ O BALANCEANDO E INCLUSIVO */
+  background-color: #0f172a;
   position: relative;
   overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .btn-inclusao img {
-  width: 80%;
-  height: 80%;
-  object-fit: contain; /* Para não cortar a imagem do modo Balanceando */
-  opacity: 0.8;
-  filter: none; /* Tirei o blur para a balança ficar nítida */
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.5; /* Embaçado */
+  filter: blur(1.5px);
 }
 
 .icone-play-inclusao {
@@ -118,12 +114,18 @@
   z-index: 2;
 }
 
+/* CLASSE NOVA E EXCLUSIVA PARA O FUNDO BRANCO DO BALANCEANDO */
+.btn-balanceando {
+  background-color: #ffffff;
+  color: #0284c7;
+  font-size: 24px;
+}
+
 /* SUBMENUS e BOTÕES COLORIDOS */
 .submenu {
   margin-top: 20px;
   padding-top: 20px;
   border-top: 1px solid rgba(255,255,255,0.2);
-  transition: all 0.3s ease;
 }
 
 .escondido {
@@ -171,6 +173,7 @@
     text-align: center;
   }
 }
+
 /* ================= EFEITO DE TRANSIÇÃO E BOTÃO VOLTAR ================= */
 body {
   animation: entrarTela 0.5s ease forwards;
@@ -205,6 +208,6 @@ body.saindo {
 }
 
 .btn-voltar:hover {
-  transform: scale(1.1) translateX(-5px); /* Dá um efeitinho indo para a esquerda */
+  transform: scale(1.1) translateX(-5px);
   opacity: 1;
 }

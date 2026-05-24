@@ -1,6 +1,3 @@
-// ==========================================
-// MODO BALANCEANDO - QUÍMICA ADÔMINES (COM FÍSICA E GEOMETRIA MOLECULAR)
-// ==========================================
 let modoAtual = localStorage.getItem("modoAtual") || "balanceando-facil";
 let titulo = document.getElementById("titulo-modo");
 let hasteBalanca = document.getElementById("balanca-haste");
@@ -16,25 +13,24 @@ let somEstrela = document.getElementById("somEstrela");
 let somGanhou = document.getElementById("somGanhou");
 let somPerdeu = document.getElementById("somPerdeu");
 
-// Cores e Tamanhos dos Átomos 
 const CORES_ATOMOS = {
-    'H': { cor: '#ffffff', texto: '#000', size: 16 },
-    'O': { cor: '#ef4444', texto: '#fff', size: 24 },
-    'C': { cor: '#333333', texto: '#fff', size: 26 },
-    'N': { cor: '#3b82f6', texto: '#fff', size: 24 },
-    'Fe':{ cor: '#d97706', texto: '#fff', size: 28 },
-    'Na':{ cor: '#8b5cf6', texto: '#fff', size: 26 },
-    'Cl':{ cor: '#22c55e', texto: '#fff', size: 26 },
-    'K': { cor: '#a855f7', texto: '#fff', size: 28 },
-    'Al':{ cor: '#94a3b8', texto: '#000', size: 26 },
-    'Ca':{ cor: '#cbd5e1', texto: '#000', size: 28 },
-    'Zn':{ cor: '#64748b', texto: '#fff', size: 26 },
-    'Mg':{ cor: '#84cc16', texto: '#000', size: 26 },
-    'S': { cor: '#eab308', texto: '#000', size: 26 },
-    'Mn':{ cor: '#ec4899', texto: '#fff', size: 26 },
-    'P': { cor: '#f97316', texto: '#fff', size: 26 },
-    'Si':{ cor: '#6ee7b7', texto: '#000', size: 26 },
-    'Cu':{ cor: '#b45309', texto: '#fff', size: 26 }
+    'H': { cor: '#ffffff', texto: '#000', size: 14 },
+    'O': { cor: '#ef4444', texto: '#fff', size: 20 },
+    'C': { cor: '#333333', texto: '#fff', size: 22 },
+    'N': { cor: '#3b82f6', texto: '#fff', size: 20 },
+    'Fe':{ cor: '#d97706', texto: '#fff', size: 24 },
+    'Na':{ cor: '#8b5cf6', texto: '#fff', size: 22 },
+    'Cl':{ cor: '#22c55e', texto: '#fff', size: 22 },
+    'K': { cor: '#a855f7', texto: '#fff', size: 24 },
+    'Al':{ cor: '#94a3b8', texto: '#000', size: 22 },
+    'Ca':{ cor: '#cbd5e1', texto: '#000', size: 24 },
+    'Zn':{ cor: '#64748b', texto: '#fff', size: 22 },
+    'Mg':{ cor: '#84cc16', texto: '#000', size: 22 },
+    'S': { cor: '#eab308', texto: '#000', size: 22 },
+    'Mn':{ cor: '#ec4899', texto: '#fff', size: 22 },
+    'P': { cor: '#f97316', texto: '#fff', size: 22 },
+    'Si':{ cor: '#6ee7b7', texto: '#000', size: 22 },
+    'Cu':{ cor: '#b45309', texto: '#fff', size: 22 }
 };
 
 const bancoFases = {
@@ -178,40 +174,34 @@ function desenharMoleculaGeometria(formula) {
     caixa.style.height = "40px";
 
     if (atomos.length === 1) {
-        // Átomo isolado
         caixa.appendChild(criarBolinha(atomos[0], 0, 0));
     } 
     else if (atomos.length === 2) {
-        // Diatômica grudada: (O2, H2, NaCl)
         caixa.style.width = "46px";
         let r1 = CORES_ATOMOS[atomos[0]] ? CORES_ATOMOS[atomos[0]].size/2 : 9;
         let r2 = CORES_ATOMOS[atomos[1]] ? CORES_ATOMOS[atomos[1]].size/2 : 9;
-        let offset = (r1 + r2) / 2 - 2; // Menos 2 pixels para elas se "funderem" visualmente
+        let offset = (r1 + r2) / 2 - 2; 
         caixa.appendChild(criarBolinha(atomos[0], -offset, 0));
         caixa.appendChild(criarBolinha(atomos[1], offset, 0));
     } 
     else if (formula === "H2O") {
-        // Água (H-O-H angular)
         caixa.appendChild(criarBolinha('O', 0, -5, 10)); 
         caixa.appendChild(criarBolinha('H', -12, 6, 5)); 
         caixa.appendChild(criarBolinha('H', 12, 6, 5)); 
     } 
     else if (formula === "CO2" || formula === "SO2" || formula === "NO2") {
-        // Linear (O=C=O)
         caixa.style.width = "60px";
         caixa.appendChild(criarBolinha(atomos[0], 0, 0, 10)); 
         caixa.appendChild(criarBolinha(atomos[1], -18, 0, 5)); 
         caixa.appendChild(criarBolinha(atomos[2], 18, 0, 5)); 
     }
     else if (formula === "NH3" || formula === "AlCl3") {
-        // Piramidal (Ex: N com 3 H)
         caixa.appendChild(criarBolinha(atomos[0], 0, -8, 10)); 
         caixa.appendChild(criarBolinha(atomos[1], -14, 8, 5)); 
         caixa.appendChild(criarBolinha(atomos[2], 14, 8, 5)); 
         caixa.appendChild(criarBolinha(atomos[3], 0, 14, 5)); 
     }
     else if (formula === "CH4") {
-        // Tetraédrica
         caixa.style.height = "50px";
         caixa.appendChild(criarBolinha('C', 0, 0, 10)); 
         caixa.appendChild(criarBolinha('H', 0, -18, 5)); 
@@ -220,7 +210,6 @@ function desenharMoleculaGeometria(formula) {
         caixa.appendChild(criarBolinha('H', 0, 18, 5)); 
     }
     else {
-        // Moléculas Gigantes (Polímeros/Sais Complexos) - Desenha um cacho grudado ao redor de 1 central
         let central = criarBolinha(atomos[0], 0, 0, 10);
         caixa.appendChild(central);
         
@@ -241,7 +230,6 @@ function desenharMoleculaGeometria(formula) {
 function desenharPrato(pratoElemento, moleculas, coeficientes) {
     pratoElemento.innerHTML = "";
     
-    // Zoom dinâmico para os "cachos" não estourarem a tela
     let totalMols = coeficientes.reduce((a,b)=>a+b, 0);
     let scale = 1;
     if(totalMols > 6) scale = 0.8;
@@ -263,11 +251,13 @@ function atualizarBalanca() {
     desenharPrato(pratoProdutos, faseAtual.produtos, coeficientesProdutos);
 
     let massaEsq = 0; let massaDir = 0;
+    
     faseAtual.reagentes.forEach((mol, idx) => { massaEsq += (extrairElementos(mol).length * coeficientesReagentes[idx]); });
     faseAtual.produtos.forEach((mol, idx) => { massaDir += (extrairElementos(mol).length * coeficientesProdutos[idx]); });
     
     let diferenca = massaEsq - massaDir;
     let angulo = diferenca * 2.5; 
+    
     angulo = Math.max(-25, Math.min(25, angulo));
 
     hasteBalanca.style.transform = `translate(-50%, 0) rotate(${angulo}deg)`;
@@ -276,7 +266,7 @@ function atualizarBalanca() {
 }
 
 // -----------------------------------------------------
-// LÓGICA DE JOGO, VERIFICAÇÃO E NAVEGAÇÃO
+// LÓGICA DE JOGO E CONTROLES
 // -----------------------------------------------------
 window.verificarBalanceamento = function() {
     if(typeof tocarSomClick === "function") tocarSomClick();
@@ -297,7 +287,7 @@ window.verificarBalanceamento = function() {
     }
 
     if (mdc > 1) {
-        mostrarMensagemGlob(`✅ Balanceado! (1 Estrela)\nDivida todos os números por ${mdc} para ganhar a segunda estrela!`);
+        if(typeof mostrarMensagemGlob === "function") mostrarMensagemGlob(`✅ Balanceado! (1 Estrela)\nDivida todos os números por ${mdc} para ganhar a segunda estrela!`);
         ganharEstrela();
     } else {
         if(somCorreto) { somCorreto.currentTime=0; somCorreto.play().catch(()=>{}); }
@@ -305,7 +295,7 @@ window.verificarBalanceamento = function() {
         setTimeout(() => { ganharEstrela(); }, 800); 
         
         setTimeout(() => {
-            if(estrelasGanhas >= 10) { encerrarDesafioBalanceando(); } 
+            if(estrelasGanhas >= 10) { window.encerrarDesafioBalanceando(true); } 
             else { window.pularFaseBalanceando(); }
         }, 1500);
     }
@@ -317,7 +307,7 @@ function perderVidaDesafio(motivo) {
     atualizarHUD();
     
     if(vidasRestantes <= 0) { 
-        encerrarDesafioBalanceando(false); 
+        window.encerrarDesafioBalanceando(false); 
     } else { 
         document.getElementById("texto-erro-desafio").innerText = motivo;
         document.getElementById("modal-erro-desafio").style.display = "flex";
@@ -336,7 +326,7 @@ window.pularFaseBalanceando = function() {
         indexFaseAtual++;
         iniciarFase();
     } else {
-        mostrarMensagemGlob("⚠️ Esta já é a última fase deste nível!");
+        if(typeof mostrarMensagemGlob === "function") mostrarMensagemGlob("⚠️ Esta já é a última fase deste nível!");
     }
 };
 
@@ -346,11 +336,11 @@ window.voltarFaseBalanceando = function() {
         indexFaseAtual--;
         iniciarFase();
     } else {
-        mostrarMensagemGlob("⚠️ Esta já é a primeira fase!");
+        if(typeof mostrarMensagemGlob === "function") mostrarMensagemGlob("⚠️ Esta já é a primeira fase!");
     }
 };
 
-window.encerrarDesafioBalanceando = function() {
+window.encerrarDesafioBalanceando = function(vitoria = true) {
     if(typeof tocarSomClick === "function") tocarSomClick();
     clearInterval(intervaloCronometro);
     
@@ -361,13 +351,13 @@ window.encerrarDesafioBalanceando = function() {
     let sub = document.getElementById("subtexto-resultado-desafio");
     let btn = document.getElementById("btn-resultado-desafio");
 
-    if (estrelasGanhas >= 10) {
+    if (estrelasGanhas > 0 && vitoria) {
         box.style.border = "4px solid #16a34a";
         box.style.background = "linear-gradient(135deg, #f0fdf4, #dcfce7)";
         header.style.background = "#16a34a"; header.style.borderBottom = "4px solid #15803d";
         titulo.style.color = "#15803d"; btn.style.background = "#16a34a";
-        titulo.innerText = "Mestre da Estequiometria! ⭐⭐⭐⭐⭐⭐⭐⭐⭐⭐";
-        sub.innerText = "Você balanceou tudo com perfeição!";
+        titulo.innerText = "Desafio Concluído! ⭐";
+        sub.innerText = `Você levou ${estrelasGanhas} estrela(s). Bom trabalho!`;
         if(somGanhou) { somGanhou.currentTime=0; somGanhou.play().catch(()=>{}); }
     } else {
         box.style.border = "4px solid #ef4444";
@@ -377,7 +367,7 @@ window.encerrarDesafioBalanceando = function() {
         titulo.innerText = "Fim do Teste!";
         
         if(somPerdeu) { somPerdeu.currentTime=0; somPerdeu.play().catch(()=>{}); }
-        if (estrelasGanhas > 0) { sub.innerText = `Você conseguiu ${estrelasGanhas} estrela(s). Pratique mais as simplificações!`; } 
+        if (estrelasGanhas > 0) { sub.innerText = `Você salvou ${estrelasGanhas} estrela(s).`; } 
         else { sub.innerText = "Não desanime! Ajustar coeficientes requer muita atenção."; }
     }
 };

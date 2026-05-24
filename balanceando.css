@@ -2,7 +2,6 @@
    ESTILOS DO MODO BALANCEANDO (VISUAL ADÔMINES)
    ========================================== */
 
-/* MARGEM DE SEGURANÇA PARA A BARRA DO TOPO NÃO COBRIR O JOGO */
 .game-container {
     padding-top: 100px;
     width: 100%;
@@ -13,7 +12,6 @@
     align-items: center;
 }
 
-/* CAIXA DO ENUNCIADO E PLACAR (ESTILO CARTÃO) */
 .hud-desafio {
     background: var(--painel-bg);
     border-radius: 20px;
@@ -56,15 +54,6 @@
     color: var(--text-color);
 }
 
-.hud-dica-simplifica {
-    font-size: 14px;
-    color: #fbbf24;
-    font-weight: bold;
-    display: block;
-    margin-top: 5px;
-}
-
-/* BALANÇA FÍSICA */
 .area-balanca {
     display: flex;
     flex-direction: column;
@@ -163,17 +152,17 @@
     display: flex;
     flex-direction: column-reverse; 
     align-items: center;
-    gap: 2px;
+    gap: 0;
 }
 
-/* CAIXA GEOMÉTRICA DA MOLÉCULA */
+/* CAIXA GEOMÉTRICA DA MOLÉCULA (Bolas grudadas sem espaço) */
 .molecula-visual {
     display: flex;
     justify-content: center;
     align-items: center;
     position: relative;
     padding: 0;
-    margin: 3px;
+    margin: 0;
     animation: cair 0.4s ease-out;
 }
 
@@ -196,7 +185,6 @@
     100% { transform: translateY(0) scale(1); opacity: 1; }
 }
 
-/* ÁREA DA EQUAÇÃO NO RODAPÉ */
 .area-equacao {
     display: flex;
     align-items: center;
@@ -272,39 +260,27 @@
 }
 .sinal-seta { color: #10b981; }
 
-/* BOTÕES DE NAVEGAÇÃO E VERIFICAÇÃO */
-.controles-fase {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: 15px;
-    margin-top: 10px;
-    margin-bottom: 20px;
-}
-
 .btn-controle-balanca {
-    background: #0ea5e9; /* Azul padrão Adômines */
+    background: #0ea5e9;
     color: white;
     border: none;
     padding: 12px 25px;
     font-size: 16px;
     font-weight: bold;
-    border-radius: 25px; /* Bordas bem redondas */
+    border-radius: 25px;
     cursor: pointer;
     transition: transform 0.2s, box-shadow 0.2s;
     box-shadow: 0 4px 6px rgba(0,0,0,0.3);
 }
 
 .btn-controle-balanca:hover {
-    transform: translateY(-3px) scale(1.05); /* Sobe e cresce igual aos botões principais */
+    transform: translateY(-3px) scale(1.05);
     box-shadow: 0 6px 12px rgba(0,0,0,0.4);
     background: #0284c7;
 }
 
-/* Botão Verificar (Destaque Principal) */
 .btn-verificar-master {
-    background: #10b981; /* Verde Sucesso */
+    background: #10b981;
     color: white;
     border: none;
     padding: 15px 35px;

@@ -5,13 +5,11 @@ function abrirSubmenu(tipo) {
   let menuDificuldades = document.getElementById("submenu-dificuldades");
   let menuBalanceando = document.getElementById("submenu-balanceando");
 
-  // Esconde tudo primeiro
   menuNormal.classList.add("escondido");
   menuInclusao.classList.add("escondido");
   menuDificuldades.classList.add("escondido");
   if(menuBalanceando) menuBalanceando.classList.add("escondido");
 
-  // Abre apenas o clicado
   if (tipo === 'normal') {
     menuNormal.classList.remove("escondido");
   } else if (tipo === 'inclusao') {
@@ -36,7 +34,6 @@ function iniciarModo(modoEscolhido) {
  
   localStorage.setItem("modoAtual", modoEscolhido);
 
-  // Redirecionamento correto conforme o prefixo do modo
   if(modoEscolhido.includes("inclusao")) {
       mudarTela("inclusao.html");
   } else if(modoEscolhido.includes("balanceando")) {
