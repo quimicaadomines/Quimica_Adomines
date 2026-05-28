@@ -1,5 +1,5 @@
 // ==========================================
-// GLOBAL JAVASCRIPT (ATUALIZADO COM PWA E FULLSCREEN)
+// GLOBAL JAVASCRIPT - QUÍMICA ADÔMINES
 // ==========================================
 let musica = document.getElementById("musica");
 let clickAudio = document.getElementById("click");
@@ -12,29 +12,55 @@ let mutado = false;
 let efeitosVisuaisAtivos = true; 
 let musicaIniciada = false;
 let isNavegando = false; 
-let eventoInstalacao; // Para PWA
+let eventoInstalacao;
 
 // ==========================================
-// TELA CHEIA E PWA
+// TELA CHEIA PERSISTENTE (LIGA/DESLIGA)
 // ==========================================
+function toggleTelaCheia() {
+  if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+    ativarTelaCheia();
+  } else {
+    sairTelaCheia();
+  }
+}
+
 function ativarTelaCheia() {
   const elemento = document.documentElement;
   if (elemento.requestFullscreen) { elemento.requestFullscreen(); } 
   else if (elemento.webkitRequestFullscreen) { elemento.webkitRequestFullscreen(); } 
-  else if (elemento.msRequestFullscreen) { elemento.msRequestFullscreen(); }
+  localStorage.setItem("modoTelaCheia", "ativo");
 }
 
+function sairTelaCheia() {
+  if (document.exitFullscreen) { document.exitFullscreen(); } 
+  else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
+  localStorage.setItem("modoTelaCheia", "inativo");
+}
+
+// Persistência: Reativa ao primeiro clique na nova página se estivesse ativo
+document.addEventListener("click", () => {
+    if (localStorage.getItem("modoTelaCheia") === "ativo" && !document.fullscreenElement && !document.webkitFullscreenElement) {
+        const elemento = document.documentElement;
+        if (elemento.requestFullscreen) { elemento.requestFullscreen(); } 
+        else if (elemento.webkitRequestFullscreen) { elemento.webkitRequestFullscreen(); }
+    }
+}, { once: false });
+
+// ==========================================
+// PWA LOGIC
+// ==========================================
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   eventoInstalacao = e;
   const btn = document.getElementById('btn-instalar-pwa');
-  if(btn) btn.style.display = 'block';
+  if(btn) btn.style.display = 'flex';
 });
 
 async function instalarPWA() {
   if (eventoInstalacao) {
     eventoInstalacao.prompt();
-    const { outcome } = await eventoInstalacao.userChoice;
+    await eventoInstalacao.userChoice;
     eventoInstalacao = null;
     fecharModaisPWA();
   } else {
@@ -45,15 +71,13 @@ async function instalarPWA() {
     }
   }
 }
-
 function abrirModalPWA() { tocarSomClick(); document.getElementById("pwa-overlay").style.display = "flex"; }
 function fecharModaisPWA() { document.getElementById("pwa-overlay").style.display = "none"; }
 
 // ==========================================
-// CONFIGURAÇÃO DO QUIMICHAT (IA) E BATERIA
+// BATERIA QUIMICHAT
 // ==========================================
 const MAX_PERGUNTAS = 20;
-
 function gerenciarBateriaQuimiChat() {
     let dados = JSON.parse(localStorage.getItem("quimiChatBateria")) || { dia: new Date().toLocaleDateString(), restantes: MAX_PERGUNTAS };
     if (dados.dia !== new Date().toLocaleDateString()) {
@@ -71,6 +95,12 @@ const listaDeConquistas =[
   { id: "c5", texto: "Complete todos os níveis do modo de jogo estruturando pelo menos 5 vezes." },
   { id: "c6", texto: "Conclua o catálogo do modo livre do jogo estruturando." }, 
   { id: "c7", texto: "Complete um nível inclusivo do modo de jogo estruturando." }
+];
+
+const nomesCatalogoDemo =[
+    "Água", "Gás Carbônico", "Amônia", "Metano", "Monóxido de Carbono", "Ácido Clorídrico", "Cloreto de Sódio", 
+    "Etanol", "Ácido Sulfúrico", "Gás Oxigênio", "Gás Nitrogênio", "Gás Hidrogênio", "Ozônio", "Dióxido de Enxofre",
+    "Ácido Nítrico", "Benzeno", "Glicose", "Ureia", "Acetona", "Ácido Acético"
 ];
 
 function carregarConfiguracoes() {
@@ -148,7 +178,6 @@ function toggleMute(forcarEstado = null) {
     else if (forcarEstado === "desmutar") mutado = false;
     else mutado = !mutado;
     if(musica) musica.muted = mutado; 
-    if (!mutado && !musicaIniciada && musica) { musica.play(); musicaIniciada = true; } 
     let btn = document.getElementById("muteBtn");
     if(btn) btn.innerText = mutado ? "🔇" : "🔊"; 
     localStorage.setItem("mutado", mutado); 
@@ -156,8 +185,8 @@ function toggleMute(forcarEstado = null) {
 
 function toggleMenu(event) { if (event) event.stopPropagation(); tocarSomClick(); let menu = document.getElementById("menu"); if(menu) menu.style.display = (menu.style.display === "block") ? "none" : "block"; }
 
-function volumeMusica(v) { v = Math.max(0, Math.min(1, v)); if(musica) musica.volume = v; localStorage.setItem("volumeMusica", v); let rg = document.getElementById("rangeMusica"); if(rg) rg.value = v;}
-function volumeEfeitos(v) { v = Math.max(0, Math.min(1, v)); if(clickAudio) clickAudio.volume = v; if(bubbleAudio) bubbleAudio.volume = v; localStorage.setItem("volumeEfeitos", v); let rg = document.getElementById("rangeEfeitos"); if(rg) rg.value = v;}
+function volumeMusica(v) { v = Math.max(0, Math.min(1, v)); if(musica) musica.volume = v; localStorage.setItem("volumeMusica", v); }
+function volumeEfeitos(v) { v = Math.max(0, Math.min(1, v)); if(clickAudio) clickAudio.volume = v; if(bubbleAudio) bubbleAudio.volume = v; localStorage.setItem("volumeEfeitos", v); }
 
 function toggleEfeitos(forcarEstado = null) { 
     if(forcarEstado === "ativar") efeitosVisuaisAtivos = true;
@@ -303,13 +332,69 @@ function renderizarConquistas() {
 
 const elementosTabela =[
     { n: 1, s: 'H', nome: 'Hidrogênio', l: '1', m: '1.008', c: 1, r: 1 }, { n: 2, s: 'He', nome: 'Hélio', l: '0', m: '4.002', c: 18, r: 1 },
-    { n: 6, s: 'C', nome: 'Carbono', l: '4', m: '12.011', c: 14, r: 2 }, { n: 7, s: 'N', nome: 'Nitrogênio', l: '3', m: '14.007', c: 15, r: 2 },
-    { n: 8, s: 'O', nome: 'Oxigênio', l: '2', m: '15.999', c: 16, r: 2 }
-    // ... simplificado para o exemplo, mantenha sua lista completa aqui
+    { n: 3, s: 'Li', nome: 'Lítio', l: '1', m: '6.94', c: 1, r: 2 }, { n: 4, s: 'Be', nome: 'Berílio', l: '2', m: '9.012', c: 2, r: 2 },
+    { n: 5, s: 'B', nome: 'Boro', l: '3', m: '10.81', c: 13, r: 2 }, { n: 6, s: 'C', nome: 'Carbono', l: '4', m: '12.011', c: 14, r: 2 },
+    { n: 7, s: 'N', nome: 'Nitrogênio', l: '3', m: '14.007', c: 15, r: 2 }, { n: 8, s: 'O', nome: 'Oxigênio', l: '2', m: '15.999', c: 16, r: 2 },
+    { n: 9, s: 'F', nome: 'Flúor', l: '1', m: '18.998', c: 17, r: 2 }, { n: 10, s: 'Ne', nome: 'Neônio', l: '0', m: '20.180', c: 18, r: 2 },
+    { n: 11, s: 'Na', nome: 'Sódio', l: '1', m: '22.990', c: 1, r: 3 }, { n: 12, s: 'Mg', nome: 'Magnésio', l: '2', m: '24.305', c: 2, r: 3 },
+    { n: 13, s: 'Al', nome: 'Alumínio', l: '3', m: '26.982', c: 13, r: 3 }, { n: 14, s: 'Si', nome: 'Silício', l: '4', m: '28.085', c: 14, r: 3 },
+    { n: 15, s: 'P', nome: 'Fósforo', l: '3 ou 5', m: '30.974', c: 15, r: 3 }, { n: 16, s: 'S', nome: 'Enxofre', l: '2, 4 ou 6', m: '32.06', c: 16, r: 3 },
+    { n: 17, s: 'Cl', nome: 'Cloro', l: '1', m: '35.45', c: 17, r: 3 }, { n: 18, s: 'Ar', nome: 'Argônio', l: '0', m: '39.948', c: 18, r: 3 },
+    { n: 19, s: 'K', nome: 'Potássio', l: '1', m: '39.098', c: 1, r: 4 }, { n: 20, s: 'Ca', nome: 'Cálcio', l: '2', m: '40.078', c: 2, r: 4 },
+    { n: 21, s: 'Sc', nome: 'Escândio', l: 'Variável', m: '44.956', c: 3, r: 4 }, { n: 22, s: 'Ti', nome: 'Titânio', l: 'Variável', m: '47.867', c: 4, r: 4 },
+    { n: 23, s: 'V', nome: 'Vanádio', l: 'Variável', m: '50.942', c: 5, r: 4 }, { n: 24, s: 'Cr', nome: 'Cromo', l: 'Variável', m: '51.996', c: 6, r: 4 },
+    { n: 25, s: 'Mn', nome: 'Manganês', l: 'Variável', m: '54.938', c: 7, r: 4 }, { n: 26, s: 'Fe', nome: 'Ferro', l: '2 ou 3', m: '55.845', c: 8, r: 4 },
+    { n: 27, s: 'Co', nome: 'Cobalto', l: 'Variável', m: '58.933', c: 9, r: 4 }, { n: 28, s: 'Ni', nome: 'Níquel', l: 'Variável', m: '58.693', c: 10, r: 4 },
+    { n: 29, s: 'Cu', nome: 'Cobre', l: '1 ou 2', m: '63.546', c: 11, r: 4 }, { n: 30, s: 'Zn', nome: 'Zinco', l: '2', m: '65.38', c: 12, r: 4 },
+    { n: 31, s: 'Ga', nome: 'Gálio', l: '3', m: '69.723', c: 13, r: 4 }, { n: 32, s: 'Ge', nome: 'Germânio', l: '4', m: '72.630', c: 14, r: 4 },
+    { n: 33, s: 'As', nome: 'Arsênio', l: '3 ou 5', m: '74.922', c: 15, r: 4 }, { n: 34, s: 'Se', nome: 'Selênio', l: '2', m: '78.971', c: 16, r: 4 },
+    { n: 35, s: 'Br', nome: 'Bromo', l: '1', m: '79.904', c: 17, r: 4 }, { n: 36, s: 'Kr', nome: 'Criptônio', l: '0', m: '83.798', c: 18, r: 4 },
+    { n: 37, s: 'Rb', nome: 'Rubídio', l: '1', m: '85.468', c: 1, r: 5 }, { n: 38, s: 'Sr', nome: 'Estrôncio', l: '2', m: '87.62', c: 2, r: 5 },
+    { n: 39, s: 'Y', nome: 'Ítrio', l: 'Variável', m: '88.906', c: 3, r: 5 }, { n: 40, s: 'Zr', nome: 'Zircônio', l: 'Variável', m: '91.224', c: 4, r: 5 },
+    { n: 41, s: 'Nb', nome: 'Nióbio', l: 'Variável', m: '92.906', c: 5, r: 5 }, { n: 42, s: 'Mo', nome: 'Molibdênio', l: 'Variável', m: '95.95', c: 6, r: 5 },
+    { n: 43, s: 'Tc', nome: 'Tecnécio', l: 'Variável', m: '[98]', c: 7, r: 5 }, { n: 44, s: 'Ru', nome: 'Rutênio', l: 'Variável', m: '101.07', c: 8, r: 5 },
+    { n: 45, s: 'Rh', nome: 'Ródio', l: 'Variável', m: '102.91', c: 9, r: 5 }, { n: 46, s: 'Pd', nome: 'Paládio', l: 'Variável', m: '106.42', c: 10, r: 5 },
+    { n: 47, s: 'Ag', nome: 'Prata', l: '1', m: '107.87', c: 11, r: 5 }, { n: 48, s: 'Cd', nome: 'Cádmio', l: '2', m: '112.41', c: 12, r: 5 },
+    { n: 49, s: 'In', nome: 'Índio', l: '3', m: '114.82', c: 13, r: 5 }, { n: 50, s: 'Sn', nome: 'Estanho', l: '4', m: '118.71', c: 14, r: 5 },
+    { n: 51, s: 'Sb', nome: 'Antimônio', l: '3 ou 5', m: '121.76', c: 15, r: 5 }, { n: 52, s: 'Te', nome: 'Telúrio', l: '2', m: '127.60', c: 16, r: 5 },
+    { n: 53, s: 'I', nome: 'Iodo', l: '1', m: '126.90', c: 17, r: 5 }, { n: 54, s: 'Xe', nome: 'Xenônio', l: '0', m: '131.29', c: 18, r: 5 },
+    { n: 55, s: 'Cs', nome: 'Césio', l: '1', m: '132.91', c: 1, r: 6 }, { n: 56, s: 'Ba', nome: 'Bário', l: '2', m: '137.33', c: 2, r: 6 },
+    { n: 57, s: 'La', nome: 'Lantânio', l: 'Variável', m: '138.91', c: 4, r: 8 }, { n: 58, s: 'Ce', nome: 'Cério', l: 'Variável', m: '140.12', c: 5, r: 8 },
+    { n: 59, s: 'Pr', nome: 'Praseodímio', l: 'Variável', m: '140.91', c: 6, r: 8 }, { n: 60, s: 'Nd', nome: 'Neodímio', l: 'Variável', m: '144.24', c: 7, r: 8 },
+    { n: 61, s: 'Pm', nome: 'Promécio', l: 'Variável', m: '[145]', c: 8, r: 8 }, { n: 62, s: 'Sm', nome: 'Samário', l: 'Variável', m: '150.36', c: 9, r: 8 },
+    { n: 63, s: 'Eu', nome: 'Európio', l: 'Variável', m: '151.96', c: 10, r: 8 }, { n: 64, s: 'Gd', nome: 'Gadolínio', l: 'Variável', m: '157.25', c: 11, r: 8 },
+    { n: 65, s: 'Tb', nome: 'Térbio', l: 'Variável', m: '158.93', c: 12, r: 8 }, { n: 66, s: 'Dy', nome: 'Disprósio', l: 'Variável', m: '162.50', c: 13, r: 8 },
+    { n: 67, s: 'Ho', nome: 'Hólmio', l: 'Variável', m: '164.93', c: 14, r: 8 }, { n: 68, s: 'Er', nome: 'Érbio', l: 'Variável', m: '167.26', c: 15, r: 8 },
+    { n: 69, s: 'Tm', nome: 'Túlio', l: 'Variável', m: '168.93', c: 16, r: 8 }, { n: 70, s: 'Yb', nome: 'Itérbio', l: 'Variável', m: '173.05', c: 17, r: 8 },
+    { n: 71, s: 'Lu', nome: 'Lutécio', l: 'Variável', m: '174.97', c: 18, r: 8 },
+    { n: 72, s: 'Hf', nome: 'Háfnio', l: 'Variável', m: '178.49', c: 4, r: 6 }, { n: 73, s: 'Ta', nome: 'Tântalo', l: 'Variável', m: '180.95', c: 5, r: 6 },
+    { n: 74, s: 'W', nome: 'Tungstênio', l: 'Variável', m: '183.84', c: 6, r: 6 }, { n: 75, s: 'Re', nome: 'Rênio', l: 'Variável', m: '186.21', c: 7, r: 6 },
+    { n: 76, s: 'Os', nome: 'Ósmio', l: 'Variável', m: '190.23', c: 8, r: 6 }, { n: 77, s: 'Ir', nome: 'Irídio', l: 'Variável', m: '192.22', c: 9, r: 6 },
+    { n: 78, s: 'Pt', nome: 'Platina', l: 'Variável', m: '195.08', c: 10, r: 6 }, { n: 79, s: 'Au', nome: 'Ouro', l: 'Variável', m: '196.97', c: 11, r: 6 },
+    { n: 80, s: 'Hg', nome: 'Mercúrio', l: 'Variável', m: '200.59', c: 12, r: 6 }, { n: 81, s: 'Tl', nome: 'Tálio', l: '3', m: '204.38', c: 13, r: 6 },
+    { n: 82, s: 'Pb', nome: 'Chumbo', l: '4', m: '207.2', c: 14, r: 6 }, { n: 83, s: 'Bi', nome: 'Bismuto', l: '3', m: '208.98', c: 15, r: 6 },
+    { n: 84, s: 'Po', nome: 'Polônio', l: '2', m: '[209]', c: 16, r: 6 }, { n: 85, s: 'At', nome: 'Astato', l: '1', m: '[210]', c: 17, r: 6 },
+    { n: 86, s: 'Rn', nome: 'Radônio', l: '0', m: '[222]', c: 18, r: 6 }, { n: 87, s: 'Fr', nome: 'Frâncio', l: '1', m: '[223]', c: 1, r: 7 },
+    { n: 88, s: 'Ra', nome: 'Rádio', l: '2', m: '[226]', c: 2, r: 7 },
+    { n: 89, s: 'Ac', nome: 'Actínio', l: 'Variável', m: '[227]', c: 4, r: 9 }, { n: 90, s: 'Th', nome: 'Tório', l: 'Variável', m: '232.04', c: 5, r: 9 },
+    { n: 91, s: 'Pa', nome: 'Protactínio', l: 'Variável', m: '231.04', c: 6, r: 9 }, { n: 92, s: 'U', nome: 'Urânio', l: 'Variável', m: '238.03', c: 7, r: 9 },
+    { n: 93, s: 'Np', nome: 'Netúnio', l: 'Variável', m: '[237]', c: 8, r: 9 }, { n: 94, s: 'Pu', nome: 'Plutônio', l: 'Variável', m: '[244]', c: 9, r: 9 },
+    { n: 95, s: 'Am', nome: 'Amerício', l: 'Variável', m: '[243]', c: 10, r: 9 }, { n: 96, s: 'Cm', nome: 'Cúrio', l: 'Variável', m: '[247]', c: 11, r: 9 },
+    { n: 97, s: 'Bk', nome: 'Berquélio', l: 'Variável', m: '[247]', c: 12, r: 9 }, { n: 98, s: 'Cf', nome: 'Califórnio', l: 'Variável', m: '[251]', c: 13, r: 9 },
+    { n: 99, s: 'Es', nome: 'Einstênio', l: 'Variável', m: '[252]', c: 14, r: 9 }, { n: 100, s: 'Fm', nome: 'Férmio', l: 'Variável', m: '[257]', c: 15, r: 9 },
+    { n: 101, s: 'Md', nome: 'Mendelévio', l: 'Variável', m: '[258]', c: 16, r: 9 }, { n: 102, s: 'No', nome: 'Nobélio', l: 'Variável', m: '[259]', c: 17, r: 9 },
+    { n: 103, s: 'Lr', nome: 'Laurêncio', l: 'Variável', m: '[266]', c: 18, r: 9 },
+    { n: 104, s: 'Rf', nome: 'Rutherfórdio', l: 'Variável', m: '[267]', c: 4, r: 7 }, { n: 105, s: 'Db', nome: 'Dúbnio', l: 'Variável', m: '[268]', c: 5, r: 7 },
+    { n: 106, s: 'Sg', nome: 'Seabórgio', l: 'Variável', m: '[269]', c: 6, r: 7 }, { n: 107, s: 'Bh', nome: 'Bóhrio', l: 'Variável', m: '[270]', c: 7, r: 7 },
+    { n: 108, s: 'Hs', nome: 'Hássio', l: 'Variável', m: '[269]', c: 8, r: 7 }, { n: 109, s: 'Mt', nome: 'Meitnério', l: 'Variável', m: '[278]', c: 9, r: 7 },
+    { n: 110, s: 'Ds', nome: 'Darmstádio', l: 'Variável', m: '[281]', c: 10, r: 7 }, { n: 111, s: 'Rg', nome: 'Roentgênio', l: 'Variável', m: '[282]', c: 11, r: 7 },
+    { n: 112, s: 'Cn', nome: 'Copernício', l: 'Variável', m: '[285]', c: 12, r: 7 }, { n: 113, s: 'Nh', nome: 'Nihônio', l: 'Variável', m: '[286]', c: 13, r: 7 },
+    { n: 114, s: 'Fl', nome: 'Fleróvio', l: 'Variável', m: '[289]', c: 14, r: 7 }, { n: 115, s: 'Mc', nome: 'Moscóvio', l: 'Variável', m: '[290]', c: 15, r: 7 },
+    { n: 116, s: 'Lv', nome: 'Livermório', l: 'Variável', m: '[293]', c: 16, r: 7 }, { n: 117, s: 'Ts', nome: 'Tenessino', l: 'Variável', m: '[294]', c: 17, r: 7 },
+    { n: 118, s: 'Og', nome: 'Oganessônio', l: '0', m: '[294]', c: 18, r: 7 }
 ];
 
 function injetarElementosGlobais() {
-    // TABELA PERIÓDICA
     if (!document.getElementById('tabela-overlay')) {
         const modalHTML = `
         <div id="tabela-overlay" class="modal-overlay" onclick="fecharModais(event)" style="z-index: 100000;">
@@ -333,7 +418,6 @@ function injetarElementosGlobais() {
         document.body.insertAdjacentHTML('beforeend', modalHTML);
     }
 
-    // QUIMICHAT
     if (!document.getElementById('quimichat-overlay')) {
         const chatHTML = `
         <div id="quimichat-overlay" class="modal-overlay" onclick="fecharModais(event)" style="z-index: 100000;">
@@ -359,7 +443,6 @@ function injetarElementosGlobais() {
         atualizarBateriaUI();
     }
 
-    // MODAL PWA (INSTALAÇÃO)
     if (!document.getElementById('pwa-overlay')) {
         const pwaHTML = `
         <div id="pwa-overlay" class="modal-overlay" onclick="fecharModais(event)" style="z-index: 110000;">
@@ -368,17 +451,15 @@ function injetarElementosGlobais() {
               <h3>📲 Instalar Aplicativo</h3>
               <button onclick="fecharModaisPWA()">✖</button>
             </div>
-            <div class="modal-body modal-pwa">
+            <div class="modal-body modal-pwa-custom">
               <div id="pwa-conteudo-geral">
                   <img src="logo.png" alt="Logo">
-                  <p>Deseja instalar <strong>Química Adômines</strong> no seu dispositivo para jogar em tela cheia e sem barras de navegação?</p>
+                  <p>Deseja instalar <strong>Química Adômines</strong> no seu dispositivo?</p>
                   <button class="btn-pwa-instalar" onclick="instalarPWA()">Instalar Agora</button>
               </div>
               <div id="pwa-instrucoes-ios" style="display: none; text-align: left;">
-                  <p>No iPhone, o navegador não permite instalação direta.</p><br>
-                  <p>1. Clique no ícone de <strong>Compartilhar</strong> (quadrado com seta para cima).</p>
-                  <p>2. Role para baixo e clique em <strong>"Adicionar à Tela de Início"</strong>.</p>
-                  <p>3. Clique em <strong>Adicionar</strong> no topo da tela.</p>
+                  <p>1. Clique no ícone de <strong>Compartilhar</strong> no Safari.</p>
+                  <p>2. Clique em <strong>"Adicionar à Tela de Início"</strong>.</p>
               </div>
             </div>
           </div>
@@ -427,35 +508,43 @@ async function enviarPerguntaQuimiChat(pergunta, lerVozAlta) {
     let container = document.getElementById("quimichat-mensagens");
     container.innerHTML += `<div class="msg-user">${pergunta}</div>`;
     container.scrollTop = container.scrollHeight;
+
     let dadosBateria = gerenciarBateriaQuimiChat();
     if (dadosBateria.restantes <= 0) {
         let msgSemEnergia = "Minha bateria acabou! Volte amanhã!";
         container.innerHTML += `<div class="msg-ai">${msgSemEnergia}</div>`;
         return;
     }
+
     if (!pareceQuimica(pergunta)) {
         let msgNaoQuimica = "Isso não parece ter relação com química!";
         container.innerHTML += `<div class="msg-ai">${msgNaoQuimica}</div>`;
         return;
     }
+
     let idTemp = "msg-" + Date.now();
     container.innerHTML += `<div id="${idTemp}" class="carregando-ai">Pensando...</div>`;
     container.scrollTop = container.scrollHeight;
+
     try {
         const respostaApi = await fetch(`/api/chat`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ pergunta: pergunta })
         });
+
         const dados = await respostaApi.json();
         document.getElementById(idTemp).remove();
+
         let respostaTexto = dados.candidates[0].content.parts[0].text.trim();
         respostaTexto = respostaTexto.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
+        
         if (!respostaTexto.includes("Desculpe")) { descontarBateria(); }
+
         container.innerHTML += `<div class="msg-ai">${respostaTexto}</div>`;
         container.scrollTop = container.scrollHeight;
     } catch (e) {
-        document.getElementById(idTemp).remove();
+        if(document.getElementById(idTemp)) document.getElementById(idTemp).remove();
         container.innerHTML += `<div class="msg-ai" style="color:#ef4444">Erro na conexão.</div>`;
     }
 }
