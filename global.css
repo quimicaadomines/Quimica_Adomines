@@ -7,6 +7,24 @@ body.saindo { animation: sairTela 0.5s ease forwards; }
 @keyframes entrarTela { 0% { opacity: 0; } 100% { opacity: 1; } }
 @keyframes sairTela { 0% { opacity: 1; } 100% { opacity: 0; } }
 
+/* BLOQUEIO GERAL DE SELEÇÃO DE TEXTO PARA DISPOSITIVOS MÓVEIS (SAFARI/CHROME) */
+body, .peca-draggable, .elemento-tabela, .quadro-grid, img, .linha, h1, h2, h3, p, label {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* PERMITE DIGITAÇÃO NORMAL EM INPUTS E CAIXAS DE CHAT */
+input, textarea, [contenteditable="true"] {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
 .escondido { display: none !important; opacity: 0; pointer-events: none;}
 .toast { position: fixed; top: 90px; left: 50%; transform: translateX(-50%); background: var(--btn-bg); color: white; padding: 12px 25px; border-radius: 30px; font-weight: bold; font-size: 16px; box-shadow: 0 10px 20px rgba(0,0,0,0.3); z-index: 99999; transition: opacity 0.4s ease, top 0.4s ease; text-align: center; width: max-content; max-width: 90vw;}
 
@@ -85,16 +103,16 @@ body.saindo { animation: sairTela 0.5s ease forwards; }
 /* ==========================================
    QUIMICHAT (IA)
    ========================================== */
-.modal-chat { max-width: 600px; height: 85vh; display: flex; flex-direction: column; overflow: hidden; } /* Adicionado overflow hidden */
+.modal-chat { max-width: 600px; height: 85vh; display: flex; flex-direction: column; overflow: hidden; } 
 .aviso-chat { background: #ef4444; color: white; text-align: center; font-size: 12px; padding: 5px; font-weight: bold;}
 .bateria-container { background: #1e293b; color: #10b981; padding: 8px; text-align: center; font-weight: bold; font-size: 14px; letter-spacing: 1px; display: flex; justify-content: center; align-items: center; gap: 10px;}
 .bateria-container span { color: white; font-size: 12px; font-weight: normal; opacity: 0.8;}
-.chat-body-inner { flex: 1; display: flex; flex-direction: column; padding: 15px; overflow: hidden; } /* Alterado para flex: 1 e overflow hidden */
+.chat-body-inner { flex: 1; display: flex; flex-direction: column; padding: 15px; overflow: hidden; } 
 .chat-mensagens { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding-bottom: 15px; border-bottom: 1px solid rgba(128,128,128,0.2); margin-bottom: 15px;}
 .msg-user { align-self: flex-end; background: #0ea5e9; color: white; padding: 10px 15px; border-radius: 18px 18px 0 18px; max-width: 85%; font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);}
 .msg-ai { align-self: flex-start; background: #e2e8f0; color: #1e293b; padding: 10px 15px; border-radius: 18px 18px 18px 0; max-width: 85%; font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); line-height: 1.4;}
 .dark .msg-ai { background: #334155; color: #f8fafc; }
-.chat-input-area { display: flex; gap: 10px; flex-shrink: 0; } /* Adicionado flex-shrink: 0 para não amassar */
+.chat-input-area { display: flex; gap: 10px; flex-shrink: 0; } 
 .chat-input-area input { flex: 1; padding: 12px 15px; border-radius: 25px; border: 1px solid #cbd5e1; outline: none; background: var(--bg-color); color: var(--text-color); font-size: 14px;}
 .chat-input-area button { background: var(--btn-bg); color: white; border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center; font-size: 18px; transition: transform 0.2s; flex-shrink: 0;}
 .chat-input-area button:hover { transform: scale(1.1); }

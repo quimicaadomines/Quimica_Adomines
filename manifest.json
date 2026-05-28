@@ -1,18 +1,16 @@
 {
-  "short_name": "Química Adômines",
+  "short_name": "Adômines",
   "name": "Química Adômines",
-  "description": "Jogo educativo para o ensino de química.",
   "icons": [
     {
       "src": "logo.png",
       "type": "image/png",
-      "sizes": "512x512",
-      "purpose": "any maskable"
+      "sizes": "512x512"
     }
   ],
-  "start_url": "/index.html",
-  "background_color": "#ffffff",
-  "theme_color": "#38bdf8",
+  "start_url": "index.html",
+  "background_color": "#f0f4f8",
+  "theme_color": "#0284c7",
   "display": "standalone",
   "orientation": "landscape"
 }

@@ -94,7 +94,7 @@
 }
 
 .btn-inclusao {
-  background-color: #0f172a;
+  background-color: #ffffff;
   position: relative;
   overflow: hidden;
 }
@@ -117,7 +117,7 @@
 /* CLASSE NOVA E EXCLUSIVA PARA O FUNDO BRANCO DO BALANCEANDO */
 .btn-balanceando {
   background-color: #ffffff;
-  color: #ffffff;
+  color: #0284c7;
   font-size: 24px;
 }
 

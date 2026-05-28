@@ -68,8 +68,6 @@ function carregarConfiguracoes() {
   renderizarTrofeus();
   gerenciarBateriaQuimiChat(); 
   injetarElementosGlobais(); 
-  
-  // O código antigo da assistente foi removido daqui para evitar o conflito de "desligar" acidentalmente.
 }
 
 if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', carregarConfiguracoes); } 
@@ -83,7 +81,6 @@ function mudarTela(url) {
   if (isNavegando) return; 
   isNavegando = true;
   
-  // Interrompe a voz se ela estiver ativa para evitar vazamento de áudio entre telas
   if (typeof assistenteReconhecimento !== 'undefined' && assistenteReconhecimento) { assistenteReconhecimento.onend = null; assistenteReconhecimento.stop(); }
   
   if (transicaoAudio) { transicaoAudio.volume = 1.0; transicaoAudio.currentTime = 0; transicaoAudio.play().catch(()=>{}); }
@@ -308,7 +305,7 @@ function renderizarConquistas() {
 }
 
 // ==========================================
-// INJEÇÃO GLOBAL DOS MODAIS (Tabela e QuimiChat)
+// INJEÇÃO GLOBAL DOS MODAIS (Tabela, QuimiChat e PWA iOS)
 // ==========================================
 
 const elementosTabela =[
@@ -423,6 +420,22 @@ function injetarElementosGlobais() {
         document.body.insertAdjacentHTML('beforeend', chatHTML);
         atualizarBateriaUI();
     }
+
+    // Injeção do Modal de instrução de instalação no iOS
+    if (!document.getElementById('modal-ios')) {
+        const iosHTML = `
+        <div id="modal-ios" class="modal-overlay" onclick="fecharModais(event)" style="z-index: 100000; display: none; align-items: center; justify-content: center;">
+          <div class="modal-box" style="max-width: 400px; text-align: center; margin: 20vh auto; padding: 25px;">
+            <div style="font-size: 50px; margin-bottom: 15px;">📲</div>
+            <h3 style="margin-bottom: 15px; color: var(--text-color);">Instalar no iPhone</h3>
+            <p style="font-size: 14px; line-height: 1.6; margin-bottom: 20px; color: var(--text-color);">
+              Para instalar no seu iPhone, clique no ícone de <strong>Compartilhar</strong> (o quadrado com uma seta para cima) na barra inferior do Safari e selecione <strong>"Adicionar à Tela de Início"</strong>. ➕
+            </p>
+            <button onclick="fecharModalIos()" style="background: var(--btn-bg); color: white; border: none; padding: 10px 20px; border-radius: 20px; font-weight: bold; cursor: pointer;">Entendi</button>
+          </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', iosHTML);
+    }
 }
 
 function abrirTabelaPeriodica() { tocarSomClick(); document.getElementById("tabela-overlay").style.display = "flex"; document.body.style.overflow = "hidden"; let grade = document.getElementById("grade-tabela"); if(grade && grade.innerHTML === "") { renderizarTabelaPeriodica(); } }
@@ -526,4 +539,90 @@ async function enviarPerguntaQuimiChat(pergunta, lerVozAlta) {
         container.innerHTML += `<div class="msg-ai" style="color:#ef4444">${msgErro}</div>`;
         if(lerVozAlta && typeof falarAssistente === "function") falarAssistente("Não consegui me conectar ao laboratório agora.");
     }
+}
+
+// ==========================================
+// REGISTRO DO SERVICE WORKER (PWA)
+// ==========================================
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then(reg => console.log('Service Worker registrado:', reg.scope))
+      .catch(err => console.log('Erro ao registrar Service Worker:', err));
+  });
+}
+
+// ==========================================
+// CONTROLE DE INSTALAÇÃO PWA E TELA CHEIA
+// ==========================================
+let eventoInstalacao;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  eventoInstalacao = e;
+  const botao = document.getElementById('btn-instalar');
+  if (botao) {
+    botao.style.display = 'inline-block';
+  }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  const botao = document.getElementById('btn-instalar');
+  if (botao) {
+    botao.addEventListener('click', async () => {
+      if (eventoInstalacao) {
+        eventoInstalacao.prompt();
+        const { outcome } = await eventoInstalacao.userChoice;
+        console.log(`Escolha de instalação: ${outcome}`);
+        eventoInstalacao = null;
+        botao.style.display = 'none';
+      } else {
+        const esIphone = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        const estaNoNavegador = !window.matchMedia('(display-mode: standalone)').matches;
+        if (esIphone && estaNoNavegador) {
+          const modalIos = document.getElementById('modal-ios');
+          if (modalIos) modalIos.style.display = 'flex';
+        }
+      }
+    });
+  }
+
+  if (window.matchMedia('(display-mode: standalone)').matches) {
+    const botao = document.getElementById('btn-instalar');
+    if (botao) botao.style.display = 'none';
+  } else {
+    const esIphone = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    if (esIphone) {
+      const botao = document.getElementById('btn-instalar');
+      if (botao) botao.style.display = 'inline-block';
+    }
+  }
+});
+
+function fecharModalIos() {
+  tocarSomClick();
+  const modalIos = document.getElementById('modal-ios');
+  if (modalIos) modalIos.style.display = 'none';
+}
+
+function toggleFullScreen() {
+  tocarSomClick();
+  const elemento = document.documentElement;
+  if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
+    if (elemento.requestFullscreen) {
+      elemento.requestFullscreen().catch(err => { console.log("Erro ao entrar em tela cheia:", err); });
+    } else if (elemento.webkitRequestFullscreen) {
+      elemento.webkitRequestFullscreen();
+    } else if (elemento.msRequestFullscreen) {
+      elemento.msRequestFullscreen();
+    }
+  } else {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+    } else if (document.msExitFullscreen) {
+      document.msExitFullscreen();
+    }
+  }
 }
