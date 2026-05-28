@@ -68,7 +68,7 @@ function carregarConfiguracoes() {
   renderizarTrofeus();
   gerenciarBateriaQuimiChat(); 
   injetarElementosGlobais(); 
-  inicializarControleInstalacao(); // Carrega as permissões e exibe o botão sem falhas
+  inicializarControleInstalacao(); // Carrega as permissões e exibe o botão de forma garantida
   verificarOrientacao(); // Executa o cálculo de tela deitada imediatamente
 }
 
@@ -307,7 +307,7 @@ function renderizarConquistas() {
 }
 
 // ==========================================
-// INJEÇÃO GLOBAL DOS MODAIS (Tabela, QuimiChat, iOS PWA, Rotação)
+// INJEÇÃO GLOBAL DOS MODAIS (Tabela, QuimiChat, iOS PWA, Android/PC PWA, Rotação)
 // ==========================================
 
 const elementosTabela =[
@@ -436,6 +436,30 @@ function injetarElementosGlobais() {
           </div>
         </div>`;
         document.body.insertAdjacentHTML('beforeend', iosHTML);
+    }
+
+    // Injeção do Modal genérico para Android/PC
+    if (!document.getElementById('modal-android-pc')) {
+        const androidPcHTML = `
+        <div id="modal-android-pc" class="modal-overlay" onclick="fecharModais(event)" style="z-index: 100000; display: none; align-items: center; justify-content: center;">
+          <div class="modal-box" style="max-width: 450px; text-align: center; margin: 20vh auto; padding: 25px;">
+            <div style="font-size: 50px; margin-bottom: 15px;">📥</div>
+            <h3 style="margin-bottom: 15px; color: var(--text-color);">Como Instalar</h3>
+            <p style="font-size: 14px; line-height: 1.6; margin-bottom: 20px; color: var(--text-color); text-align: left;">
+              Se o aviso automático de instalação não apareceu, você pode instalar manualmente seguindo estes passos rápidos:
+              <br><br>
+              <strong>No Celular (Android/Chrome):</strong>
+              <br>1. Toque nos <strong>três pontinhos</strong> (menu) no canto superior direito do Chrome.
+              <br>2. Selecione a opção <strong>"Instalar aplicativo"</strong> ou <strong>"Adicionar à tela de início"</strong>.
+              <br><br>
+              <strong>No Computador (PC/Chrome/Edge):</strong>
+              <br>1. Clique no ícone de <strong>instalação</strong> (computador com uma seta) na barra de endereços (ao lado da estrela de favoritos).
+              <br>2. Ou clique nos <strong>três pontinhos</strong> do navegador e selecione <strong>"Salvar e compartilhar"</strong> ➡️ <strong>"Instalar Química Adômines"</strong>.
+            </p>
+            <button onclick="fecharModalAndroidPc()" style="background: var(--btn-bg); color: white; border: none; padding: 10px 20px; border-radius: 20px; font-weight: bold; cursor: pointer;">Entendi</button>
+          </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', androidPcHTML);
     }
 
     if (!document.getElementById('overlay-orientacao')) {
@@ -586,41 +610,44 @@ function inicializarControleInstalacao() {
   const botao = document.getElementById('btn-instalar');
   if (!botao) return;
 
-  // 1. Vincula a ação de clique ao botão
+  // Se já estiver instalado/rodando como App standalone, esconde o botão
+  const estaInstalado = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  if (estaInstalado) {
+    botao.style.display = 'none';
+    return;
+  }
+
+  // Deixa o botão SEMPRE VISÍVEL para incentivar o download, independente de o evento ter disparado ou não
+  botao.style.display = 'inline-block';
+
+  // Vincula a ação de clique ao botão com tratamento de fallback
   botao.onclick = async () => {
+    tocarSomClick();
     if (eventoInstalacao) {
-      // Android / PC
+      // Dispara o prompt nativo se o Chrome já o tiver capturado
       eventoInstalacao.prompt();
       const { outcome } = await eventoInstalacao.userChoice;
       console.log(`Escolha de instalação: ${outcome}`);
       eventoInstalacao = null;
       botao.style.display = 'none';
     } else {
-      // iPhone (iOS)
+      // Caso contrário, mostra o modal de instruções correspondente ao sistema do usuário
       const esIphone = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-      const estaNoNavegador = !window.matchMedia('(display-mode: standalone)').matches;
-      if (esIphone && estaNoNavegador) {
+      if (esIphone) {
         const modalIos = document.getElementById('modal-ios');
         if (modalIos) modalIos.style.display = 'flex';
+      } else {
+        const modalAndroidPc = document.getElementById('modal-android-pc');
+        if (modalAndroidPc) modalAndroidPc.style.display = 'flex';
       }
     }
   };
+}
 
-  // 2. Controla a exibição inicial do botão baseado no estado atual
-  const estaInstalado = window.matchMedia('(display-mode: standalone)').matches;
-  if (estaInstalado) {
-    botao.style.display = 'none';
-  } else {
-    const esIphone = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-    // Se for iPhone, sempre mostra o botão para abrir o tutorial de instalação manual
-    if (esIphone) {
-      botao.style.display = 'inline-block';
-    } 
-    // Se for Android/PC e o evento de instalação já foi capturado, mostra o botão
-    else if (eventoInstalacao) {
-      botao.style.display = 'inline-block';
-    }
-  }
+function fecharModalAndroidPc() {
+  tocarSomClick();
+  const modal = document.getElementById('modal-android-pc');
+  if (modal) modal.style.display = 'none';
 }
 
 // Controla e força a escala Desktop (1280px) mesmo quando os navegadores de celular ignoram no modo tela cheia
