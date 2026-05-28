@@ -1,10 +1,10 @@
 {
-  "short_name": "Adômines",
+  "short_name": "Química Adômines",
   "name": "Química Adômines",
   "icons": [
     {
-      "src": "logo.png",
-      "type": "image/png",
+      "src": "logobranca.jpeg",
+      "type": "image/jpeg",
       "sizes": "512x512"
     }
   ],

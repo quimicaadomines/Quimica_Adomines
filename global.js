@@ -305,7 +305,7 @@ function renderizarConquistas() {
 }
 
 // ==========================================
-// INJEÇÃO GLOBAL DOS MODAIS (Tabela, QuimiChat e PWA iOS)
+// INJEÇÃO GLOBAL DOS MODAIS (Tabela, QuimiChat, iOS PWA, Rotação)
 // ==========================================
 
 const elementosTabela =[
@@ -421,7 +421,6 @@ function injetarElementosGlobais() {
         atualizarBateriaUI();
     }
 
-    // Injeção do Modal de instrução de instalação no iOS
     if (!document.getElementById('modal-ios')) {
         const iosHTML = `
         <div id="modal-ios" class="modal-overlay" onclick="fecharModais(event)" style="z-index: 100000; display: none; align-items: center; justify-content: center;">
@@ -435,6 +434,19 @@ function injetarElementosGlobais() {
           </div>
         </div>`;
         document.body.insertAdjacentHTML('beforeend', iosHTML);
+    }
+
+    // Injeção do Bloqueio de Orientação em Pé (Retrato) para celulares e tablets
+    if (!document.getElementById('overlay-orientacao')) {
+        const orientacaoHTML = `
+        <div id="overlay-orientacao">
+          <div class="celular-rotacionando">🔄</div>
+          <h2 style="margin-top: 25px; font-size: 24px; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">Deite o Dispositivo!</h2>
+          <p style="margin-top: 10px; font-size: 15px; opacity: 0.85; max-width: 320px; line-height: 1.5; text-align: center;">
+            Este jogo de química foi feito para ser jogado na horizontal. Por favor, gire o seu celular ou tablet.
+          </p>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', orientacaoHTML);
     }
 }
 
@@ -553,7 +565,7 @@ if ('serviceWorker' in navigator) {
 }
 
 // ==========================================
-// CONTROLE DE INSTALAÇÃO PWA E TELA CHEIA
+// CONTROLE DE INSTALAÇÃO PWA E TELA CHEIA (COM FIX DE ESCALA DESKTOP)
 // ==========================================
 let eventoInstalacao;
 
@@ -604,6 +616,31 @@ function fecharModalIos() {
   const modalIos = document.getElementById('modal-ios');
   if (modalIos) modalIos.style.display = 'none';
 }
+
+// Controla e força a escala Desktop (1280px) mesmo quando os navegadores de celular ignoram no modo tela cheia
+function ajustarEscalaFullscreen() {
+  const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
+  if (isFullscreen && window.innerWidth < 1280) {
+    const larguraIdeal = 1280;
+    const larguraReal = window.innerWidth || window.screen.width;
+    const scale = larguraReal / larguraIdeal;
+    
+    document.body.style.width = `${larguraIdeal}px`;
+    document.body.style.transform = `scale(${scale})`;
+    document.body.style.transformOrigin = "top left";
+    document.body.style.overflow = "hidden";
+    document.body.style.height = `${window.innerHeight / scale}px`;
+  } else {
+    document.body.style.width = "";
+    document.body.style.height = "";
+    document.body.style.transform = "";
+    document.body.style.transformOrigin = "";
+    document.body.style.overflow = "";
+  }
+}
+
+document.addEventListener('fullscreenchange', ajustarEscalaFullscreen);
+document.addEventListener('webkitfullscreenchange', ajustarEscalaFullscreen);
 
 function toggleFullScreen() {
   tocarSomClick();

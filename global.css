@@ -25,6 +25,41 @@ input, textarea, [contenteditable="true"] {
   user-select: text;
 }
 
+/* OVERLAY DE ROTAÇÃO PARA DISPOSITIVOS EM MODO RETRATO (EM PÉ) */
+#overlay-orientacao {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #0f172a;
+  color: white;
+  z-index: 200000;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.celular-rotacionando {
+  font-size: 70px;
+  animation: girarTelefoneAnim 2s infinite ease-in-out;
+}
+
+@keyframes girarTelefoneAnim {
+  0% { transform: rotate(0deg); }
+  50% { transform: rotate(-90deg); }
+  100% { transform: rotate(0deg); }
+}
+
+/* Ativa o bloqueio apenas em telas com menos de 1024px que estejam no modo Portrait (em pé) */
+@media (max-width: 1024px) and (orientation: portrait) {
+  #overlay-orientacao {
+    display: flex;
+  }
+}
+
 .escondido { display: none !important; opacity: 0; pointer-events: none;}
 .toast { position: fixed; top: 90px; left: 50%; transform: translateX(-50%); background: var(--btn-bg); color: white; padding: 12px 25px; border-radius: 30px; font-weight: bold; font-size: 16px; box-shadow: 0 10px 20px rgba(0,0,0,0.3); z-index: 99999; transition: opacity 0.4s ease, top 0.4s ease; text-align: center; width: max-content; max-width: 90vw;}
 
