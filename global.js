@@ -1,4 +1,22 @@
 // ==========================================
+// CAPTURA DO INSTALADOR NATIVO (DEVE FICAR NO TOPO DO ARQUIVO)
+// ==========================================
+let eventoInstalacao = null;
+
+// O navegador dispara este evento assim que detecta que o PWA cumpre os requisitos de instalação
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  eventoInstalacao = e;
+  console.log("✅ PWA Detectado! O instalador nativo está pronto e vinculado ao botão.");
+  
+  // Se o botão já estiver carregado no HTML, garante que ele fique visível
+  const botao = document.getElementById('btn-instalar');
+  if (botao) {
+    botao.style.display = 'inline-block';
+  }
+});
+
+// ==========================================
 // GLOBAL JAVASCRIPT (CORRIGIDO PARA NÃO DESLIGAR A ASSISTENTE)
 // ==========================================
 let musica = document.getElementById("musica");
@@ -68,7 +86,7 @@ function carregarConfiguracoes() {
   renderizarTrofeus();
   gerenciarBateriaQuimiChat(); 
   injetarElementosGlobais(); 
-  inicializarControleInstalacao(); // Carrega as permissões e exibe o botão de forma garantida
+  inicializarControleInstalacao(); // Ativa as configurações do botão
   verificarOrientacao(); // Executa o cálculo de tela deitada imediatamente
 }
 
@@ -139,6 +157,9 @@ function volumeMusica(v) {
     let rg = document.getElementById("rangeMusica"); if(rg) rg.value = v;
 }
 
+// ==========================================
+// OUTROS ELEMENTOS E COMPLEMENTOS GLOBAIS
+// ==========================================
 function volumeEfeitos(v) { 
     v = Math.max(0, Math.min(1, v));
     if(clickAudio) clickAudio.volume = v; 
@@ -168,9 +189,6 @@ function mostrarMensagemGlob(texto) {
     }
 }
 
-// ==========================================
-// TROFÉUS E CONQUISTAS GLOBAIS
-// ==========================================
 function desbloquearConquista(id, silencioso=false) {
     let concluidas = JSON.parse(localStorage.getItem("conquistasDesbloqueadas")) ||[];
     if(!concluidas.includes(id)) {
@@ -309,7 +327,6 @@ function renderizarConquistas() {
 // ==========================================
 // INJEÇÃO GLOBAL DOS MODAIS (Tabela, QuimiChat, iOS PWA, Android/PC PWA, Rotação)
 // ==========================================
-
 const elementosTabela =[
     { n: 1, s: 'H', nome: 'Hidrogênio', l: '1', m: '1.008', c: 1, r: 1 }, { n: 2, s: 'He', nome: 'Hélio', l: '0', m: '4.002', c: 18, r: 1 },
     { n: 3, s: 'Li', nome: 'Lítio', l: '1', m: '6.94', c: 1, r: 2 }, { n: 4, s: 'Be', nome: 'Berílio', l: '2', m: '9.012', c: 2, r: 2 },
@@ -438,7 +455,6 @@ function injetarElementosGlobais() {
         document.body.insertAdjacentHTML('beforeend', iosHTML);
     }
 
-    // Injeção do Modal genérico para Android/PC
     if (!document.getElementById('modal-android-pc')) {
         const androidPcHTML = `
         <div id="modal-android-pc" class="modal-overlay" onclick="fecharModais(event)" style="z-index: 100000; display: none; align-items: center; justify-content: center;">
@@ -598,6 +614,7 @@ let eventoInstalacao = null;
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   eventoInstalacao = e;
+  console.log("✅ PWA Detectado! O instalador nativo está pronto e vinculado ao botão.");
   
   // Se o botão já estiver renderizado, mostra ele imediatamente
   const botao = document.getElementById('btn-instalar');
