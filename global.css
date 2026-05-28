@@ -2,7 +2,31 @@
 body.dark { --bg-color: #0f172a; --text-color: #e2e8f0; --header-bg: rgba(15, 23, 42, 0.8); --btn-bg: linear-gradient(135deg, #0ea5e9, #0369a1); --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5); }
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
 
-body { background-color: var(--bg-color); color: var(--text-color); display: flex; flex-direction: column; min-height: 100vh; overflow-x: hidden; transition: background-color 0.4s, color 0.4s; animation: entrarTela 0.5s ease forwards; }
+body { 
+    background-color: var(--bg-color); 
+    color: var(--text-color); 
+    display: flex; 
+    flex-direction: column; 
+    min-height: 100vh; 
+    overflow-x: hidden; 
+    transition: background-color 0.4s, color 0.4s; 
+    animation: entrarTela 0.5s ease forwards; 
+    
+    /* CORREÇÃO IPHONE: Impede seleção e menu de contexto ao segurar */
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+/* Permite seleção apenas em campos de texto e no chat */
+input, textarea, [contenteditable="true"], .chat-mensagens, .msg-ai, .msg-user {
+    -webkit-user-select: text;
+    user-select: text;
+}
+
 body.saindo { animation: sairTela 0.5s ease forwards; }
 @keyframes entrarTela { 0% { opacity: 0; } 100% { opacity: 1; } }
 @keyframes sairTela { 0% { opacity: 1; } 100% { opacity: 0; } }
@@ -85,20 +109,25 @@ body.saindo { animation: sairTela 0.5s ease forwards; }
 /* ==========================================
    QUIMICHAT (IA)
    ========================================== */
-.modal-chat { max-width: 600px; height: 85vh; display: flex; flex-direction: column; overflow: hidden; } /* Adicionado overflow hidden */
+.modal-chat { max-width: 600px; height: 85vh; display: flex; flex-direction: column; overflow: hidden; } 
 .aviso-chat { background: #ef4444; color: white; text-align: center; font-size: 12px; padding: 5px; font-weight: bold;}
 .bateria-container { background: #1e293b; color: #10b981; padding: 8px; text-align: center; font-weight: bold; font-size: 14px; letter-spacing: 1px; display: flex; justify-content: center; align-items: center; gap: 10px;}
 .bateria-container span { color: white; font-size: 12px; font-weight: normal; opacity: 0.8;}
-.chat-body-inner { flex: 1; display: flex; flex-direction: column; padding: 15px; overflow: hidden; } /* Alterado para flex: 1 e overflow hidden */
+.chat-body-inner { flex: 1; display: flex; flex-direction: column; padding: 15px; overflow: hidden; } 
 .chat-mensagens { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding-bottom: 15px; border-bottom: 1px solid rgba(128,128,128,0.2); margin-bottom: 15px;}
 .msg-user { align-self: flex-end; background: #0ea5e9; color: white; padding: 10px 15px; border-radius: 18px 18px 0 18px; max-width: 85%; font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);}
 .msg-ai { align-self: flex-start; background: #e2e8f0; color: #1e293b; padding: 10px 15px; border-radius: 18px 18px 18px 0; max-width: 85%; font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); line-height: 1.4;}
 .dark .msg-ai { background: #334155; color: #f8fafc; }
-.chat-input-area { display: flex; gap: 10px; flex-shrink: 0; } /* Adicionado flex-shrink: 0 para não amassar */
+.chat-input-area { display: flex; gap: 10px; flex-shrink: 0; } 
 .chat-input-area input { flex: 1; padding: 12px 15px; border-radius: 25px; border: 1px solid #cbd5e1; outline: none; background: var(--bg-color); color: var(--text-color); font-size: 14px;}
 .chat-input-area button { background: var(--btn-bg); color: white; border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center; font-size: 18px; transition: transform 0.2s; flex-shrink: 0;}
 .chat-input-area button:hover { transform: scale(1.1); }
 .carregando-ai { align-self: flex-start; font-size: 12px; opacity: 0.6; font-style: italic; margin-left: 10px;}
+
+/* ESTILO DO MODAL PWA (INSTALAÇÃO) */
+.modal-pwa { text-align: center; padding: 20px; }
+.modal-pwa img { width: 80px; margin-bottom: 15px; border-radius: 15px; }
+.btn-pwa-instalar { width: 100%; padding: 15px; background: #16a34a; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 15px; }
 
 /* ==========================================
    RESPONSIVIDADE GLOBAL (MOBILE & TABLET)
