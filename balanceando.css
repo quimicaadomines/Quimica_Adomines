@@ -45,7 +45,7 @@
     color: var(--text-color);
 }
 
-/* CONTAINER DA BALANÇA TRAVADO */
+/* CONTAINER DA BALANÇA TRAVADO: BASE E TOPO SEMPRE JUNTOS */
 .area-balanca {
     display: flex;
     flex-direction: column;
@@ -273,6 +273,7 @@
     border-radius: 30px;
     cursor: pointer;
     transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 6px 10px rgba(0,0,0,0.3);
 }
 
 .modal-box-epic { padding: 40px; border-radius: 20px; color: var(--text-color); }
@@ -286,7 +287,6 @@
     border: none;
     border-radius: 30px;
     cursor: pointer;
-    transition: 0.3s;
 }
 
 .btn-epic-red {

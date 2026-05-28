@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=1280">
+  <meta name="viewport" content="width=1280, user-scalable=yes">
   <title>Química Adômines</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#38bdf8">
@@ -23,8 +23,7 @@
     <button class="icon-btn" onclick="toggleMenu(event)" title="Configurações">⚙️</button>
     <button class="icon-btn" onclick="toggleMute()" id="muteBtn" title="Som">🔊</button>
     <button class="icon-btn" onclick="abrirConquistas()" title="Conquistas">🏅</button>
-    <button class="icon-btn" onclick="abrirModalPWA()" id="btn-instalar-pwa" style="display:none;" title="Baixar App">📲</button>
-    <button class="icon-btn" onclick="toggleTelaCheia()" title="Tela Cheia">🖥️</button>
+    <!-- Botões Download e Fullscreen serão injetados aqui pelo global.js -->
     <button class="icon-btn" onclick="toggleAssistenteVoz()" id="btnAssistente" title="Assistente de Voz">🎤</button>
     <div id="trofeus-globais" class="trofeus-container"></div>
   </div>
@@ -47,27 +46,13 @@
 
 <footer class="rodape">
   <div class="adm"><button class="btn-adm" onclick="abrirChat()">[ADM]</button></div>
-  <div class="creditos"><p class="creditos-titulo">Desenvolvido por</p><p class="autor">Zayde CASTRO</p><p class="email">zayde.lucas@aluno.uece.br</p><div class="logos"><img src="pibid.png"><img src="faced.png"><img src="uece.png"></div></div>
-</footer>
-
-<div id="toast-mensagem" class="toast escondido"></div>
-
-<div id="tela-comemoracao" class="tela-comemoracao">
-    <div id="icone-comemoracao" class="trofeu-gigante">🏆</div>
-    <h1 id="titulo-comemoracao" style="color: white; font-size: 40px; margin-top: 20px;">PLATINA ALCANÇADA!</h1>
-</div>
-
-<div id="chat-overlay" class="modal-overlay" onclick="fecharModais(event)">
-  <div class="modal-box">
-    <div class="modal-header"><h3>Painel ADM</h3><button onclick="fecharChatBtn()">✖</button></div>
-    <div class="modal-body chat-body">
-      <div id="chat-mensagens" style="height: 200px; overflow-y: auto; text-align: left; margin-bottom: 10px; background: rgba(0,0,0,0.05); padding: 10px; border-radius: 5px; font-family: monospace;"></div>
-      <input type="text" id="chat-input" placeholder="Digite um comando..." onkeypress="processarChat(event)">
-    </div>
+  <div class="creditos">
+    <p class="creditos-titulo">Desenvolvido por</p>
+    <p class="autor">Zayde CASTRO</p>
+    <p class="email">zayde.lucas@aluno.uece.br</p>
+    <div class="logos"><img src="pibid.png"><img src="faced.png"><img src="uece.png"></div>
   </div>
-</div>
-
-<div id="conquistas-overlay" class="modal-overlay" onclick="fecharModais(event)"><div class="modal-box"><div class="modal-header" style="background: #eab308;"><h3>🏅 Conquistas</h3><button onclick="fecharConquistasBtn()">✖</button></div><div class="modal-body conquistas-lista" id="lista-conquistas"></div></div></div>
+</footer>
 
 <script src="global.js"></script>
 <script src="assistente.js"></script>

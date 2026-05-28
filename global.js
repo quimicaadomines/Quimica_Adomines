@@ -15,7 +15,7 @@ let isNavegando = false;
 let eventoInstalacao;
 
 // ==========================================
-// TELA CHEIA PERSISTENTE (LIGA/DESLIGA)
+// SISTEMA DE TELA CHEIA (PERSISTÊNCIA E TOGGLE)
 // ==========================================
 function toggleTelaCheia() {
   if (!document.fullscreenElement && !document.webkitFullscreenElement) {
@@ -27,8 +27,11 @@ function toggleTelaCheia() {
 
 function ativarTelaCheia() {
   const elemento = document.documentElement;
-  if (elemento.requestFullscreen) { elemento.requestFullscreen(); } 
-  else if (elemento.webkitRequestFullscreen) { elemento.webkitRequestFullscreen(); } 
+  if (elemento.requestFullscreen) { 
+      elemento.requestFullscreen().catch(err => console.log("Erro ao entrar em tela cheia")); 
+  } else if (elemento.webkitRequestFullscreen) { 
+      elemento.webkitRequestFullscreen().catch(err => console.log("Erro Safari")); 
+  } 
   localStorage.setItem("modoTelaCheia", "ativo");
 }
 
@@ -38,17 +41,19 @@ function sairTelaCheia() {
   localStorage.setItem("modoTelaCheia", "inativo");
 }
 
-// Persistência: Reativa ao primeiro clique na nova página se estivesse ativo
-document.addEventListener("click", () => {
-    if (localStorage.getItem("modoTelaCheia") === "ativo" && !document.fullscreenElement && !document.webkitFullscreenElement) {
-        const elemento = document.documentElement;
-        if (elemento.requestFullscreen) { elemento.requestFullscreen(); } 
-        else if (elemento.webkitRequestFullscreen) { elemento.webkitRequestFullscreen(); }
+// LOGICA DE PERSISTÊNCIA: Reativa ao primeiro clique na nova página
+function verificarEPersistirFullscreen() {
+    if (localStorage.getItem("modoTelaCheia") === "ativo") {
+        if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+            ativarTelaCheia();
+        }
     }
-}, { once: false });
+}
+document.addEventListener("mousedown", verificarEPersistirFullscreen);
+document.addEventListener("touchstart", verificarEPersistirFullscreen);
 
 // ==========================================
-// PWA LOGIC
+// PWA (DOWNLOAD)
 // ==========================================
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
@@ -60,7 +65,7 @@ window.addEventListener('beforeinstallprompt', (e) => {
 async function instalarPWA() {
   if (eventoInstalacao) {
     eventoInstalacao.prompt();
-    await eventoInstalacao.userChoice;
+    const { outcome } = await eventoInstalacao.userChoice;
     eventoInstalacao = null;
     fecharModaisPWA();
   } else {
@@ -75,9 +80,10 @@ function abrirModalPWA() { tocarSomClick(); document.getElementById("pwa-overlay
 function fecharModaisPWA() { document.getElementById("pwa-overlay").style.display = "none"; }
 
 // ==========================================
-// BATERIA QUIMICHAT
+// CONFIGURAÇÃO DO QUIMICHAT (IA) E BATERIA
 // ==========================================
 const MAX_PERGUNTAS = 20;
+
 function gerenciarBateriaQuimiChat() {
     let dados = JSON.parse(localStorage.getItem("quimiChatBateria")) || { dia: new Date().toLocaleDateString(), restantes: MAX_PERGUNTAS };
     if (dados.dia !== new Date().toLocaleDateString()) {
@@ -178,6 +184,7 @@ function toggleMute(forcarEstado = null) {
     else if (forcarEstado === "desmutar") mutado = false;
     else mutado = !mutado;
     if(musica) musica.muted = mutado; 
+    if (!mutado && !musicaIniciada && musica) { musica.play(); musicaIniciada = true; } 
     let btn = document.getElementById("muteBtn");
     if(btn) btn.innerText = mutado ? "🔇" : "🔊"; 
     localStorage.setItem("mutado", mutado); 
@@ -185,8 +192,8 @@ function toggleMute(forcarEstado = null) {
 
 function toggleMenu(event) { if (event) event.stopPropagation(); tocarSomClick(); let menu = document.getElementById("menu"); if(menu) menu.style.display = (menu.style.display === "block") ? "none" : "block"; }
 
-function volumeMusica(v) { v = Math.max(0, Math.min(1, v)); if(musica) musica.volume = v; localStorage.setItem("volumeMusica", v); }
-function volumeEfeitos(v) { v = Math.max(0, Math.min(1, v)); if(clickAudio) clickAudio.volume = v; if(bubbleAudio) bubbleAudio.volume = v; localStorage.setItem("volumeEfeitos", v); }
+function volumeMusica(v) { v = Math.max(0, Math.min(1, v)); if(musica) musica.volume = v; localStorage.setItem("volumeMusica", v); let rg = document.getElementById("rangeMusica"); if(rg) rg.value = v; }
+function volumeEfeitos(v) { v = Math.max(0, Math.min(1, v)); if(clickAudio) clickAudio.volume = v; if(bubbleAudio) bubbleAudio.volume = v; localStorage.setItem("volumeEfeitos", v); let rg = document.getElementById("rangeEfeitos"); if(rg) rg.value = v; }
 
 function toggleEfeitos(forcarEstado = null) { 
     if(forcarEstado === "ativar") efeitosVisuaisAtivos = true;
@@ -276,12 +283,7 @@ function fecharChatBtn() { tocarSomClick(); document.getElementById("chat-overla
 function abrirConquistas() { tocarSomClick(); document.getElementById("conquistas-overlay").style.display = "block"; document.body.style.overflow = "hidden"; }
 function fecharConquistasBtn() { tocarSomClick(); document.getElementById("conquistas-overlay").style.display = "none"; document.body.style.overflow = "auto"; }
 
-function fecharModais(event) { 
-    if (event.target.classList.contains("modal-overlay")) { 
-        event.target.style.display = "none"; 
-        document.body.style.overflow = "auto"; 
-    } 
-}
+function fecharModais(event) { if (event.target.classList.contains("modal-overlay")) { event.target.style.display = "none"; document.body.style.overflow = "auto"; } }
 
 function processarChat(e) {
     if(e.key === 'Enter') {
@@ -395,6 +397,18 @@ const elementosTabela =[
 ];
 
 function injetarElementosGlobais() {
+    // Garante os botões de Download e Fullscreen em todas as telas
+    const esquerdaTopo = document.querySelector(".esquerda");
+    if (esquerdaTopo && !document.getElementById("btn-instalar-pwa")) {
+        const botoesExtras = `
+            <button class="icon-btn" onclick="abrirModalPWA()" id="btn-instalar-pwa" style="display:none;" title="Baixar App">📲</button>
+            <button class="icon-btn" onclick="toggleTelaCheia()" title="Tela Cheia">🖥️</button>
+        `;
+        const btnAssis = document.getElementById("btnAssistente");
+        if(btnAssis) btnAssis.insertAdjacentHTML('beforebegin', botoesExtras);
+        else esquerdaTopo.insertAdjacentHTML('beforeend', botoesExtras);
+    }
+
     if (!document.getElementById('tabela-overlay')) {
         const modalHTML = `
         <div id="tabela-overlay" class="modal-overlay" onclick="fecharModais(event)" style="z-index: 100000;">
@@ -448,18 +462,18 @@ function injetarElementosGlobais() {
         <div id="pwa-overlay" class="modal-overlay" onclick="fecharModais(event)" style="z-index: 110000;">
           <div class="modal-box" style="max-width: 400px;">
             <div class="modal-header" style="background: #16a34a;">
-              <h3>📲 Instalar Aplicativo</h3>
+              <h3>📲 Instalar Química Adômines</h3>
               <button onclick="fecharModaisPWA()">✖</button>
             </div>
             <div class="modal-body modal-pwa-custom">
               <div id="pwa-conteudo-geral">
                   <img src="logo.png" alt="Logo">
-                  <p>Deseja instalar <strong>Química Adômines</strong> no seu dispositivo?</p>
+                  <p>Deseja instalar o aplicativo no seu dispositivo?</p>
                   <button class="btn-pwa-instalar" onclick="instalarPWA()">Instalar Agora</button>
               </div>
               <div id="pwa-instrucoes-ios" style="display: none; text-align: left;">
-                  <p>1. Clique no ícone de <strong>Compartilhar</strong> no Safari.</p>
-                  <p>2. Clique em <strong>"Adicionar à Tela de Início"</strong>.</p>
+                  <p>1. Clique no ícone de <strong>Compartilhar</strong> (quadrado com seta).</p>
+                  <p>2. Selecione <strong>"Adicionar à Tela de Início"</strong>.</p>
               </div>
             </div>
           </div>
@@ -468,79 +482,35 @@ function injetarElementosGlobais() {
     }
 }
 
-function abrirTabelaPeriodica() { tocarSomClick(); document.getElementById("tabela-overlay").style.display = "flex"; document.body.style.overflow = "hidden"; let grade = document.getElementById("grade-tabela"); if(grade && grade.innerHTML === "") { renderizarTabelaPeriodica(); } }
-function fecharTabelaPeriodica() { tocarSomClick(); document.getElementById("tabela-overlay").style.display = "none"; document.body.style.overflow = "auto"; }
-function renderizarTabelaPeriodica() { let grade = document.getElementById("grade-tabela"); grade.innerHTML = ""; elementosTabela.forEach(el => { let div = document.createElement("div"); div.className = "elemento-tabela"; div.style.gridColumn = el.c; div.style.gridRow = el.r; div.innerHTML = `<span class="el-num">${el.n}</span><span class="el-sim">${el.s}</span>`; div.onclick = () => mostrarInfoElemento(el); grade.appendChild(div); }); }
-function mostrarInfoElemento(el) { tocarSomClick(); document.getElementById("el-nome").innerText = el.nome; document.getElementById("el-simbolo").innerText = el.s; document.getElementById("el-numero").innerText = el.n; document.getElementById("el-massa").innerText = el.m; document.getElementById("el-ligacoes").innerText = el.l; }
-
-function abrirQuimiChat() { tocarSomClick(); document.getElementById("quimichat-overlay").style.display = "flex"; document.body.style.overflow = "hidden"; setTimeout(()=>{ document.getElementById("quimichat-input").focus(); }, 100); }
-function fecharQuimiChat() { tocarSomClick(); document.getElementById("quimichat-overlay").style.display = "none"; document.body.style.overflow = "auto"; }
-function verificarEnterQuimiChat(e) { if(e.key === 'Enter') enviarPerguntaQuimiChatInput(); }
-
-function atualizarBateriaUI() {
-    let dados = gerenciarBateriaQuimiChat();
-    let porcentagem = (dados.restantes / MAX_PERGUNTAS) * 100;
-    let span = document.getElementById("chat-bateria-num");
-    if(span) span.innerText = Math.round(porcentagem) + "% (" + dados.restantes + " restantes)";
-}
-
-function descontarBateria() {
-    let dados = gerenciarBateriaQuimiChat();
-    if(dados.restantes > 0) { dados.restantes--; localStorage.setItem("quimiChatBateria", JSON.stringify(dados)); atualizarBateriaUI(); }
-}
-
-function enviarPerguntaQuimiChatInput() {
-    let input = document.getElementById("quimichat-input");
-    let texto = input.value.trim();
-    if(texto === "") return;
-    input.value = "";
-    enviarPerguntaQuimiChat(texto, false);
-}
-
-function pareceQuimica(pergunta) {
-    let proibidas =["futebol", "neymar", "filme", "capital", "politica", "bbb", "quem ganhou", "idade de"];
-    let p = pergunta.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-    if(proibidas.some(x => p.includes(x))) return false;
-    return true; 
-}
-
 async function enviarPerguntaQuimiChat(pergunta, lerVozAlta) {
     let container = document.getElementById("quimichat-mensagens");
     container.innerHTML += `<div class="msg-user">${pergunta}</div>`;
     container.scrollTop = container.scrollHeight;
-
     let dadosBateria = gerenciarBateriaQuimiChat();
     if (dadosBateria.restantes <= 0) {
         let msgSemEnergia = "Minha bateria acabou! Volte amanhã!";
         container.innerHTML += `<div class="msg-ai">${msgSemEnergia}</div>`;
         return;
     }
-
     if (!pareceQuimica(pergunta)) {
         let msgNaoQuimica = "Isso não parece ter relação com química!";
         container.innerHTML += `<div class="msg-ai">${msgNaoQuimica}</div>`;
         return;
     }
-
     let idTemp = "msg-" + Date.now();
     container.innerHTML += `<div id="${idTemp}" class="carregando-ai">Pensando...</div>`;
     container.scrollTop = container.scrollHeight;
-
     try {
         const respostaApi = await fetch(`/api/chat`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ pergunta: pergunta })
         });
-
         const dados = await respostaApi.json();
         document.getElementById(idTemp).remove();
-
         let respostaTexto = dados.candidates[0].content.parts[0].text.trim();
         respostaTexto = respostaTexto.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
-        
         if (!respostaTexto.includes("Desculpe")) { descontarBateria(); }
-
         container.innerHTML += `<div class="msg-ai">${respostaTexto}</div>`;
         container.scrollTop = container.scrollHeight;
     } catch (e) {
