@@ -609,21 +609,6 @@ if ('serviceWorker' in navigator) {
 // ==========================================
 // CONTROLE DE INSTALAÇÃO PWA E TELA CHEIA (COM FIX DE ESCALA DESKTOP)
 // ==========================================
-let eventoInstalacao = null;
-
-// Captura o evento de instalação disparado pelo navegador
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  eventoInstalacao = e;
-  console.log("✅ PWA Detectado! O instalador nativo está pronto e vinculado ao botão.");
-  
-  // Se o botão já estiver renderizado, mostra ele imediatamente
-  const botao = document.getElementById('btn-instalar');
-  if (botao) {
-    botao.style.display = 'inline-block';
-  }
-});
-
 function inicializarControleInstalacao() {
   const botao = document.getElementById('btn-instalar');
   if (!botao) return;
