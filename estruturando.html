@@ -35,8 +35,8 @@
     
     <button class="icon-btn" onclick="toggleAssistenteVoz()" id="btnAssistente" title="Assistente de Voz">🎤</button>
     
-    <!-- BOTÕES ADICIONADOS PARA PWA E TELA CHEIA -->
-    <button id="btn-instalar" class="icon-btn" style="display: none;" title="Baixar Aplicativo">📲</button>
+    <!-- BOTÕES ADICIONADOS PARA PWA E TELA CHEIA (Começa visível por padrão) -->
+    <button id="btn-instalar" class="icon-btn" style="display: inline-block;" title="Baixar Aplicativo">📲</button>
     <button class="icon-btn" onclick="toggleFullScreen()" id="btnFullscreen" title="Tela Cheia">📺</button>
     
     <div id="trofeus-globais" class="trofeus-container"></div>
@@ -219,7 +219,7 @@
             <h3>❔ Manual de Ferramentas</h3>
             <button onclick="document.getElementById('ajuda-overlay').style.display='none'">✖</button>
         </div>
-        <div class="modal-body" style="text-align: left; font-size: 14px; line-height: 1.6;">
+        <div class="modal-body" style="text-align: left; font-size: 14px; line-height: 1.6; margin-bottom: 20px;">
             <p><strong>🖱️ Arrastar:</strong> Clique e segure para mover átomos e ligações.</p>
             <p><strong>🖱️ Duplo Clique (Painel de Peças):</strong> Adiciona a peça automaticamente no centro do quadro.</p>
             <p><strong>🖱️ Botão Direito:</strong> Clique em uma peça solta para abrir ferramentas extras (Copiar e Colar, Excluir, etc).</p>

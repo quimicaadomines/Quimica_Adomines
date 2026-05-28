@@ -22,11 +22,10 @@
     <button class="icon-btn" onclick="toggleMenu(event)">⚙️</button>
     <button class="icon-btn" onclick="toggleMute()" id="muteBtn">🔊</button>
     <button class="icon-btn" onclick="abrirConquistas()">🏅</button>
-    
     <button class="icon-btn" onclick="toggleAssistenteVoz()" id="btnAssistente" title="Assistente de Voz">🎤</button>
     
-    <!-- BOTÕES ADICIONADOS PARA PWA E TELA CHEIA -->
-    <button id="btn-instalar" class="icon-btn" style="display: none;" title="Baixar Aplicativo">📲</button>
+    <!-- BOTÕES ADICIONADOS PARA PWA E TELA CHEIA (Começa visível por padrão) -->
+    <button id="btn-instalar" class="icon-btn" style="display: inline-block;" title="Baixar Aplicativo">📲</button>
     <button class="icon-btn" onclick="toggleFullScreen()" id="btnFullscreen" title="Tela Cheia">📺</button>
     
     <div id="trofeus-globais" class="trofeus-container"></div>
@@ -38,6 +37,7 @@
   </div>
   
   <div class="direita">
+    <!-- BOTÕES DO CHAT E TABELA FIXADOS -->
     <button class="icon-btn btn-chat-global" onclick="abrirQuimiChat()" title="QuimiChat">💬</button>
     <button class="icon-btn btn-tabela-global" onclick="abrirTabelaPeriodica()" title="Tabela Periódica">📊</button>
     <button class="icon-btn" onclick="toggleModo()" id="temaBtn">🌙</button>
@@ -61,7 +61,7 @@
         <img src="estruturando.png" alt="Estruturando" class="img-modo">
         <div class="textos-modo">
           <h2>ESTRUTURANDO</h2>
-          <p>Nesse modo, você monta estruturas químicas arrastando átomos e formando ligações corretamente.</p>
+          <p>Nesse modo, você monta estruturas químicas arrastando átomos e forming ligações corretamente.</p>
         </div>
       </div>
      

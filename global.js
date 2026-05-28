@@ -9,7 +9,7 @@ window.addEventListener('beforeinstallprompt', (e) => {
   eventoInstalacao = e;
   console.log("✅ PWA Detectado! O instalador nativo está pronto e vinculado ao botão.");
   
-  // Se o botão já estiver carregado no HTML, garante que ele fique visível
+  // Se o botão já estiver renderizado, mostra ele imediatamente
   const botao = document.getElementById('btn-instalar');
   if (botao) {
     botao.style.display = 'inline-block';
@@ -455,6 +455,7 @@ function injetarElementosGlobais() {
         document.body.insertAdjacentHTML('beforeend', iosHTML);
     }
 
+    // Injeção do Modal genérico para Android/PC
     if (!document.getElementById('modal-android-pc')) {
         const androidPcHTML = `
         <div id="modal-android-pc" class="modal-overlay" onclick="fecharModais(event)" style="z-index: 100000; display: none; align-items: center; justify-content: center;">
