@@ -1,5 +1,5 @@
 // ==========================================
-// GLOBAL JAVASCRIPT - QUÍMICA ADÔMINES
+// GLOBAL JAVASCRIPT (CORRIGIDO PARA NÃO DESLIGAR A ASSISTENTE)
 // ==========================================
 let musica = document.getElementById("musica");
 let clickAudio = document.getElementById("click");
@@ -12,72 +12,6 @@ let mutado = false;
 let efeitosVisuaisAtivos = true; 
 let musicaIniciada = false;
 let isNavegando = false; 
-let eventoInstalacao;
-
-// ==========================================
-// SISTEMA DE TELA CHEIA (PERSISTÊNCIA E TOGGLE)
-// ==========================================
-function toggleTelaCheia() {
-  if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-    ativarTelaCheia();
-  } else {
-    sairTelaCheia();
-  }
-}
-
-function ativarTelaCheia() {
-  const elemento = document.documentElement;
-  if (elemento.requestFullscreen) { 
-      elemento.requestFullscreen().catch(err => console.log("Erro ao entrar em tela cheia")); 
-  } else if (elemento.webkitRequestFullscreen) { 
-      elemento.webkitRequestFullscreen().catch(err => console.log("Erro Safari")); 
-  } 
-  localStorage.setItem("modoTelaCheia", "ativo");
-}
-
-function sairTelaCheia() {
-  if (document.exitFullscreen) { document.exitFullscreen(); } 
-  else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
-  localStorage.setItem("modoTelaCheia", "inativo");
-}
-
-// LOGICA DE PERSISTÊNCIA: Reativa ao primeiro clique na nova página
-function verificarEPersistirFullscreen() {
-    if (localStorage.getItem("modoTelaCheia") === "ativo") {
-        if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-            ativarTelaCheia();
-        }
-    }
-}
-document.addEventListener("mousedown", verificarEPersistirFullscreen);
-document.addEventListener("touchstart", verificarEPersistirFullscreen);
-
-// ==========================================
-// PWA (DOWNLOAD)
-// ==========================================
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  eventoInstalacao = e;
-  const btn = document.getElementById('btn-instalar-pwa');
-  if(btn) btn.style.display = 'flex';
-});
-
-async function instalarPWA() {
-  if (eventoInstalacao) {
-    eventoInstalacao.prompt();
-    const { outcome } = await eventoInstalacao.userChoice;
-    eventoInstalacao = null;
-    fecharModaisPWA();
-  } else {
-    const esIphone = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-    if (esIphone) {
-        document.getElementById('pwa-instrucoes-ios').style.display = 'block';
-        document.getElementById('pwa-conteudo-geral').style.display = 'none';
-    }
-  }
-}
-function abrirModalPWA() { tocarSomClick(); document.getElementById("pwa-overlay").style.display = "flex"; }
-function fecharModaisPWA() { document.getElementById("pwa-overlay").style.display = "none"; }
 
 // ==========================================
 // CONFIGURAÇÃO DO QUIMICHAT (IA) E BATERIA
@@ -134,6 +68,8 @@ function carregarConfiguracoes() {
   renderizarTrofeus();
   gerenciarBateriaQuimiChat(); 
   injetarElementosGlobais(); 
+  
+  // O código antigo da assistente foi removido daqui para evitar o conflito de "desligar" acidentalmente.
 }
 
 if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', carregarConfiguracoes); } 
@@ -146,7 +82,10 @@ window.addEventListener("beforeunload", () => {
 function mudarTela(url) {
   if (isNavegando) return; 
   isNavegando = true;
+  
+  // Interrompe a voz se ela estiver ativa para evitar vazamento de áudio entre telas
   if (typeof assistenteReconhecimento !== 'undefined' && assistenteReconhecimento) { assistenteReconhecimento.onend = null; assistenteReconhecimento.stop(); }
+  
   if (transicaoAudio) { transicaoAudio.volume = 1.0; transicaoAudio.currentTime = 0; transicaoAudio.play().catch(()=>{}); }
   document.body.classList.add("saindo");
   if(musica) { localStorage.setItem("tempoMusica", musica.currentTime); localStorage.setItem("musicaTocando", !musica.paused); }
@@ -172,6 +111,7 @@ function toggleModo(forcarModo = null) {
     if(forcarModo === "escuro") { document.body.classList.add("dark"); }
     else if(forcarModo === "claro") { document.body.classList.remove("dark"); }
     else { document.body.classList.toggle("dark"); }
+    
     let isDark = document.body.classList.contains("dark"); 
     let btn = document.getElementById("temaBtn");
     if(btn) btn.innerText = isDark ? "☀️" : "🌙"; 
@@ -183,6 +123,7 @@ function toggleMute(forcarEstado = null) {
     if(forcarEstado === "mutar") mutado = true;
     else if (forcarEstado === "desmutar") mutado = false;
     else mutado = !mutado;
+    
     if(musica) musica.muted = mutado; 
     if (!mutado && !musicaIniciada && musica) { musica.play(); musicaIniciada = true; } 
     let btn = document.getElementById("muteBtn");
@@ -192,13 +133,26 @@ function toggleMute(forcarEstado = null) {
 
 function toggleMenu(event) { if (event) event.stopPropagation(); tocarSomClick(); let menu = document.getElementById("menu"); if(menu) menu.style.display = (menu.style.display === "block") ? "none" : "block"; }
 
-function volumeMusica(v) { v = Math.max(0, Math.min(1, v)); if(musica) musica.volume = v; localStorage.setItem("volumeMusica", v); let rg = document.getElementById("rangeMusica"); if(rg) rg.value = v; }
-function volumeEfeitos(v) { v = Math.max(0, Math.min(1, v)); if(clickAudio) clickAudio.volume = v; if(bubbleAudio) bubbleAudio.volume = v; localStorage.setItem("volumeEfeitos", v); let rg = document.getElementById("rangeEfeitos"); if(rg) rg.value = v; }
+function volumeMusica(v) { 
+    v = Math.max(0, Math.min(1, v)); 
+    if(musica) musica.volume = v; 
+    localStorage.setItem("volumeMusica", v); 
+    let rg = document.getElementById("rangeMusica"); if(rg) rg.value = v;
+}
+
+function volumeEfeitos(v) { 
+    v = Math.max(0, Math.min(1, v));
+    if(clickAudio) clickAudio.volume = v; 
+    if(bubbleAudio) bubbleAudio.volume = v; 
+    localStorage.setItem("volumeEfeitos", v); 
+    let rg = document.getElementById("rangeEfeitos"); if(rg) rg.value = v;
+}
 
 function toggleEfeitos(forcarEstado = null) { 
     if(forcarEstado === "ativar") efeitosVisuaisAtivos = true;
     else if(forcarEstado === "desativar") efeitosVisuaisAtivos = false;
     else if(typeof forcarEstado === "object") efeitosVisuaisAtivos = !forcarEstado.checked; 
+    
     localStorage.setItem("efeitosVisuais", efeitosVisuaisAtivos); 
     let chk = document.getElementById("checkEfeitos"); if(chk) chk.checked = !efeitosVisuaisAtivos;
     aplicarEfeitosNaLogo(efeitosVisuaisAtivos); 
@@ -208,9 +162,16 @@ function aplicarEfeitosNaLogo(ativo) { let logo = document.getElementById("logo"
 
 function mostrarMensagemGlob(texto) {
     let toast = document.getElementById("toast-mensagem");
-    if(toast) { toast.innerText = texto; toast.classList.remove("escondido"); setTimeout(() => { toast.classList.add("escondido"); }, 5000); }
+    if(toast) { 
+        toast.innerText = texto; 
+        toast.classList.remove("escondido"); 
+        setTimeout(() => { toast.classList.add("escondido"); }, 5000); 
+    }
 }
 
+// ==========================================
+// TROFÉUS E CONQUISTAS GLOBAIS
+// ==========================================
 function desbloquearConquista(id, silencioso=false) {
     let concluidas = JSON.parse(localStorage.getItem("conquistasDesbloqueadas")) ||[];
     if(!concluidas.includes(id)) {
@@ -264,10 +225,18 @@ function celebrar(tipo) {
     if(!tela) return;
     let icone = tela.querySelector("#icone-comemoracao");
     let titulo = tela.querySelector("#titulo-comemoracao");
-    if(tipo === 'platina') { icone.innerText = "🏆"; icone.className = "trofeu-gigante"; titulo.innerText = "PLATINA ALCANÇADA!"; titulo.style.textShadow = "0 0 10px gold"; } 
-    else { icone.innerText = "🏆"; icone.className = "trofeu-gigante prata-brilho"; titulo.innerText = "MOLÉCULAS CATALOGADAS!"; titulo.style.textShadow = "0 0 10px silver"; }
+
+    if(tipo === 'platina') {
+        icone.innerText = "🏆"; icone.className = "trofeu-gigante";
+        titulo.innerText = "PLATINA ALCANÇADA!"; titulo.style.textShadow = "0 0 10px gold";
+    } else {
+        icone.innerText = "🏆"; icone.className = "trofeu-gigante prata-brilho";
+        titulo.innerText = "MOLÉCULAS CATALOGADAS!"; titulo.style.textShadow = "0 0 10px silver";
+    }
+
     tela.classList.add("ativa");
     if(somAplausos) { somAplausos.currentTime=0; somAplausos.play().catch(()=>{}); }
+
     for(let i=0; i<60; i++) {
         let conf = document.createElement("div"); conf.className = "confete";
         conf.style.left = Math.random() * 100 + "vw";
@@ -283,7 +252,12 @@ function fecharChatBtn() { tocarSomClick(); document.getElementById("chat-overla
 function abrirConquistas() { tocarSomClick(); document.getElementById("conquistas-overlay").style.display = "block"; document.body.style.overflow = "hidden"; }
 function fecharConquistasBtn() { tocarSomClick(); document.getElementById("conquistas-overlay").style.display = "none"; document.body.style.overflow = "auto"; }
 
-function fecharModais(event) { if (event.target.classList.contains("modal-overlay")) { event.target.style.display = "none"; document.body.style.overflow = "auto"; } }
+function fecharModais(event) { 
+    if (event.target.classList.contains("modal-overlay")) { 
+        event.target.style.display = "none"; 
+        document.body.style.overflow = "auto"; 
+    } 
+}
 
 function processarChat(e) {
     if(e.key === 'Enter') {
@@ -292,6 +266,7 @@ function processarChat(e) {
         if(!input || !div) return;
         let cmd = input.value.trim().toLowerCase(); input.value = "";
         div.innerHTML += `<div style="margin-bottom:5px;"><b>Você:</b> ${cmd}</div>`;
+        
         if(cmd === "\\platinar") {
             listaDeConquistas.forEach(c => desbloquearConquista(c.id, true)); verificarPlatina();
             div.innerHTML += `<div style="color:#16a34a; margin-bottom:5px;"><b>Sistema:</b> Todas as conquistas ativadas!</div>`;
@@ -331,6 +306,10 @@ function renderizarConquistas() {
     container.appendChild(div);
   });
 }
+
+// ==========================================
+// INJEÇÃO GLOBAL DOS MODAIS (Tabela e QuimiChat)
+// ==========================================
 
 const elementosTabela =[
     { n: 1, s: 'H', nome: 'Hidrogênio', l: '1', m: '1.008', c: 1, r: 1 }, { n: 2, s: 'He', nome: 'Hélio', l: '0', m: '4.002', c: 18, r: 1 },
@@ -397,18 +376,6 @@ const elementosTabela =[
 ];
 
 function injetarElementosGlobais() {
-    // Garante os botões de Download e Fullscreen em todas as telas
-    const esquerdaTopo = document.querySelector(".esquerda");
-    if (esquerdaTopo && !document.getElementById("btn-instalar-pwa")) {
-        const botoesExtras = `
-            <button class="icon-btn" onclick="abrirModalPWA()" id="btn-instalar-pwa" style="display:none;" title="Baixar App">📲</button>
-            <button class="icon-btn" onclick="toggleTelaCheia()" title="Tela Cheia">🖥️</button>
-        `;
-        const btnAssis = document.getElementById("btnAssistente");
-        if(btnAssis) btnAssis.insertAdjacentHTML('beforebegin', botoesExtras);
-        else esquerdaTopo.insertAdjacentHTML('beforeend', botoesExtras);
-    }
-
     if (!document.getElementById('tabela-overlay')) {
         const modalHTML = `
         <div id="tabela-overlay" class="modal-overlay" onclick="fecharModais(event)" style="z-index: 100000;">
@@ -456,65 +423,107 @@ function injetarElementosGlobais() {
         document.body.insertAdjacentHTML('beforeend', chatHTML);
         atualizarBateriaUI();
     }
+}
 
-    if (!document.getElementById('pwa-overlay')) {
-        const pwaHTML = `
-        <div id="pwa-overlay" class="modal-overlay" onclick="fecharModais(event)" style="z-index: 110000;">
-          <div class="modal-box" style="max-width: 400px;">
-            <div class="modal-header" style="background: #16a34a;">
-              <h3>📲 Instalar Química Adômines</h3>
-              <button onclick="fecharModaisPWA()">✖</button>
-            </div>
-            <div class="modal-body modal-pwa-custom">
-              <div id="pwa-conteudo-geral">
-                  <img src="logo.png" alt="Logo">
-                  <p>Deseja instalar o aplicativo no seu dispositivo?</p>
-                  <button class="btn-pwa-instalar" onclick="instalarPWA()">Instalar Agora</button>
-              </div>
-              <div id="pwa-instrucoes-ios" style="display: none; text-align: left;">
-                  <p>1. Clique no ícone de <strong>Compartilhar</strong> (quadrado com seta).</p>
-                  <p>2. Selecione <strong>"Adicionar à Tela de Início"</strong>.</p>
-              </div>
-            </div>
-          </div>
-        </div>`;
-        document.body.insertAdjacentHTML('beforeend', pwaHTML);
-    }
+function abrirTabelaPeriodica() { tocarSomClick(); document.getElementById("tabela-overlay").style.display = "flex"; document.body.style.overflow = "hidden"; let grade = document.getElementById("grade-tabela"); if(grade && grade.innerHTML === "") { renderizarTabelaPeriodica(); } }
+function fecharTabelaPeriodica() { tocarSomClick(); document.getElementById("tabela-overlay").style.display = "none"; document.body.style.overflow = "auto"; }
+function renderizarTabelaPeriodica() { let grade = document.getElementById("grade-tabela"); grade.innerHTML = ""; elementosTabela.forEach(el => { let div = document.createElement("div"); div.className = "elemento-tabela"; div.style.gridColumn = el.c; div.style.gridRow = el.r; div.innerHTML = `<span class="el-num">${el.n}</span><span class="el-sim">${el.s}</span>`; div.onclick = () => mostrarInfoElemento(el); grade.appendChild(div); }); }
+function mostrarInfoElemento(el) { tocarSomClick(); document.getElementById("el-nome").innerText = el.nome; document.getElementById("el-simbolo").innerText = el.s; document.getElementById("el-numero").innerText = el.n; document.getElementById("el-massa").innerText = el.m; document.getElementById("el-ligacoes").innerText = el.l; }
+
+function abrirQuimiChat() { tocarSomClick(); document.getElementById("quimichat-overlay").style.display = "flex"; document.body.style.overflow = "hidden"; setTimeout(()=>{ document.getElementById("quimichat-input").focus(); }, 100); }
+function fecharQuimiChat() { tocarSomClick(); document.getElementById("quimichat-overlay").style.display = "none"; document.body.style.overflow = "auto"; }
+function verificarEnterQuimiChat(e) { if(e.key === 'Enter') enviarPerguntaQuimiChatInput(); }
+
+function atualizarBateriaUI() {
+    let dados = gerenciarBateriaQuimiChat();
+    let porcentagem = (dados.restantes / MAX_PERGUNTAS) * 100;
+    let span = document.getElementById("chat-bateria-num");
+    if(span) span.innerText = Math.round(porcentagem) + "% (" + dados.restantes + " restantes)";
+}
+
+function descontarBateria() {
+    let dados = gerenciarBateriaQuimiChat();
+    if(dados.restantes > 0) { dados.restantes--; localStorage.setItem("quimiChatBateria", JSON.stringify(dados)); atualizarBateriaUI(); }
+}
+
+function enviarPerguntaQuimiChatInput() {
+    let input = document.getElementById("quimichat-input");
+    let texto = input.value.trim();
+    if(texto === "") return;
+    input.value = "";
+    enviarPerguntaQuimiChat(texto, false);
+}
+
+function pareceQuimica(pergunta) {
+    let proibidas =["futebol", "neymar", "filme", "capital", "politica", "bbb", "quem ganhou", "idade de"];
+    let p = pergunta.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    if(proibidas.some(x => p.includes(x))) return false;
+    return true; 
 }
 
 async function enviarPerguntaQuimiChat(pergunta, lerVozAlta) {
     let container = document.getElementById("quimichat-mensagens");
+    
     container.innerHTML += `<div class="msg-user">${pergunta}</div>`;
     container.scrollTop = container.scrollHeight;
+
     let dadosBateria = gerenciarBateriaQuimiChat();
     if (dadosBateria.restantes <= 0) {
-        let msgSemEnergia = "Minha bateria acabou! Volte amanhã!";
+        let msgSemEnergia = "Minha bateria acabou! Usei muita energia processando cálculos químicos hoje. Volte amanhã!";
         container.innerHTML += `<div class="msg-ai">${msgSemEnergia}</div>`;
+        if(lerVozAlta && typeof falarAssistente === "function") falarAssistente(msgSemEnergia);
         return;
     }
+
     if (!pareceQuimica(pergunta)) {
-        let msgNaoQuimica = "Isso não parece ter relação com química!";
+        let msgNaoQuimica = "Isso não parece ter nenhuma relação com química! Reformule sua pergunta.";
         container.innerHTML += `<div class="msg-ai">${msgNaoQuimica}</div>`;
+        if(lerVozAlta && typeof falarAssistente === "function") falarAssistente(msgNaoQuimica);
         return;
     }
+
     let idTemp = "msg-" + Date.now();
-    container.innerHTML += `<div id="${idTemp}" class="carregando-ai">Pensando...</div>`;
+    container.innerHTML += `<div id="${idTemp}" class="carregando-ai">Adômines está pensando...</div>`;
     container.scrollTop = container.scrollHeight;
+
     try {
         const respostaApi = await fetch(`/api/chat`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ pergunta: pergunta })
         });
+
         const dados = await respostaApi.json();
-        document.getElementById(idTemp).remove();
+        
+        let avisoPensando = document.getElementById(idTemp);
+        if(avisoPensando) avisoPensando.remove();
+
+        if (!respostaApi.ok) {
+            throw new Error(dados.error ? (dados.error.message || dados.error) : `Erro HTTP: ${respostaApi.status}`);
+        }
+
         let respostaTexto = dados.candidates[0].content.parts[0].text.trim();
-        respostaTexto = respostaTexto.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
-        if (!respostaTexto.includes("Desculpe")) { descontarBateria(); }
+        
+        respostaTexto = respostaTexto.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+        respostaTexto = respostaTexto.replace(/\n/g, '<br>');
+        
+        if (!respostaTexto.includes("Desculpe, eu só posso responder")) {
+            descontarBateria(); 
+        }
+
         container.innerHTML += `<div class="msg-ai">${respostaTexto}</div>`;
+        
+        let textoParaVoz = respostaTexto.replace(/<br>/g, " ").replace(/<b>/g, "").replace(/<\/b>/g, "");
+        if(lerVozAlta && typeof falarAssistente === "function") falarAssistente(textoParaVoz);
+        
         container.scrollTop = container.scrollHeight;
+
     } catch (e) {
-        if(document.getElementById(idTemp)) document.getElementById(idTemp).remove();
-        container.innerHTML += `<div class="msg-ai" style="color:#ef4444">Erro na conexão.</div>`;
+        let avisoPensando = document.getElementById(idTemp);
+        if(avisoPensando) avisoPensando.remove();
+        console.error("ERRO NO CHAT:", e.message);
+        let msgErro = "Não consegui me conectar ao laboratório agora. Erro: " + (e.message || "Desconhecido");
+        container.innerHTML += `<div class="msg-ai" style="color:#ef4444">${msgErro}</div>`;
+        if(lerVozAlta && typeof falarAssistente === "function") falarAssistente("Não consegui me conectar ao laboratório agora.");
     }
 }
