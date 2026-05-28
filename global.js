@@ -3,13 +3,13 @@
 // ==========================================
 let eventoInstalacao = null;
 
-// O navegador dispara este evento assim que detecta que o PWA cumpre os requisitos de instalação
+// O navegador dispara este evento assim que detecta que o PWA cumpre os requisitos de instalação nativa
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   eventoInstalacao = e;
   console.log("✅ PWA Detectado! O instalador nativo está pronto e vinculado ao botão.");
   
-  // Se o botão já estiver renderizado, mostra ele imediatamente
+  // Como o instalador nativo está pronto, exibe o botão na tela
   const botao = document.getElementById('btn-instalar');
   if (botao) {
     botao.style.display = 'inline-block';
@@ -86,7 +86,7 @@ function carregarConfiguracoes() {
   renderizarTrofeus();
   gerenciarBateriaQuimiChat(); 
   injetarElementosGlobais(); 
-  inicializarControleInstalacao(); // Ativa as configurações do botão
+  inicializarControleInstalacao(); // Configura o botão de instalação nativo
   verificarOrientacao(); // Executa o cálculo de tela deitada imediatamente
 }
 
@@ -325,7 +325,7 @@ function renderizarConquistas() {
 }
 
 // ==========================================
-// INJEÇÃO GLOBAL DOS MODAIS (Tabela, QuimiChat, iOS PWA, Android/PC PWA, Rotação)
+// INJEÇÃO GLOBAL DOS MODAIS (Tabela, QuimiChat, iOS PWA, Rotação)
 // ==========================================
 const elementosTabela =[
     { n: 1, s: 'H', nome: 'Hidrogênio', l: '1', m: '1.008', c: 1, r: 1 }, { n: 2, s: 'He', nome: 'Hélio', l: '0', m: '4.002', c: 18, r: 1 },
@@ -453,30 +453,6 @@ function injetarElementosGlobais() {
           </div>
         </div>`;
         document.body.insertAdjacentHTML('beforeend', iosHTML);
-    }
-
-    // Injeção do Modal genérico para Android/PC
-    if (!document.getElementById('modal-android-pc')) {
-        const androidPcHTML = `
-        <div id="modal-android-pc" class="modal-overlay" onclick="fecharModais(event)" style="z-index: 100000; display: none; align-items: center; justify-content: center;">
-          <div class="modal-box" style="max-width: 450px; text-align: center; margin: 20vh auto; padding: 25px;">
-            <div style="font-size: 50px; margin-bottom: 15px;">📥</div>
-            <h3 style="margin-bottom: 15px; color: var(--text-color);">Como Instalar</h3>
-            <p style="font-size: 14px; line-height: 1.6; margin-bottom: 20px; color: var(--text-color); text-align: left;">
-              Se o aviso automático de instalação não apareceu, você pode instalar manualmente seguindo estes passos rápidos:
-              <br><br>
-              <strong>No Celular (Android/Chrome):</strong>
-              <br>1. Toque nos <strong>três pontinhos</strong> (menu) no canto superior direito do Chrome.
-              <br>2. Selecione a opção <strong>"Instalar aplicativo"</strong> ou <strong>"Adicionar à tela de início"</strong>.
-              <br><br>
-              <strong>No Computador (PC/Chrome/Edge):</strong>
-              <br>1. Clique no ícone de <strong>instalação</strong> (computador com uma seta) na barra de endereços (ao lado da estrela de favoritos).
-              <br>2. Ou clique nos <strong>três pontinhos</strong> do navegador e selecione <strong>"Salvar e compartilhar"</strong> ➡️ <strong>"Instalar Química Adômines"</strong>.
-            </p>
-            <button onclick="fecharModalAndroidPc()" style="background: var(--btn-bg); color: white; border: none; padding: 10px 20px; border-radius: 20px; font-weight: bold; cursor: pointer;">Entendi</button>
-          </div>
-        </div>`;
-        document.body.insertAdjacentHTML('beforeend', androidPcHTML);
     }
 
     if (!document.getElementById('overlay-orientacao')) {
@@ -640,17 +616,11 @@ function inicializarControleInstalacao() {
         const modalIos = document.getElementById('modal-ios');
         if (modalIos) modalIos.style.display = 'flex';
       } else {
-        const modalAndroidPc = document.getElementById('modal-android-pc');
-        if (modalAndroidPc) modalAndroidPc.style.display = 'flex';
+        // Se não for iOS e eventoInstalacao for null (ex: restrições do navegador/sem HTTPS local), nada acontece ou abre toast
+        mostrarMensagemGlob("Aguardando o navegador liberar a instalação nativa seguro (HTTPS necessário).");
       }
     }
   };
-}
-
-function fecharModalAndroidPc() {
-  tocarSomClick();
-  const modal = document.getElementById('modal-android-pc');
-  if (modal) modal.style.display = 'none';
 }
 
 // Controla e força a escala Desktop (1280px) mesmo quando os navegadores de celular ignoram no modo tela cheia
