@@ -68,6 +68,8 @@ function carregarConfiguracoes() {
   renderizarTrofeus();
   gerenciarBateriaQuimiChat(); 
   injetarElementosGlobais(); 
+  inicializarControleInstalacao(); // Carrega as permissões e exibe o botão sem falhas
+  verificarOrientacao(); // Executa o cálculo de tela deitada imediatamente
 }
 
 if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', carregarConfiguracoes); } 
@@ -436,13 +438,12 @@ function injetarElementosGlobais() {
         document.body.insertAdjacentHTML('beforeend', iosHTML);
     }
 
-    // Injeção do Bloqueio de Orientação em Pé (Retrato) para celulares e tablets
     if (!document.getElementById('overlay-orientacao')) {
         const orientacaoHTML = `
         <div id="overlay-orientacao">
           <div class="celular-rotacionando">🔄</div>
-          <h2 style="margin-top: 25px; font-size: 24px; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">Deite o Dispositivo!</h2>
-          <p style="margin-top: 10px; font-size: 15px; opacity: 0.85; max-width: 320px; line-height: 1.5; text-align: center;">
+          <h2 style="margin-top: 25px; font-size: 24px; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); color: white;">Deite o Dispositivo!</h2>
+          <p style="margin-top: 10px; font-size: 15px; opacity: 0.85; max-width: 320px; line-height: 1.5; text-align: center; color: white;">
             Este jogo de química foi feito para ser jogado na horizontal. Por favor, gire o seu celular ou tablet.
           </p>
         </div>`;
@@ -567,54 +568,59 @@ if ('serviceWorker' in navigator) {
 // ==========================================
 // CONTROLE DE INSTALAÇÃO PWA E TELA CHEIA (COM FIX DE ESCALA DESKTOP)
 // ==========================================
-let eventoInstalacao;
+let eventoInstalacao = null;
 
+// Captura o evento de instalação disparado pelo navegador
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   eventoInstalacao = e;
+  
+  // Se o botão já estiver renderizado, mostra ele imediatamente
   const botao = document.getElementById('btn-instalar');
   if (botao) {
     botao.style.display = 'inline-block';
   }
 });
 
-document.addEventListener('DOMContentLoaded', () => {
+function inicializarControleInstalacao() {
   const botao = document.getElementById('btn-instalar');
-  if (botao) {
-    botao.addEventListener('click', async () => {
-      if (eventoInstalacao) {
-        eventoInstalacao.prompt();
-        const { outcome } = await eventoInstalacao.userChoice;
-        console.log(`Escolha de instalação: ${outcome}`);
-        eventoInstalacao = null;
-        botao.style.display = 'none';
-      } else {
-        const esIphone = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        const estaNoNavegador = !window.matchMedia('(display-mode: standalone)').matches;
-        if (esIphone && estaNoNavegador) {
-          const modalIos = document.getElementById('modal-ios');
-          if (modalIos) modalIos.style.display = 'flex';
-        }
-      }
-    });
-  }
+  if (!botao) return;
 
-  if (window.matchMedia('(display-mode: standalone)').matches) {
-    const botao = document.getElementById('btn-instalar');
-    if (botao) botao.style.display = 'none';
+  // 1. Vincula a ação de clique ao botão
+  botao.onclick = async () => {
+    if (eventoInstalacao) {
+      // Android / PC
+      eventoInstalacao.prompt();
+      const { outcome } = await eventoInstalacao.userChoice;
+      console.log(`Escolha de instalação: ${outcome}`);
+      eventoInstalacao = null;
+      botao.style.display = 'none';
+    } else {
+      // iPhone (iOS)
+      const esIphone = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      const estaNoNavegador = !window.matchMedia('(display-mode: standalone)').matches;
+      if (esIphone && estaNoNavegador) {
+        const modalIos = document.getElementById('modal-ios');
+        if (modalIos) modalIos.style.display = 'flex';
+      }
+    }
+  };
+
+  // 2. Controla a exibição inicial do botão baseado no estado atual
+  const estaInstalado = window.matchMedia('(display-mode: standalone)').matches;
+  if (estaInstalado) {
+    botao.style.display = 'none';
   } else {
     const esIphone = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    // Se for iPhone, sempre mostra o botão para abrir o tutorial de instalação manual
     if (esIphone) {
-      const botao = document.getElementById('btn-instalar');
-      if (botao) botao.style.display = 'inline-block';
+      botao.style.display = 'inline-block';
+    } 
+    // Se for Android/PC e o evento de instalação já foi capturado, mostra o botão
+    else if (eventoInstalacao) {
+      botao.style.display = 'inline-block';
     }
   }
-});
-
-function fecharModalIos() {
-  tocarSomClick();
-  const modalIos = document.getElementById('modal-ios');
-  if (modalIos) modalIos.style.display = 'none';
 }
 
 // Controla e força a escala Desktop (1280px) mesmo quando os navegadores de celular ignoram no modo tela cheia
@@ -639,6 +645,29 @@ function ajustarEscalaFullscreen() {
   }
 }
 
+// Verifica a orientação real do celular/tablet dinamicamente
+function verificarOrientacao() {
+  const overlay = document.getElementById('overlay-orientacao');
+  if (!overlay) return;
+
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || ('ontouchstart' in window);
+
+  if (isMobile) {
+    // Se a altura simulada ou física da tela for maior que a largura, o dispositivo está em pé
+    const emPe = window.innerHeight > window.innerWidth;
+    if (emPe) {
+      overlay.style.display = 'flex';
+    } else {
+      overlay.style.display = 'none';
+    }
+  } else {
+    // Computadores de mesa nunca exibem este aviso
+    overlay.style.display = 'none';
+  }
+}
+
+window.addEventListener('resize', verificarOrientacao);
+window.addEventListener('orientationchange', verificarOrientacao);
 document.addEventListener('fullscreenchange', ajustarEscalaFullscreen);
 document.addEventListener('webkitfullscreenchange', ajustarEscalaFullscreen);
 

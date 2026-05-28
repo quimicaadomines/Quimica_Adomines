@@ -7,7 +7,9 @@ body.saindo { animation: sairTela 0.5s ease forwards; }
 @keyframes entrarTela { 0% { opacity: 0; } 100% { opacity: 1; } }
 @keyframes sairTela { 0% { opacity: 1; } 100% { opacity: 0; } }
 
-/* BLOQUEIO GERAL DE SELEÇÃO DE TEXTO PARA DISPOSITIVOS MÓVEIS (SAFARI/CHROME) */
+/* ==========================================================================
+   BLOQUEIO GERAL DE SELEÇÃO DE TEXTO E TOQUE SEGURO (MÓVEL/DESKTOP)
+   ========================================================================== */
 body, .peca-draggable, .elemento-tabela, .quadro-grid, img, .linha, h1, h2, h3, p, label {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
@@ -17,7 +19,7 @@ body, .peca-draggable, .elemento-tabela, .quadro-grid, img, .linha, h1, h2, h3, 
   user-select: none;
 }
 
-/* PERMITE DIGITAÇÃO NORMAL EM INPUTS E CAIXAS DE CHAT */
+/* Garante que caixas de texto e entradas de dados funcionem normalmente */
 input, textarea, [contenteditable="true"] {
   -webkit-user-select: text;
   -moz-user-select: text;
@@ -25,9 +27,11 @@ input, textarea, [contenteditable="true"] {
   user-select: text;
 }
 
-/* OVERLAY DE ROTAÇÃO PARA DISPOSITIVOS EM MODO RETRATO (EM PÉ) */
+/* ==========================================================================
+   OVERLAY DE ROTAÇÃO PARA DISPOSITIVOS EM MODO RETRATO (EM PÉ)
+   ========================================================================== */
 #overlay-orientacao {
-  display: none;
+  display: none; /* Ativado dinamicamente pelo JavaScript de forma precisa */
   position: fixed;
   top: 0;
   left: 0;
@@ -53,13 +57,9 @@ input, textarea, [contenteditable="true"] {
   100% { transform: rotate(0deg); }
 }
 
-/* Ativa o bloqueio apenas em telas com menos de 1024px que estejam no modo Portrait (em pé) */
-@media (max-width: 1024px) and (orientation: portrait) {
-  #overlay-orientacao {
-    display: flex;
-  }
-}
-
+/* ==========================================================================
+   ELEMENTOS GLOBAIS DO SITE
+   ========================================================================== */
 .escondido { display: none !important; opacity: 0; pointer-events: none;}
 .toast { position: fixed; top: 90px; left: 50%; transform: translateX(-50%); background: var(--btn-bg); color: white; padding: 12px 25px; border-radius: 30px; font-weight: bold; font-size: 16px; box-shadow: 0 10px 20px rgba(0,0,0,0.3); z-index: 99999; transition: opacity 0.4s ease, top 0.4s ease; text-align: center; width: max-content; max-width: 90vw;}
 
