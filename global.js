@@ -449,10 +449,28 @@ function injetarElementosGlobais() {
             <p style="font-size: 14px; line-height: 1.6; margin-bottom: 20px; color: var(--text-color);">
               Para instalar no seu iPhone, clique no ícone de <strong>Compartilhar</strong> (o quadrado com uma seta para cima) na barra inferior do Safari e selecione <strong>"Adicionar à Tela de Início"</strong>. ➕
             </p>
-            <button onclick="fecharModalIos()" style="background: var(--btn-bg); color: white; border: none; padding: 10px 20px; border-radius: 20px; font-weight: bold; cursor: pointer;">Entendi</button>
+            <button onclick="window.fecharModalIos()" style="background: var(--btn-bg); color: white; border: none; padding: 10px 20px; border-radius: 20px; font-weight: bold; cursor: pointer;">Entendi</button>
           </div>
         </div>`;
         document.body.insertAdjacentHTML('beforeend', iosHTML);
+    }
+
+    if (!document.getElementById('modal-instalacao')) {
+        const instalacaoHTML = `
+        <div id="modal-instalacao" class="modal-overlay" onclick="fecharModais(event)" style="z-index: 100000; display: none; align-items: center; justify-content: center;">
+          <div class="modal-box" style="max-width: 400px; text-align: center; margin: 20vh auto; padding: 25px;">
+            <div style="font-size: 50px; margin-bottom: 15px;">📲</div>
+            <h3 style="margin-bottom: 15px; color: var(--text-color);">Baixar Aplicativo (PWA)</h3>
+            <p style="font-size: 14px; line-height: 1.6; margin-bottom: 20px; color: var(--text-color);">
+              Após baixar o aplicativo, ele aparecerá na sua tela de aplicativos (ou área de trabalho do computador) para fácil acesso, funcionando de forma rápida e sem ocupar a memória física do seu dispositivo!
+            </p>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+              <button id="btn-confirmar-baixar" style="background: var(--btn-bg); color: white; border: none; padding: 10px 20px; border-radius: 20px; font-weight: bold; cursor: pointer;">Baixar Aplicativo</button>
+              <button onclick="window.fecharModalInstalacao()" style="background: #94a3b8; color: white; border: none; padding: 10px 20px; border-radius: 20px; font-weight: bold; cursor: pointer;">Cancelar</button>
+            </div>
+          </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', instalacaoHTML);
     }
 
     if (!document.getElementById('overlay-orientacao')) {
@@ -585,6 +603,18 @@ if ('serviceWorker' in navigator) {
 // ==========================================
 // CONTROLE DE INSTALAÇÃO PWA E TELA CHEIA (COM FIX DE ESCALA DESKTOP)
 // ==========================================
+window.fecharModalInstalacao = function() {
+  if (typeof tocarSomClick === 'function') tocarSomClick();
+  const modalInstalacao = document.getElementById('modal-instalacao');
+  if (modalInstalacao) modalInstalacao.style.display = 'none';
+}
+
+window.fecharModalIos = function() {
+  if (typeof tocarSomClick === 'function') tocarSomClick();
+  const modalIos = document.getElementById('modal-ios');
+  if (modalIos) modalIos.style.display = 'none';
+}
+
 function inicializarControleInstalacao() {
   const botao = document.getElementById('btn-instalar');
   if (!botao) return;
@@ -599,25 +629,36 @@ function inicializarControleInstalacao() {
   // Deixa o botão SEMPRE VISÍVEL para incentivar o download, independente de o evento ter disparado ou não
   botao.style.display = 'inline-block';
 
-  // Vincula a ação de clique ao botão com tratamento de fallback
-  botao.onclick = async () => {
+  // Vincula a ação de clique ao botão abrindo primeiramente o modal explicativo
+  botao.onclick = () => {
     tocarSomClick();
-    if (eventoInstalacao) {
-      // Dispara o prompt nativo se o Chrome já o tiver capturado
-      eventoInstalacao.prompt();
-      const { outcome } = await eventoInstalacao.userChoice;
-      console.log(`Escolha de instalação: ${outcome}`);
-      eventoInstalacao = null;
-      botao.style.display = 'none';
-    } else {
-      // Caso contrário, mostra o modal de instruções correspondente ao sistema do usuário
-      const esIphone = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-      if (esIphone) {
-        const modalIos = document.getElementById('modal-ios');
-        if (modalIos) modalIos.style.display = 'flex';
-      } else {
-        // Se não for iOS e eventoInstalacao for null (ex: restrições do navegador/sem HTTPS local), nada acontece ou abre toast
-        mostrarMensagemGlob("Aguardando o navegador liberar a instalação nativa seguro (HTTPS necessário).");
+    const modalInstalacao = document.getElementById('modal-instalacao');
+    if (modalInstalacao) {
+      modalInstalacao.style.display = 'flex';
+      
+      const btnConfirmar = document.getElementById('btn-confirmar-baixar');
+      if (btnConfirmar) {
+        btnConfirmar.onclick = async () => {
+          tocarSomClick();
+          modalInstalacao.style.display = 'none'; // Fecha o modal de confirmação
+          
+          const esIphone = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+          if (esIphone) {
+            const modalIos = document.getElementById('modal-ios');
+            if (modalIos) modalIos.style.display = 'flex';
+          } else {
+            if (eventoInstalacao) {
+              eventoInstalacao.prompt();
+              const { outcome } = await eventoInstalacao.userChoice;
+              console.log(`Escolha de instalação: ${outcome}`);
+              eventoInstalacao = null;
+              botao.style.display = 'none';
+            } else {
+              // Fallback para Android/PC quando a API nativa não estiver pronta ou em ambiente HTTP simples
+              mostrarMensagemGlob("Para baixar no Android/PC, clique nos três pontinhos no canto superior do navegador e escolha 'Instalar aplicativo' ou 'Adicionar à tela inicial'.");
+            }
+          }
+        };
       }
     }
   };
@@ -645,21 +686,24 @@ function ajustarEscalaFullscreen() {
   }
 }
 
-// Verifica a orientação real do celular/tablet dinamicamente
+// Verifica a orientação real do celular/tablet dinamicamente (revisado com delay para evitar race-conditions no Android)
 function verificarOrientacao() {
   const overlay = document.getElementById('overlay-orientacao');
   if (!overlay) return;
 
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || ('ontouchstart' in window);
+  const isMobile = window.matchMedia('(pointer: coarse)').matches || 
+                   /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
   if (isMobile) {
-    // Se a altura simulada ou física da tela for maior que a largura, o dispositivo está em pé
-    const emPe = window.innerHeight > window.innerWidth;
-    if (emPe) {
-      overlay.style.display = 'flex';
-    } else {
-      overlay.style.display = 'none';
-    }
+    // Timeout para dar tempo ao Android de recalcular a largura/altura após o evento de rotação
+    setTimeout(() => {
+      const emPe = window.matchMedia('(orientation: portrait)').matches || (window.innerHeight > window.innerWidth);
+      if (emPe) {
+        overlay.style.display = 'flex';
+      } else {
+        overlay.style.display = 'none';
+      }
+    }, 150);
   } else {
     // Computadores de mesa nunca exibem este aviso
     overlay.style.display = 'none';
@@ -671,9 +715,25 @@ window.addEventListener('orientationchange', verificarOrientacao);
 document.addEventListener('fullscreenchange', ajustarEscalaFullscreen);
 document.addEventListener('webkitfullscreenchange', ajustarEscalaFullscreen);
 
+// Monitoramento moderno e adicional de orientação específico para navegadores Android baseados no Chromium
+if (window.screen && window.screen.orientation) {
+  window.screen.orientation.addEventListener('change', verificarOrientacao);
+}
+
 function toggleFullScreen() {
   tocarSomClick();
   const elemento = document.documentElement;
+  
+  // Detecção dedicada de iPhone/iOS
+  const esIphone = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  if (esIphone) {
+    document.body.classList.toggle("fullscreen-ios-fake");
+    const estaAtivo = document.body.classList.contains("fullscreen-ios-fake");
+    mostrarMensagemGlob(estaAtivo ? "Modo tela cheia simulado ativado!" : "Modo tela cheia desativado.");
+    return;
+  }
+  
+  // Comportamento padrão para Android e computadores
   if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
     if (elemento.requestFullscreen) {
       elemento.requestFullscreen().catch(err => { console.log("Erro ao entrar em tela cheia:", err); });

@@ -187,6 +187,7 @@ function perderVidaDesafio(motivo) {
 
 window.fecharErroDesafio = function() {
     tocarSomClick();
+    document.getElementById("modal-erro-desafio").style.none = "none";
     document.getElementById("modal-erro-desafio").style.display = "none";
     if (modoAtual === "impossivel") { tempoRestante = tempoMaximo; iniciarCronometro(); }
 };
@@ -495,6 +496,30 @@ let isDragging = false;
 let startX = 0, startY = 0; 
 let pecaPotencial = null;
 
+// ==========================================
+// SUPORTE DE TOQUE LONGO (LONG PRESS) PARA DISPOSITIVOS TOUCH (iOS/Android)
+// ==========================================
+let timerMenuContextoTouch = null;
+
+function iniciarTimerLongPress(peca, x, y) {
+    cancelarTimerLongPress();
+    timerMenuContextoTouch = setTimeout(() => {
+        // Interrompe o processo de arrasto para abrir apenas as opções da peça
+        isDragging = false;
+        grupoEmMovimento = [];
+        pecaEmMovimento = null;
+        
+        exibirMenuContexto(peca, x, y);
+    }, 600); // 600ms pressionando
+}
+
+function cancelarTimerLongPress() {
+    if (timerMenuContextoTouch) {
+        clearTimeout(timerMenuContextoTouch);
+        timerMenuContextoTouch = null;
+    }
+}
+
 function iniciarArrastoReal(peca, clientX, clientY, isNovaPeca) {
     if (isNovaPeca) {
         salvarEstado(); 
@@ -539,6 +564,11 @@ document.addEventListener("pointerdown", (e) => {
     let peca = e.target.closest(".peca-draggable");
     if (!peca) return;
     
+    // Inicia o timer de long press para abrir o menu por toque no celular/iPhone
+    if (peca.dataset.noQuadro === "true" && e.pointerType === "touch") {
+        iniciarTimerLongPress(peca, e.clientX, e.clientY);
+    }
+
     let agora = Date.now();
     let tempoDesdeUltimo = agora - ultimoCliqueTempo;
     ultimoCliqueTempo = agora;
@@ -561,6 +591,7 @@ document.addEventListener("pointerdown", (e) => {
             
             grupoEmMovimento = []; pecaEmMovimento = null; isDragging = false;
             resolverColisaoGlobal(); verificarLigacoesQuimicas(); atualizarContadores(); tocarSomClick();
+            cancelarTimerLongPress();
             return; 
         }
         if (peca.classList.contains("ligacao") && peca.dataset.noQuadro === "true") {
@@ -568,6 +599,7 @@ document.addEventListener("pointerdown", (e) => {
                 salvarEstado(); peca.style.transform = ""; peca.dataset.angle = 0; peca.classList.toggle("lig-vertical"); tocarSomClick();
                 grupoEmMovimento = []; pecaEmMovimento = null; isDragging = false;
             }
+            cancelarTimerLongPress();
             return;
         }
     }
@@ -591,14 +623,19 @@ document.addEventListener("pointermove", (e) => {
     if (pecaPotencial && !isDragging) {
         if (Math.abs(e.clientX - startX) > 10 || Math.abs(e.clientY - startY) > 10) {
             clearTimeout(toqueEmEspera); pecaPotencial = null;
+            cancelarTimerLongPress();
         }
         return; 
+    }
+    if (isDragging) {
+        cancelarTimerLongPress();
     }
     if (!isDragging || grupoEmMovimento.length === 0) return;
     e.preventDefault(); moverGrupo(e.clientX, e.clientY);
 });
 
 document.addEventListener("pointerup", (e) => {
+    cancelarTimerLongPress();
     clearTimeout(toqueEmEspera); pecaPotencial = null;
     if (!isDragging || grupoEmMovimento.length === 0) return;
 
@@ -645,12 +682,18 @@ document.addEventListener("pointerup", (e) => {
     atualizarContadores(); pecaEmMovimento = null; grupoEmMovimento = []; isDragging = false;
 });
 
-document.addEventListener("contextmenu", (e) => {
-    let peca = e.target.closest(".peca-draggable.no-quadro");
-    if(!peca) return;
-    e.preventDefault(); pecaAlvoMenu = peca;
+// Em caso de o gesto de toque ser cancelado pelo sistema operacional
+document.addEventListener("pointercancel", () => {
+    cancelarTimerLongPress();
+});
+
+// Lógica única para renderização do menu de contexto (toque longo ou clique direito)
+function exibirMenuContexto(peca, x, y) {
+    pecaAlvoMenu = peca;
     let menu = document.getElementById("menu-contexto");
     let lista = document.getElementById("lista-menu-contexto");
+    if(!menu || !lista) return;
+
     lista.innerHTML = "";
 
     let isVinculado = peca.dataset.grupo ? true : false;
@@ -672,7 +715,16 @@ document.addEventListener("contextmenu", (e) => {
         }
     }
 
-    menu.style.left = e.clientX + "px"; menu.style.top = e.clientY + "px"; menu.classList.remove("escondido");
+    menu.style.left = x + "px"; 
+    menu.style.top = y + "px"; 
+    menu.classList.remove("escondido");
+}
+
+document.addEventListener("contextmenu", (e) => {
+    let peca = e.target.closest(".peca-draggable.no-quadro");
+    if(!peca) return;
+    e.preventDefault(); 
+    exibirMenuContexto(peca, e.clientX, e.clientY);
 });
 
 function curarQuadro() {
