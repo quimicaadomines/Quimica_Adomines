@@ -47,10 +47,10 @@ body.fullscreen-ios-fake .container {
 }
 
 /* ==========================================================================
-   OVERLAY DE ROTAÇÃO PARA DISPOSITIVOS EM MODO RETRATO (EM PÉ)
+   OVERLAY DE ROTAÇÃO PARA DISPOSITIVOS EM MODO RETRATO (EM PÉ) - CSS PURO
    ========================================================================== */
-#overlay-orientacao {
-  display: none; /* Ativado dinamicamente pelo JavaScript de forma precisa */
+#aviso-virar-tela {
+  display: none; /* Oculto por padrão */
   position: fixed;
   top: 0;
   left: 0;
@@ -74,6 +74,12 @@ body.fullscreen-ios-fake .container {
   0% { transform: rotate(0deg); }
   50% { transform: rotate(-90deg); }
   100% { transform: rotate(0deg); }
+}
+
+@media screen and (orientation: portrait) {
+  #aviso-virar-tela {
+    display: flex !important; /* Exibe o overlay em flexbox automaticamente somente na vertical */
+  }
 }
 
 /* ==========================================================================

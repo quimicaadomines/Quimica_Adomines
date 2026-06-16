@@ -9,7 +9,7 @@ window.addEventListener('beforeinstallprompt', (e) => {
   eventoInstalacao = e;
   console.log("✅ PWA Detectado! O instalador nativo está pronto e vinculado ao botão.");
   
-  // Como o instalador nativo está pronto, exibe o botão na tela
+  // Como o instalador nativo está pronto e capturado de forma segura, exibe o botão na tela
   const botao = document.getElementById('btn-instalar');
   if (botao) {
     botao.style.display = 'inline-block';
@@ -17,7 +17,7 @@ window.addEventListener('beforeinstallprompt', (e) => {
 });
 
 // ==========================================
-// GLOBAL JAVASCRIPT (CORRIGIDO PARA NÃO DESLIGAR A ASSISTENTE)
+// GLOBAL JAVASCRIPT
 // ==========================================
 let musica = document.getElementById("musica");
 let clickAudio = document.getElementById("click");
@@ -87,7 +87,6 @@ function carregarConfiguracoes() {
   gerenciarBateriaQuimiChat(); 
   injetarElementosGlobais(); 
   inicializarControleInstalacao(); // Configura o botão de instalação nativo
-  verificarOrientacao(); // Executa o cálculo de tela deitada imediatamente
 }
 
 if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', carregarConfiguracoes); } 
@@ -325,7 +324,7 @@ function renderizarConquistas() {
 }
 
 // ==========================================
-// INJEÇÃO GLOBAL DOS MODAIS (Tabela, QuimiChat, iOS PWA, Rotação)
+// INJEÇÃO GLOBAL DOS MODAIS (Tabela, QuimiChat, iOS PWA, Rotação, Sugestões)
 // ==========================================
 const elementosTabela =[
     { n: 1, s: 'H', nome: 'Hidrogênio', l: '1', m: '1.008', c: 1, r: 1 }, { n: 2, s: 'He', nome: 'Hélio', l: '0', m: '4.002', c: 18, r: 1 },
@@ -473,9 +472,27 @@ function injetarElementosGlobais() {
         document.body.insertAdjacentHTML('beforeend', instalacaoHTML);
     }
 
-    if (!document.getElementById('overlay-orientacao')) {
+    if (!document.getElementById('modal-sugestoes')) {
+        const sugestoesHTML = `
+        <div id="modal-sugestoes" class="modal-overlay" onclick="fecharModais(event)" style="z-index: 100000; display: none; align-items: center; justify-content: center;">
+          <div class="modal-box" style="max-width: 400px; padding: 25px; display: flex; flex-direction: column;">
+            <div class="modal-header" style="background: var(--btn-bg); color: white;">
+              <h3>📧 Enviar Sugestão</h3>
+              <button onclick="window.fecharModalSugestoes()">✖</button>
+            </div>
+            <div class="modal-body" style="padding: 15px 0; display: flex; flex-direction: column; gap: 15px;">
+              <p style="font-size: 14px; color: var(--text-color);">Deixe sua sugestão ou feedback para ajudar a melhorar o jogo Química Adômines!</p>
+              <textarea id="sugestao-texto" placeholder="Digite sua sugestão aqui..." style="width: 100%; height: 120px; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 14px; resize: none; outline: none;"></textarea>
+              <button onclick="window.enviarSugestao()" style="background: var(--btn-bg); color: white; border: none; padding: 12px; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 15px; width: 100%;">Enviar</button>
+            </div>
+          </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', sugestoesHTML);
+    }
+
+    if (!document.getElementById('aviso-virar-tela')) {
         const orientacaoHTML = `
-        <div id="overlay-orientacao">
+        <div id="aviso-virar-tela">
           <div class="celular-rotacionando">🔄</div>
           <h2 style="margin-top: 25px; font-size: 24px; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); color: white;">Deite o Dispositivo!</h2>
           <p style="margin-top: 10px; font-size: 15px; opacity: 0.85; max-width: 320px; line-height: 1.5; text-align: center; color: white;">
@@ -601,6 +618,99 @@ if ('serviceWorker' in navigator) {
 }
 
 // ==========================================
+// FUNÇÕES DE SUGESTÕES (ENVIADAS POR E-MAIL)
+// ==========================================
+window.abrirSugestoes = function() {
+  if (typeof tocarSomClick === 'function') tocarSomClick();
+  const modal = document.getElementById('modal-sugestoes');
+  if (modal) {
+    modal.style.display = 'flex';
+    const textarea = document.getElementById('sugestao-texto');
+    if (textarea) textarea.value = '';
+  }
+}
+
+window.fecharModalSugestoes = function() {
+  if (typeof tocarSomClick === 'function') tocarSomClick();
+  const modal = document.getElementById('modal-sugestoes');
+  if (modal) modal.style.display = 'none';
+}
+
+window.enviarSugestao = async function() {
+  if (typeof tocarSomClick === 'function') tocarSomClick();
+  const textarea = document.getElementById('sugestao-texto');
+  if (!textarea) return;
+  
+  const texto = textarea.value.trim();
+  if (texto === "") {
+    if (typeof mostrarMensagemGlob === 'function') mostrarMensagemGlob("⚠️ Por favor, digite sua sugestão antes de enviar.");
+    return;
+  }
+
+  // =========================================================================
+  // CONFIGURAÇÃO DA API DE E-MAIL INSTITUCIONAL (Formspree ou EmailJS)
+  // Substitua as variáveis comentadas pelas suas credenciais reais.
+  // =========================================================================
+  
+  // Opção A: FORMSPREE (Mais simples, basta criar um formulário gratuito em formspree.io)
+  const urlFormspree = "https://formspree.io/f/SUA_CHAVE_FORMSPREE"; // Cole sua URL de envio institucional aqui.
+  
+  // Opção B: EMAILJS (Excelente e estruturado, crie uma conta em emailjs.com)
+  const serviceID = "SEU_SERVICE_ID_AQUI";
+  const templateID = "SEU_TEMPLATE_ID_AQUI";
+  const publicKey = "SUA_PUBLIC_KEY_AQUI";
+
+  try {
+    // --- ATIVAÇÃO DE ENVIO ---
+    // Remova as barras de comentário (/* e */) da opção que você deseja utilizar.
+
+    /*
+    // [DESCOMENTE ESTE BLOCO SE USAR FORMSPREE]
+    const response = await fetch(urlFormspree, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      body: JSON.stringify({
+        message: texto,
+        subject: "Sugestão - Química Adômines"
+      })
+    });
+    if (!response.ok) throw new Error("Erro na requisição Formspree");
+    */
+
+    /*
+    // [DESCOMENTE ESTE BLOCO SE USAR EMAILJS]
+    const response = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        service_id: serviceID,
+        template_id: templateID,
+        user_id: publicKey,
+        template_params: {
+          message: texto,
+          subject: "Nova Sugestão Recebida!"
+        }
+      })
+    });
+    if (!response.ok) throw new Error("Erro na requisição EmailJS");
+    */
+
+    // Exibição de simulação (Remova isso quando ativar as chaves reais acima)
+    console.log("Simulação de Envio bem-sucedido. Texto enviado:", texto);
+
+    mostrarMensagemGlob("📧 Sugestão enviada com sucesso! Muito obrigado pelo feedback.");
+    window.fecharModalSugestoes();
+
+  } catch (error) {
+    console.error("Erro ao enviar sugestão:", error);
+    mostrarMensagemGlob("❌ Não foi possível conectar ao servidor. Verifique a internet e tente mais tarde.");
+  }
+}
+
+// ==========================================
 // CONTROLE DE INSTALAÇÃO PWA E TELA CHEIA (COM FIX DE ESCALA DESKTOP)
 // ==========================================
 window.fecharModalInstalacao = function() {
@@ -626,8 +736,12 @@ function inicializarControleInstalacao() {
     return;
   }
 
-  // Deixa o botão SEMPRE VISÍVEL para incentivar o download, independente de o evento ter disparado ou não
-  botao.style.display = 'inline-block';
+  // O botão só fica visível e funcional se a variável de instalação PWA já estiver preenchida de forma segura
+  if (eventoInstalacao) {
+    botao.style.display = 'inline-block';
+  } else {
+    botao.style.display = 'none';
+  }
 
   // Vincula a ação de clique ao botão abrindo primeiramente o modal explicativo
   botao.onclick = () => {
@@ -653,9 +767,6 @@ function inicializarControleInstalacao() {
               console.log(`Escolha de instalação: ${outcome}`);
               eventoInstalacao = null;
               botao.style.display = 'none';
-            } else {
-              // Fallback para Android/PC quando a API nativa não estiver pronta ou em ambiente HTTP simples
-              mostrarMensagemGlob("Para baixar no Android/PC, clique nos três pontinhos no canto superior do navegador e escolha 'Instalar aplicativo' ou 'Adicionar à tela inicial'.");
             }
           }
         };
@@ -686,39 +797,8 @@ function ajustarEscalaFullscreen() {
   }
 }
 
-// Verifica a orientação real do celular/tablet dinamicamente (revisado com delay para evitar race-conditions no Android)
-function verificarOrientacao() {
-  const overlay = document.getElementById('overlay-orientacao');
-  if (!overlay) return;
-
-  const isMobile = window.matchMedia('(pointer: coarse)').matches || 
-                   /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-  if (isMobile) {
-    // Timeout para dar tempo ao Android de recalcular a largura/altura após o evento de rotação
-    setTimeout(() => {
-      const emPe = window.matchMedia('(orientation: portrait)').matches || (window.innerHeight > window.innerWidth);
-      if (emPe) {
-        overlay.style.display = 'flex';
-      } else {
-        overlay.style.display = 'none';
-      }
-    }, 150);
-  } else {
-    // Computadores de mesa nunca exibem este aviso
-    overlay.style.display = 'none';
-  }
-}
-
-window.addEventListener('resize', verificarOrientacao);
-window.addEventListener('orientationchange', verificarOrientacao);
 document.addEventListener('fullscreenchange', ajustarEscalaFullscreen);
 document.addEventListener('webkitfullscreenchange', ajustarEscalaFullscreen);
-
-// Monitoramento moderno e adicional de orientação específico para navegadores Android baseados no Chromium
-if (window.screen && window.screen.orientation) {
-  window.screen.orientation.addEventListener('change', verificarOrientacao);
-}
 
 function toggleFullScreen() {
   tocarSomClick();
