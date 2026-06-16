@@ -35,11 +35,11 @@
     
     <button class="icon-btn" onclick="toggleAssistenteVoz()" id="btnAssistente" title="Assistente de Voz">🎤</button>
 
-    <!-- BOTÃO DE SUGESTÕES ADICIONADO -->
+    <!-- BOTÃO DE SUGESTÕES -->
     <button class="icon-btn" onclick="abrirSugestoes()" title="Enviar Sugestão">📧</button>
     
-    <!-- BOTÕES ADICIONADOS PARA PWA E TELA CHEIA (Começa oculto por padrão) -->
-    <button id="btn-instalar" class="icon-btn" style="display: none;" title="Baixar Aplicativo">📲</button>
+    <!-- BOTÕES ADICIONADOS PARA PWA E TELA CHEIA (Inicia visível para garantir aparecimento) -->
+    <button id="btn-instalar" class="icon-btn" style="display: inline-block;" title="Baixar Aplicativo">📲</button>
     <button class="icon-btn" onclick="toggleFullScreen()" id="btnFullscreen" title="Tela Cheia">📺</button>
     
     <div id="trofeus-globais" class="trofeus-container"></div>
@@ -212,28 +212,6 @@
             <h1 id="texto-resultado-desafio" style="font-size: 32px; margin-bottom: 15px; text-shadow: 1px 1px 0px rgba(0,0,0,0.1);">Excelente!</h1>
             <p id="subtexto-resultado-desafio" style="margin-bottom: 30px; font-size: 18px; color: #334155; font-weight: 500;"></p>
             <button type="button" onclick="mudarTela('modos.html')" id="btn-resultado-desafio" class="btn-epic-green">Voltar ao Menu</button>
-        </div>
-    </div>
-</div>
-
-<div id="ajuda-overlay" class="modal-overlay" onclick="fecharModais(event)">
-    <div class="modal-box" style="max-width: 600px;">
-        <div class="modal-header" style="background: #0284c7;">
-            <h3>❔ Manual de Ferramentas</h3>
-            <button onclick="document.getElementById('ajuda-overlay').style.display='none'">✖</button>
-        </div>
-        <div class="modal-body" style="text-align: left; font-size: 14px; line-height: 1.6; margin-bottom: 20px;">
-            <p><strong>🖱️ Arrastar:</strong> Clique e segure para mover átomos e ligações.</p>
-            <p><strong>🖱️ Duplo Clique (Painel de Peças):</strong> Adiciona a peça automaticamente no centro do quadro.</p>
-            <p><strong>🖱️ Botão Direito:</strong> Clique em uma peça solta para abrir ferramentas extras (Copiar e Colar, Excluir, etc).</p>
-            <p><strong>🔄 Duplo Clique (Quadro):</strong> Clique duas vezes numa ligação solta para girá-la em 90º.</p>
-            <p><strong>↻ Alavanca Amarela:</strong> Arraste para girar em 360º livremente.</p>
-            <p><strong>🗑️ Exclusão Rápida:</strong> Soltar uma peça exatamente em cima de outra igual a exclui.</p>
-            <p><strong>🚨 Valência Excedida:</strong> O átomo pisca Vermelho e emite um erro.</p>
-            <p><strong>✅ Valência Correta:</strong> O átomo pisca Verde e emite um som de acerto!</p>
-            <div style="text-align: center; margin-top: 20px; padding-top: 15px; border-top: 1px solid #ccc;">
-                <button onclick="abrirTutorialManual()" style="background: #0284c7; color: white; padding: 10px 20px; border: none; border-radius: 20px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.3); font-size: 16px;">▶ Rever Tutorial do Modo</button>
-            </div>
         </div>
     </div>
 </div>

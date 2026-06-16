@@ -9,7 +9,7 @@ window.addEventListener('beforeinstallprompt', (e) => {
   eventoInstalacao = e;
   console.log("✅ PWA Detectado! O instalador nativo está pronto e vinculado ao botão.");
   
-  // No Android e PC, como o instalador nativo está capturado com segurança, exibe o botão
+  // Como o instalador nativo está pronto e capturado de forma segura, exibe o botão na tela
   const botao = document.getElementById('btn-instalar');
   if (botao) {
     botao.style.display = 'inline-block';
@@ -525,99 +525,6 @@ function descontarBateria() {
     if(dados.restantes > 0) { dados.restantes--; localStorage.setItem("quimiChatBateria", JSON.stringify(dados)); atualizarBateriaUI(); }
 }
 
-function enviarPerguntaQuimiChatInput() {
-    let input = document.getElementById("quimichat-input");
-    let texto = input.value.trim();
-    if(texto === "") return;
-    input.value = "";
-    enviarPerguntaQuimiChat(texto, false);
-}
-
-function pareceQuimica(pergunta) {
-    let proibidas =["futebol", "neymar", "filme", "capital", "politica", "bbb", "quem ganhou", "idade de"];
-    let p = pergunta.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-    if(proibidas.some(x => p.includes(x))) return false;
-    return true; 
-}
-
-async function enviarPerguntaQuimiChat(pergunta, lerVozAlta) {
-    let container = document.getElementById("quimichat-mensagens");
-    
-    container.innerHTML += `<div class="msg-user">${pergunta}</div>`;
-    container.scrollTop = container.scrollHeight;
-
-    let dadosBateria = gerenciarBateriaQuimiChat();
-    if (dadosBateria.restantes <= 0) {
-        let msgSemEnergia = "Minha bateria acabou! Usei muita energia processando cálculos químicos hoje. Volte amanhã!";
-        container.innerHTML += `<div class="msg-ai">${msgSemEnergia}</div>`;
-        if(lerVozAlta && typeof falarAssistente === "function") falarAssistente(msgSemEnergia);
-        return;
-    }
-
-    if (!pareceQuimica(pergunta)) {
-        let msgNaoQuimica = "Isso não parece ter nenhuma relação com química! Reformule sua pergunta.";
-        container.innerHTML += `<div class="msg-ai">${msgNaoQuimica}</div>`;
-        if(lerVozAlta && typeof falarAssistente === "function") falarAssistente(msgNaoQuimica);
-        return;
-    }
-
-    let idTemp = "msg-" + Date.now();
-    container.innerHTML += `<div id="${idTemp}" class="carregando-ai">Adômines está pensando...</div>`;
-    container.scrollTop = container.scrollHeight;
-
-    try {
-        const responseApi = await fetch(`/api/chat`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ pergunta: pergunta })
-        });
-
-        const dados = await responseApi.json();
-        
-        let avisoPensando = document.getElementById(idTemp);
-        if(avisoPensando) avisoPensando.remove();
-
-        if (!responseApi.ok) {
-            throw new Error(dados.error ? (dados.error.message || dados.error) : `Erro HTTP: ${responseApi.status}`);
-        }
-
-        let respostaTexto = dados.candidates[0].content.parts[0].text.trim();
-        
-        respostaTexto = respostaTexto.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
-        respostaTexto = respostaTexto.replace(/\n/g, '<br>');
-        
-        if (!respostaTexto.includes("Desculpe, eu só posso responder")) {
-            descontarBateria(); 
-        }
-
-        container.innerHTML += `<div class="msg-ai">${respostaTexto}</div>`;
-        
-        let textoParaVoz = respostaTexto.replace(/<br>/g, " ").replace(/<b>/g, "").replace(/<\/b>/g, "");
-        if(lerVozAlta && typeof falarAssistente === "function") falarAssistente(textoParaVoz);
-        
-        container.scrollTop = container.scrollHeight;
-
-    } catch (e) {
-        let avisoPensando = document.getElementById(idTemp);
-        if(avisoPensando) avisoPensando.remove();
-        console.error("ERRO NO CHAT:", e.message);
-        let msgErro = "Não consegui me conectar ao laboratório agora. Erro: " + (e.message || "Desconhecido");
-        container.innerHTML += `<div class="msg-ai" style="color:#ef4444">${msgErro}</div>`;
-        if(lerVozAlta && typeof falarAssistente === "function") falarAssistente("Não consegui me conectar ao laboratório agora.");
-    }
-}
-
-// ==========================================
-// REGISTRO DO SERVICE WORKER (PWA)
-// ==========================================
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js')
-      .then(reg => console.log('Service Worker registrado:', reg.scope))
-      .catch(err => console.log('Erro ao registrar Service Worker:', err));
-  });
-}
-
 // ==========================================
 // FUNÇÕES DE SUGESTÕES (ENVIADAS POR E-MAIL)
 // ==========================================
@@ -648,14 +555,10 @@ window.enviarSugestao = async function() {
     return;
   }
 
-  // =========================================================================
-  // CONFIGURAÇÃO DA API DE E-MAIL INSTITUCIONAL (Formspree)
-  // Configurado com a sua URL ativa do Formspree.
-  // =========================================================================
+  // Configuração da URL ativa do seu Formspree institucional
   const urlFormspree = "https://formspree.io/f/mwvjzbog";
 
   try {
-    // Envio de dados via API REST direta ao Formspree
     const response = await fetch(urlFormspree, {
       method: "POST",
       headers: {
@@ -705,18 +608,8 @@ function inicializarControleInstalacao() {
     return;
   }
 
-  const esIphone = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-
-  // No iOS, mostramos o botão imediatamente por padrão porque o evento 'beforeinstallprompt' nunca dispara no Safari
-  if (esIphone) {
-    botao.style.display = 'inline-block';
-  } else if (eventoInstalacao) {
-    // No Android/PC, mostramos se já capturamos o evento PWA com sucesso
-    botao.style.display = 'inline-block';
-  } else {
-    // Caso contrário, mantemos oculto inicialmente
-    botao.style.display = 'none';
-  }
+  // Mantemos o botão visível por padrão em todos os aparelhos
+  botao.style.display = 'inline-block';
 
   // Vincula a ação de clique ao botão abrindo primeiramente o modal explicativo
   botao.onclick = () => {
@@ -731,6 +624,7 @@ function inicializarControleInstalacao() {
           tocarSomClick();
           modalInstalacao.style.display = 'none'; // Fecha o modal de confirmação
           
+          const esIphone = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
           if (esIphone) {
             const modalIos = document.getElementById('modal-ios');
             if (modalIos) modalIos.style.display = 'flex';
@@ -741,6 +635,9 @@ function inicializarControleInstalacao() {
               console.log(`Escolha de instalação: ${outcome}`);
               eventoInstalacao = null;
               botao.style.display = 'none';
+            } else {
+              // Se o evento nativo ainda não estiver carregado (ex: o site ainda está carregando o service worker ou em localhost)
+              mostrarMensagemGlob("📲 Carregando instalador... Se o prompt não abrir, certifique-se de que o site está rodando em ambiente seguro (HTTPS).");
             }
           }
         };
@@ -749,7 +646,7 @@ function inicializarControleInstalacao() {
   };
 }
 
-// Controla e força a escala Desktop (1280px) mesmo quando os navegadores de celular ignoram no modo tela cheia (Corrigido para evitar compressão)
+// Controla e força a escala Desktop (1280px x 720px) mantendo a proporção de aspecto (aspect-ratio) para evitar qualquer compressão ou deformação de layout (Corrigido com Math.min)
 function ajustarEscalaFullscreen() {
   const isFullscreen = document.fullscreenElement || 
                        document.webkitFullscreenElement || 
@@ -761,18 +658,31 @@ function ajustarEscalaFullscreen() {
 
   if (isFullscreen && isMobile) {
     const larguraIdeal = 1280;
-    const larguraReal = window.innerWidth;
-    const scale = larguraReal / larguraIdeal;
+    const alturaIdeal = 720;
     
-    // Força o body a atuar como um contêiner absoluto e aplicar escala sem deformar
+    // Evita distorções: calcula a escala com base tanto na largura quanto na altura, preservando a proporção de aspecto original (letterboxing)
+    const scaleX = window.innerWidth / larguraIdeal;
+    const scaleY = window.innerHeight / alturaIdeal;
+    const scale = Math.min(scaleX, scaleY);
+    
+    // Força o body a atuar como um contêiner absoluto e aplicar escala uniforme sem deformar
     document.body.style.position = "absolute";
     document.body.style.top = "0";
     document.body.style.left = "0";
     document.body.style.width = `${larguraIdeal}px`;
+    document.body.style.height = `${alturaIdeal}px`;
     document.body.style.transform = `scale(${scale})`;
     document.body.style.transformOrigin = "top left";
     document.body.style.overflow = "hidden";
-    document.body.style.height = `${window.innerHeight / scale}px`;
+    
+    // Centraliza o jogo perfeitamente na tela
+    const leftOffset = (window.innerWidth - (larguraIdeal * scale)) / 2;
+    const topOffset = (window.innerHeight - (alturaIdeal * scale)) / 2;
+    document.body.style.left = `${leftOffset}px`;
+    document.body.style.top = `${topOffset}px`;
+    
+    // Oculta barras de rolagem no container raiz
+    document.documentElement.style.overflow = "hidden";
   } else {
     // Restaura as dimensões padrão do dispositivo ao sair
     document.body.style.position = "";
@@ -783,6 +693,7 @@ function ajustarEscalaFullscreen() {
     document.body.style.transform = "";
     document.body.style.transformOrigin = "";
     document.body.style.overflow = "";
+    document.documentElement.style.overflow = "";
   }
 }
 

@@ -78,7 +78,7 @@ body.fullscreen-ios-fake .container {
 
 @media screen and (orientation: portrait) {
   #aviso-virar-tela {
-    display: flex !important; /* Exibe o overlay em flexbox automaticamente somente na vertical */
+    display: flex !important; /* Exibe o overlay automaticamente apenas na vertical */
   }
 }
 
