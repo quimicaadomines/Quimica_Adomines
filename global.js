@@ -9,7 +9,7 @@ window.addEventListener('beforeinstallprompt', (e) => {
   eventoInstalacao = e;
   console.log("✅ PWA Detectado! O instalador nativo está pronto e vinculado ao botão.");
   
-  // Como o instalador nativo está pronto e capturado de forma segura, exibe o botão na tela
+  // No Android e PC, como o instalador nativo está capturado com segurança, exibe o botão
   const botao = document.getElementById('btn-instalar');
   if (botao) {
     botao.style.display = 'inline-block';
@@ -86,7 +86,8 @@ function carregarConfiguracoes() {
   renderizarTrofeus();
   gerenciarBateriaQuimiChat(); 
   injetarElementosGlobais(); 
-  inicializarControleInstalacao(); // Configura o botão de instalação nativo
+  inicializarControleInstalacao(); // Configura o comportamento do PWA com base no sistema
+  ajustarEscalaFullscreen(); // Ajusta a escala ao carregar caso já esteja em fullscreen
 }
 
 if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', carregarConfiguracoes); } 
@@ -376,7 +377,7 @@ const elementosTabela =[
     { n: 91, s: 'Pa', nome: 'Protactínio', l: 'Variável', m: '231.04', c: 6, r: 9 }, { n: 92, s: 'U', nome: 'Urânio', l: 'Variável', m: '238.03', c: 7, r: 9 },
     { n: 93, s: 'Np', nome: 'Netúnio', l: 'Variável', m: '[237]', c: 8, r: 9 }, { n: 94, s: 'Pu', nome: 'Plutônio', l: 'Variável', m: '[244]', c: 9, r: 9 },
     { n: 95, s: 'Am', nome: 'Amerício', l: 'Variável', m: '[243]', c: 10, r: 9 }, { n: 96, s: 'Cm', nome: 'Cúrio', l: 'Variável', m: '[247]', c: 11, r: 9 },
-    { n: 97, s: 'Bk', nome: 'Berquélio', l: 'Variável', m: '[247]', c: 12, r: 9 }, { n: 98, s: 'Cf', nome: 'Califórnio', l: 'Variável', m: '[251]', c: 13, r: 9 },
+    { n: 97, s: 'Bk', merge: true, s: 'Bk', nome: 'Berquélio', l: 'Variável', m: '[247]', c: 12, r: 9 }, { n: 98, s: 'Cf', nome: 'Califórnio', l: 'Variável', m: '[251]', c: 13, r: 9 },
     { n: 99, s: 'Es', nome: 'Einstênio', l: 'Variável', m: '[252]', c: 14, r: 9 }, { n: 100, s: 'Fm', nome: 'Férmio', l: 'Variável', m: '[257]', c: 15, r: 9 },
     { n: 101, s: 'Md', nome: 'Mendelévio', l: 'Variável', m: '[258]', c: 16, r: 9 }, { n: 102, s: 'No', nome: 'Nobélio', l: 'Variável', m: '[259]', c: 17, r: 9 },
     { n: 103, s: 'Lr', nome: 'Laurêncio', l: 'Variável', m: '[266]', c: 18, r: 9 },
@@ -565,19 +566,19 @@ async function enviarPerguntaQuimiChat(pergunta, lerVozAlta) {
     container.scrollTop = container.scrollHeight;
 
     try {
-        const respostaApi = await fetch(`/api/chat`, {
+        const responseApi = await fetch(`/api/chat`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ pergunta: pergunta })
         });
 
-        const dados = await respostaApi.json();
+        const dados = await responseApi.json();
         
         let avisoPensando = document.getElementById(idTemp);
         if(avisoPensando) avisoPensando.remove();
 
-        if (!respostaApi.ok) {
-            throw new Error(dados.error ? (dados.error.message || dados.error) : `Erro HTTP: ${respostaApi.status}`);
+        if (!responseApi.ok) {
+            throw new Error(dados.error ? (dados.error.message || dados.error) : `Erro HTTP: ${responseApi.status}`);
         }
 
         let respostaTexto = dados.candidates[0].content.parts[0].text.trim();
@@ -648,24 +649,13 @@ window.enviarSugestao = async function() {
   }
 
   // =========================================================================
-  // CONFIGURAÇÃO DA API DE E-MAIL INSTITUCIONAL (Formspree ou EmailJS)
-  // Substitua as variáveis comentadas pelas suas credenciais reais.
+  // CONFIGURAÇÃO DA API DE E-MAIL INSTITUCIONAL (Formspree)
+  // Configurado com a sua URL ativa do Formspree.
   // =========================================================================
-  
-  // Opção A: FORMSPREE (Mais simples, basta criar um formulário gratuito em formspree.io)
-  const urlFormspree = "https://formspree.io/f/SUA_CHAVE_FORMSPREE"; // Cole sua URL de envio institucional aqui.
-  
-  // Opção B: EMAILJS (Excelente e estruturado, crie uma conta em emailjs.com)
-  const serviceID = "SEU_SERVICE_ID_AQUI";
-  const templateID = "SEU_TEMPLATE_ID_AQUI";
-  const publicKey = "SUA_PUBLIC_KEY_AQUI";
+  const urlFormspree = "https://formspree.io/f/mwvjzbog";
 
   try {
-    // --- ATIVAÇÃO DE ENVIO ---
-    // Remova as barras de comentário (/* e */) da opção que você deseja utilizar.
-
-    /*
-    // [DESCOMENTE ESTE BLOCO SE USAR FORMSPREE]
+    // Envio de dados via API REST direta ao Formspree
     const response = await fetch(urlFormspree, {
       method: "POST",
       headers: {
@@ -677,29 +667,8 @@ window.enviarSugestao = async function() {
         subject: "Sugestão - Química Adômines"
       })
     });
+    
     if (!response.ok) throw new Error("Erro na requisição Formspree");
-    */
-
-    /*
-    // [DESCOMENTE ESTE BLOCO SE USAR EMAILJS]
-    const response = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        service_id: serviceID,
-        template_id: templateID,
-        user_id: publicKey,
-        template_params: {
-          message: texto,
-          subject: "Nova Sugestão Recebida!"
-        }
-      })
-    });
-    if (!response.ok) throw new Error("Erro na requisição EmailJS");
-    */
-
-    // Exibição de simulação (Remova isso quando ativar as chaves reais acima)
-    console.log("Simulação de Envio bem-sucedido. Texto enviado:", texto);
 
     mostrarMensagemGlob("📧 Sugestão enviada com sucesso! Muito obrigado pelo feedback.");
     window.fecharModalSugestoes();
@@ -736,10 +705,16 @@ function inicializarControleInstalacao() {
     return;
   }
 
-  // O botão só fica visível e funcional se a variável de instalação PWA já estiver preenchida de forma segura
-  if (eventoInstalacao) {
+  const esIphone = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+  // No iOS, mostramos o botão imediatamente por padrão porque o evento 'beforeinstallprompt' nunca dispara no Safari
+  if (esIphone) {
+    botao.style.display = 'inline-block';
+  } else if (eventoInstalacao) {
+    // No Android/PC, mostramos se já capturamos o evento PWA com sucesso
     botao.style.display = 'inline-block';
   } else {
+    // Caso contrário, mantemos oculto inicialmente
     botao.style.display = 'none';
   }
 
@@ -756,7 +731,6 @@ function inicializarControleInstalacao() {
           tocarSomClick();
           modalInstalacao.style.display = 'none'; // Fecha o modal de confirmação
           
-          const esIphone = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
           if (esIphone) {
             const modalIos = document.getElementById('modal-ios');
             if (modalIos) modalIos.style.display = 'flex';
@@ -775,20 +749,35 @@ function inicializarControleInstalacao() {
   };
 }
 
-// Controla e força a escala Desktop (1280px) mesmo quando os navegadores de celular ignoram no modo tela cheia
+// Controla e força a escala Desktop (1280px) mesmo quando os navegadores de celular ignoram no modo tela cheia (Corrigido para evitar compressão)
 function ajustarEscalaFullscreen() {
-  const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
-  if (isFullscreen && window.innerWidth < 1280) {
+  const isFullscreen = document.fullscreenElement || 
+                       document.webkitFullscreenElement || 
+                       document.msFullscreenElement ||
+                       document.body.classList.contains("fullscreen-ios-fake");
+  
+  const isMobile = window.matchMedia('(pointer: coarse)').matches || 
+                   /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+  if (isFullscreen && isMobile) {
     const larguraIdeal = 1280;
-    const larguraReal = window.innerWidth || window.screen.width;
+    const larguraReal = window.innerWidth;
     const scale = larguraReal / larguraIdeal;
     
+    // Força o body a atuar como um contêiner absoluto e aplicar escala sem deformar
+    document.body.style.position = "absolute";
+    document.body.style.top = "0";
+    document.body.style.left = "0";
     document.body.style.width = `${larguraIdeal}px`;
     document.body.style.transform = `scale(${scale})`;
     document.body.style.transformOrigin = "top left";
     document.body.style.overflow = "hidden";
     document.body.style.height = `${window.innerHeight / scale}px`;
   } else {
+    // Restaura as dimensões padrão do dispositivo ao sair
+    document.body.style.position = "";
+    document.body.style.top = "";
+    document.body.style.left = "";
     document.body.style.width = "";
     document.body.style.height = "";
     document.body.style.transform = "";
@@ -797,6 +786,8 @@ function ajustarEscalaFullscreen() {
   }
 }
 
+// Vincula o redimensionamento de janela e mudanças de tela cheia para recalcular a escala do jogo de forma imediata
+window.addEventListener('resize', ajustarEscalaFullscreen);
 document.addEventListener('fullscreenchange', ajustarEscalaFullscreen);
 document.addEventListener('webkitfullscreenchange', ajustarEscalaFullscreen);
 
@@ -810,6 +801,9 @@ function toggleFullScreen() {
     document.body.classList.toggle("fullscreen-ios-fake");
     const estaAtivo = document.body.classList.contains("fullscreen-ios-fake");
     mostrarMensagemGlob(estaAtivo ? "Modo tela cheia simulado ativado!" : "Modo tela cheia desativado.");
+    
+    // Força o ajuste de escala no iOS imediatamente
+    ajustarEscalaFullscreen();
     return;
   }
   
