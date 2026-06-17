@@ -10,7 +10,7 @@ window.addEventListener('beforeinstallprompt', (e) => {
   window.deferredPrompt = e;
   console.log("✅ PWA Detectado! O instalador nativo está pronto e armazenado.");
   
-  // O botão só fica visível/ativo após a captura do evento antes de instalar
+  // Como o instalador nativo está pronto e capturado de forma segura, garante a exibição do botão na tela
   const botao = document.getElementById('btn-instalar');
   if (botao) {
     botao.style.display = 'inline-block';
@@ -702,18 +702,8 @@ function inicializarControleInstalacao() {
     return;
   }
 
-  const esIphone = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-
-  // No iOS, mostramos o botão imediatamente por padrão porque o evento 'beforeinstallprompt' nunca dispara no Safari
-  if (esIphone) {
-    botao.style.display = 'inline-block';
-  } else if (window.deferredPrompt) {
-    // No Android/PC, mostramos se já capturamos o evento PWA com sucesso
-    botao.style.display = 'inline-block';
-  } else {
-    // Caso contrário, mantemos oculto inicialmente
-    botao.style.display = 'none';
-  }
+  // Mantemos o botão visível por padrão em todos os aparelhos de forma confiável
+  botao.style.display = 'inline-block';
 
   // Vincula a ação de clique ao botão abrindo primeiramente o modal explicativo
   botao.onclick = () => {
@@ -728,6 +718,7 @@ function inicializarControleInstalacao() {
           tocarSomClick();
           modalInstalacao.style.display = 'none'; // Fecha o modal de confirmação
           
+          const esIphone = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
           if (esIphone) {
             const modalIos = document.getElementById('modal-ios');
             if (modalIos) modalIos.style.display = 'flex';
@@ -739,8 +730,8 @@ function inicializarControleInstalacao() {
               window.deferredPrompt = null;
               botao.style.display = 'none';
             } else {
-              // Se o evento nativo ainda não estiver carregado (ex: o site ainda está carregando o service worker ou em localhost)
-              mostrarMensagemGlob("📲 Carregando instalador... Se o prompt não abrir, certifique-se de que o site está rodando em ambiente seguro (HTTPS).");
+              // Se o evento nativo ainda não disparou (HTTPS necessário para instalação silenciosa programada)
+              mostrarMensagemGlob("📲 Carregando instalador... Para efetuar o download automático, o site deve ser acessado por uma conexão segura (HTTPS).");
             }
           }
         };
