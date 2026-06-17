@@ -1000,7 +1000,7 @@ window.encerrarDesafioCedo = function() {
 };
 
 // ==========================================
-// MOTOR 3D (REFORMULADO COM GEOMETRIA TETRAÉDRICA EM ZIGUE-ZAGUE COMPLETO)
+// MOTOR 3D (REFORMULADO COM COMPACTAÇÃO E GEOMETRIA EM ZIGUE-ZAGUE COMPLETA)
 // ==========================================
 let idAnimacao3D = null;
 window.abrirVisualizador3D = function() {
@@ -1059,6 +1059,9 @@ window.abrirVisualizador3D = function() {
     const cores = { 'C': 0x333333, 'O': 0xef4444, 'H': 0xffffff, 'N': 0x3b82f6, 'S': 0xeab308, 'P': 0xf97316, 'CL': 0x22c55e, 'F': 0x4ade80, 'BR': 0x991b1b, 'I': 0x8b5cf6 };
     const raios = { 'H': 0.25, 'C': 0.45, 'O': 0.4, 'N': 0.4, 'S': 0.5, 'P': 0.5, 'CL': 0.5, 'F': 0.35, 'BR': 0.55, 'I': 0.6 };
 
+    // Fator de compressão da escala (Aumentado de 35 para 55 para encurtar e aproximar as ligações)
+    const fatorDivisao = 55;
+
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
     atomosDOM.forEach(a => {
         let x = parseFloat(a.style.left); let y = parseFloat(a.style.top);
@@ -1075,20 +1078,20 @@ window.abrirVisualizador3D = function() {
         let raio = raios[sigla] || 0.45;
 
         // --- CÁLCULO DA GEOMETRIA EM ZIGUE-ZAGUE (tetraédrica sp3 ~109,5°) ---
-        // Dividimos o left por 80 (distância real entre carbonos com a ligação interligada na malha 2D)
-        // para garantir que a paridade da coluna mude de 1 em 1 e toda a molécula alterne de nível.
+        // Dividimos o left/top por 80 (distância de encaixe real entre átomos conectados no grid 2D)
+        // Isso faz com que a paridade da coluna mude de 1 em 1 para todos os átomos conectados
         let col = Math.round(parseFloat(a.style.left) / 80);
         let row = Math.round(parseFloat(a.style.top) / 80);
 
         // Zigue-zague principal no eixo Y baseado na coluna
-        let zigzagY = (col % 2 === 0) ? 0.45 : -0.45;
+        let zigzagY = (col % 2 === 0) ? 0.28 : -0.28;
         
-        // Desvio suave no eixo Z baseado na linha para projeção espacial real dos substituintes
-        let zigzagZ = (row % 2 === 0) ? 0.25 : -0.25;
+        // Empurra verticalmente o substituinte no eixo Z para formar a geometria de pernas de tripé
+        let zigzagZ = (row % 2 === 0) ? 0.48 : -0.48;
 
-        let x3d = (parseFloat(a.style.left) - centroX) / 35;
-        let y3d = -(parseFloat(a.style.top) - centroY) / 35 + zigzagY;
-        let z3d = (Math.random() - 0.5) * 0.15 + zigzagZ; 
+        let x3d = (parseFloat(a.style.left) - centroX) / fatorDivisao;
+        let y3d = -(parseFloat(a.style.top) - centroY) / fatorDivisao + zigzagY;
+        let z3d = (Math.random() - 0.5) * 0.12 + zigzagZ; 
 
         const geo = new THREE.SphereGeometry(raio, 32, 32);
         const mat = new THREE.MeshPhongMaterial({ color: cor, shininess: 100 });
@@ -1154,6 +1157,7 @@ window.abrirVisualizador3D = function() {
         });
     }
 
+    // Oculta barras de rolagem no container raiz
     function animar() {
         idAnimacao3D = requestAnimationFrame(animar);
         controls.update();
