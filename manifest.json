@@ -3,8 +3,8 @@
   "name": "Química Adômines",
   "icons": [
     {
-      "src": "logobranca.jpeg",
-      "type": "image/jpeg",
+      "src": "logobranca.png",
+      "type": "image/png",
       "sizes": "512x512"
     }
   ],

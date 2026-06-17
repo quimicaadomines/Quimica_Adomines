@@ -901,6 +901,7 @@ function checarValidacaoAtomo(atomo) {
     } else { atomo.dataset.tocado = "false"; }
 }
 
+// Vincula o redimensionamento de janela e mudanças de tela cheia para recalcular a escala do jogo de forma imediata
 function mudarZoom(d) { tocarSomClick(); zoomLevel = Math.max(0.5, Math.min(2, zoomLevel+d)); atualizarVisao(); resolverColisaoGlobal(); }
 function resetarVisao() { tocarSomClick(); zoomLevel = 1; atualizarVisao(); resolverColisaoGlobal(); }
 function atualizarVisao() { quadroInner.style.transform = `scale(${zoomLevel})`; }
@@ -999,7 +1000,7 @@ window.encerrarDesafioCedo = function() {
 };
 
 // ==========================================
-// MOTOR 3D (REFORMULADO COM GEOMETRIA TETRAÉDRICA EM ZIGUE-ZAGUE)
+// MOTOR 3D (REFORMULADO COM GEOMETRIA TETRAÉDRICA EM ZIGUE-ZAGUE COMPLETO)
 // ==========================================
 let idAnimacao3D = null;
 window.abrirVisualizador3D = function() {
@@ -1074,9 +1075,10 @@ window.abrirVisualizador3D = function() {
         let raio = raios[sigla] || 0.45;
 
         // --- CÁLCULO DA GEOMETRIA EM ZIGUE-ZAGUE (tetraédrica sp3 ~109,5°) ---
-        // Pegamos as colunas e linhas da malha 2D para mapear de forma alternada e realista no espaço 3D
-        let col = Math.round(parseFloat(a.style.left) / 40);
-        let row = Math.round(parseFloat(a.style.top) / 40);
+        // Dividimos o left por 80 (distância real entre carbonos com a ligação interligada na malha 2D)
+        // para garantir que a paridade da coluna mude de 1 em 1 e toda a molécula alterne de nível.
+        let col = Math.round(parseFloat(a.style.left) / 80);
+        let row = Math.round(parseFloat(a.style.top) / 80);
 
         // Zigue-zague principal no eixo Y baseado na coluna
         let zigzagY = (col % 2 === 0) ? 0.45 : -0.45;
