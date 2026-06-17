@@ -1,15 +1,16 @@
 // ==========================================
-// CAPTURA DO INSTALADOR NATIVO (DEVE FICAR NO TOPO DO ARQUIVO)
+// ARQUITETURA GLOBAL DO INSTALADOR PWA (PRIORIDADE ZERO)
 // ==========================================
-let eventoInstalacao = null;
+window.deferredPrompt = null;
 
-// O navegador dispara este evento assim que detecta que o PWA cumpre os requisitos de instalação nativa
 window.addEventListener('beforeinstallprompt', (e) => {
+  // Previna o comportamento padrão do navegador
   e.preventDefault();
-  eventoInstalacao = e;
-  console.log("✅ PWA Detectado! O instalador nativo está pronto e vinculado ao botão.");
+  // Armazena o evento na variável global
+  window.deferredPrompt = e;
+  console.log("✅ PWA Detectado! O instalador nativo está pronto e armazenado.");
   
-  // Como o instalador nativo está pronto e capturado de forma segura, exibe o botão na tela
+  // O botão só fica visível/ativo após a captura do evento antes de instalar
   const botao = document.getElementById('btn-instalar');
   if (botao) {
     botao.style.display = 'inline-block';
@@ -525,6 +526,99 @@ function descontarBateria() {
     if(dados.restantes > 0) { dados.restantes--; localStorage.setItem("quimiChatBateria", JSON.stringify(dados)); atualizarBateriaUI(); }
 }
 
+function enviarPerguntaQuimiChatInput() {
+    let input = document.getElementById("quimichat-input");
+    let texto = input.value.trim();
+    if(texto === "") return;
+    input.value = "";
+    enviarPerguntaQuimiChat(texto, false);
+}
+
+function pareceQuimica(pergunta) {
+    let proibidas =["futebol", "neymar", "filme", "capital", "politica", "bbb", "quem ganhou", "idade de"];
+    let p = pergunta.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    if(proibidas.some(x => p.includes(x))) return false;
+    return true; 
+}
+
+async function enviarPerguntaQuimiChat(pergunta, lerVozAlta) {
+    let container = document.getElementById("quimichat-mensagens");
+    
+    container.innerHTML += `<div class="msg-user">${pergunta}</div>`;
+    container.scrollTop = container.scrollHeight;
+
+    let dadosBateria = gerenciarBateriaQuimiChat();
+    if (dadosBateria.restantes <= 0) {
+        let msgSemEnergia = "Minha bateria acabou! Usei muita energia processando cálculos químicos hoje. Volte amanhã!";
+        container.innerHTML += `<div class="msg-ai">${msgSemEnergia}</div>`;
+        if(lerVozAlta && typeof falarAssistente === "function") falarAssistente(msgSemEnergia);
+        return;
+    }
+
+    if (!pareceQuimica(pergunta)) {
+        let msgNaoQuimica = "Isso não parece ter nenhuma relação com química! Reformule sua pergunta.";
+        container.innerHTML += `<div class="msg-ai">${msgNaoQuimica}</div>`;
+        if(lerVozAlta && typeof falarAssistente === "function") falarAssistente(msgNaoQuimica);
+        return;
+    }
+
+    let idTemp = "msg-" + Date.now();
+    container.innerHTML += `<div id="${idTemp}" class="carregando-ai">Adômines está pensando...</div>`;
+    container.scrollTop = container.scrollHeight;
+
+    try {
+        const responseApi = await fetch(`/api/chat`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ pergunta: pergunta })
+        });
+
+        const dados = await responseApi.json();
+        
+        let avisoPensando = document.getElementById(idTemp);
+        if(avisoPensando) avisoPensando.remove();
+
+        if (!responseApi.ok) {
+            throw new Error(dados.error ? (dados.error.message || dados.error) : `Erro HTTP: ${responseApi.status}`);
+        }
+
+        let respostaTexto = dados.candidates[0].content.parts[0].text.trim();
+        
+        respostaTexto = respostaTexto.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+        respostaTexto = respostaTexto.replace(/\n/g, '<br>');
+        
+        if (!respostaTexto.includes("Desculpe, eu só posso responder")) {
+            descontarBateria(); 
+        }
+
+        container.innerHTML += `<div class="msg-ai">${respostaTexto}</div>`;
+        
+        let textoParaVoz = respostaTexto.replace(/<br>/g, " ").replace(/<b>/g, "").replace(/<\/b>/g, "");
+        if(lerVozAlta && typeof falarAssistente === "function") falarAssistente(textoParaVoz);
+        
+        container.scrollTop = container.scrollHeight;
+
+    } catch (e) {
+        let avisoPensando = document.getElementById(idTemp);
+        if(avisoPensando) avisoPensando.remove();
+        console.error("ERRO NO CHAT:", e.message);
+        let msgErro = "Não consegui me conectar ao laboratório agora. Erro: " + (e.message || "Desconhecido");
+        container.innerHTML += `<div class="msg-ai" style="color:#ef4444">${msgErro}</div>`;
+        if(lerVozAlta && typeof falarAssistente === "function") falarAssistente("Não consegui me conectar ao laboratório agora.");
+    }
+}
+
+// ==========================================
+// REGISTRO DO SERVICE WORKER (PWA)
+// ==========================================
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then(reg => console.log('Service Worker registrado:', reg.scope))
+      .catch(err => console.log('Erro ao registrar Service Worker:', err));
+  });
+}
+
 // ==========================================
 // FUNÇÕES DE SUGESTÕES (ENVIADAS POR E-MAIL)
 // ==========================================
@@ -608,8 +702,18 @@ function inicializarControleInstalacao() {
     return;
   }
 
-  // Mantemos o botão visível por padrão em todos os aparelhos
-  botao.style.display = 'inline-block';
+  const esIphone = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+  // No iOS, mostramos o botão imediatamente por padrão porque o evento 'beforeinstallprompt' nunca dispara no Safari
+  if (esIphone) {
+    botao.style.display = 'inline-block';
+  } else if (window.deferredPrompt) {
+    // No Android/PC, mostramos se já capturamos o evento PWA com sucesso
+    botao.style.display = 'inline-block';
+  } else {
+    // Caso contrário, mantemos oculto inicialmente
+    botao.style.display = 'none';
+  }
 
   // Vincula a ação de clique ao botão abrindo primeiramente o modal explicativo
   botao.onclick = () => {
@@ -624,16 +728,15 @@ function inicializarControleInstalacao() {
           tocarSomClick();
           modalInstalacao.style.display = 'none'; // Fecha o modal de confirmação
           
-          const esIphone = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
           if (esIphone) {
             const modalIos = document.getElementById('modal-ios');
             if (modalIos) modalIos.style.display = 'flex';
           } else {
-            if (eventoInstalacao) {
-              eventoInstalacao.prompt();
-              const { outcome } = await eventoInstalacao.userChoice;
+            if (window.deferredPrompt) {
+              window.deferredPrompt.prompt();
+              const { outcome } = await window.deferredPrompt.userChoice;
               console.log(`Escolha de instalação: ${outcome}`);
-              eventoInstalacao = null;
+              window.deferredPrompt = null;
               botao.style.display = 'none';
             } else {
               // Se o evento nativo ainda não estiver carregado (ex: o site ainda está carregando o service worker ou em localhost)

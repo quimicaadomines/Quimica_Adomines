@@ -293,7 +293,7 @@ const dbCatalogo =[
     { id:2, form:"CH4", nome:"Metano", desc:"Principal componente do gás natural, usado como combustível.", chk:(c)=> c.C==1 && c.H==4 && c.total==5 && c.simples==4 },
     { id:3, form:"C2H6", nome:"Etano", desc:"Gás usado na produção de eteno para a indústria de plásticos.", chk:(c)=> c.C==2 && c.H==6 && c.total==8 && c.simples==7 },
     { id:4, form:"C2H4", nome:"Eteno", desc:"Usado na agricultura para amadurecer frutas e base para polietileno.", chk:(c)=> c.C==2 && c.H==4 && c.total==6 && c.dupla==1 && c.simples==4 },
-    { id:5, form:"C2H2", nome:"Etino", desc:"Gás usado em maçaricos de solda debido à sua chama super quente.", chk:(c)=> c.C==2 && c.H==2 && c.total==4 && c.tripla==1 && c.simples==2 },
+    { id:5, form:"C2H2", nome:"Etino", desc:"Gás usado em maçaricos de solda devido à sua chama super quente.", chk:(c)=> c.C==2 && c.H==2 && c.total==4 && c.tripla==1 && c.simples==2 },
     { id:6, form:"C2H5OH", nome:"Etanol", desc:"Álcool comum presente em bebidas, perfumes e combustíveis.", chk:(c)=> c.C==2 && c.H==6 && c.O==1 && c.total==9 && c.simples==8 },
     { id:7, form:"CH3COOH", nome:"Ácido acético", desc:"Principal componente del vinagre, usado como tempero.", chk:(c)=> c.C==2 && c.H==4 && c.O==2 && c.total==8 && c.dupla==1 && c.simples==6 },
     { id:8, form:"C3H6O", nome:"Acetona", desc:"Solvente muy comum, famoso por remover esmaltes.", chk:(c)=> c.C==3 && c.H==6 && c.O==1 && c.total==10 && c.dupla==1 && c.simples==8 },
@@ -769,7 +769,9 @@ window.cmCompletar = function() {
         let hidr = document.createElement("div"); hidr.className = "hidrogenio-completo"; hidr.innerHTML = `H<sub>${falta > 1 ? falta : ''}</sub>`;
         pecaAlvoMenu.appendChild(hidr); pecaAlvoMenu.dataset.hExtras = falta; 
         checarValidacaoAtomo(pecaAlvoMenu);
-        if(pecaAlvoMenu.dataset.grupo) checarPokedex(pecaAlvoMenu.dataset.grupo);
+        if(pecaAlvoMenu.dataset.grupo) {
+            checarPokedex(pecaAlvoMenu.dataset.grupo);
+        }
     } else { mostrarMensagemGlob("⚠️ Valência já está completa ou excedida!"); }
     fecharMenuContexto(); atualizarContadores();
 };
@@ -997,7 +999,7 @@ window.encerrarDesafioCedo = function() {
 };
 
 // ==========================================
-// MOTOR 3D
+// MOTOR 3D (REFORMULADO COM GEOMETRIA TETRAÉDRICA EM ZIGUE-ZAGUE)
 // ==========================================
 let idAnimacao3D = null;
 window.abrirVisualizador3D = function() {
@@ -1071,9 +1073,20 @@ window.abrirVisualizador3D = function() {
         let cor = cores[sigla] || 0xaaaaaa;
         let raio = raios[sigla] || 0.45;
 
+        // --- CÁLCULO DA GEOMETRIA EM ZIGUE-ZAGUE (tetraédrica sp3 ~109,5°) ---
+        // Pegamos as colunas e linhas da malha 2D para mapear de forma alternada e realista no espaço 3D
+        let col = Math.round(parseFloat(a.style.left) / 40);
+        let row = Math.round(parseFloat(a.style.top) / 40);
+
+        // Zigue-zague principal no eixo Y baseado na coluna
+        let zigzagY = (col % 2 === 0) ? 0.45 : -0.45;
+        
+        // Desvio suave no eixo Z baseado na linha para projeção espacial real dos substituintes
+        let zigzagZ = (row % 2 === 0) ? 0.25 : -0.25;
+
         let x3d = (parseFloat(a.style.left) - centroX) / 35;
-        let y3d = -(parseFloat(a.style.top) - centroY) / 35;
-        let z3d = (Math.random() - 0.5) * 0.4; 
+        let y3d = -(parseFloat(a.style.top) - centroY) / 35 + zigzagY;
+        let z3d = (Math.random() - 0.5) * 0.15 + zigzagZ; 
 
         const geo = new THREE.SphereGeometry(raio, 32, 32);
         const mat = new THREE.MeshPhongMaterial({ color: cor, shininess: 100 });
