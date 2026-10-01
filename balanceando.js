@@ -66,11 +66,16 @@ const bancoFases = {
 
 let indexFaseAtual = 0;
 let estrelasGanhas = 0;
-let vidasIniciais = 3;
+let vidasIniciais = modoAtual === "balanceando-impossivel" ? 2 : 3;
 let vidasRestantes = vidasIniciais;
 let coeficientesReagentes = [];
 let coeficientesProdutos = [];
 let faseAtual = null;
+
+// Cronômetro para o modo impossível
+let tempoMaximo = 90; // 01:30
+let tempoRestante = tempoMaximo;
+let intervaloCronometro = null;
 
 let nivelDisplay = modoAtual.replace("balanceando-", "").toUpperCase();
 titulo.innerText = `BALANCEANDO (${nivelDisplay})`;
@@ -83,6 +88,36 @@ function iniciarFase() {
     renderizarEquacao();
     atualizarBalanca();
     atualizarHUD();
+
+    if (modoAtual === "balanceando-impossivel") {
+        let cron = document.getElementById("cronometro-desafio");
+        if (cron) cron.classList.remove("escondido");
+        tempoRestante = tempoMaximo;
+        iniciarCronometro();
+    }
+}
+
+function iniciarCronometro() {
+    clearInterval(intervaloCronometro);
+    let display = document.getElementById("cronometro-desafio");
+    if (!display) return;
+    display.classList.remove("perigo");
+    
+    let m = Math.floor(tempoRestante / 60).toString().padStart(2, '0');
+    let s = (tempoRestante % 60).toString().padStart(2, '0');
+    display.innerText = `${m}:${s}`;
+
+    intervaloCronometro = setInterval(() => {
+        tempoRestante--;
+        let m = Math.floor(tempoRestante / 60).toString().padStart(2, '0');
+        let s = (tempoRestante % 60).toString().padStart(2, '0');
+        display.innerText = `${m}:${s}`;
+        if(tempoRestante <= 20) display.classList.add("perigo");
+        if (tempoRestante <= 0) { 
+            clearInterval(intervaloCronometro); 
+            perderVidaDesafio("O tempo acabou!"); 
+        }
+    }, 1000);
 }
 
 function atualizarHUD() {
@@ -96,12 +131,13 @@ function atualizarHUD() {
 
 function formatarFormula(texto) { return texto.replace(/(\d+)/g, '<sub>$1</sub>'); }
 
-function alterarCoeficiente(tipo, indice, valor) {
+window.alterarCoeficiente = function(tipo, indice, valor) {
     if(typeof tocarSomClick === "function") tocarSomClick();
     if(tipo === 'R') { coeficientesReagentes[indice] = Math.max(1, coeficientesReagentes[indice] + valor); } 
     else { coeficientesProdutos[indice] = Math.max(1, coeficientesProdutos[indice] + valor); }
-    renderizarEquacao(); atualizarBalanca();
-}
+    renderizarEquacao(); 
+    atualizarBalanca();
+};
 
 function renderizarEquacao() {
     areaEquacao.innerHTML = "";
@@ -135,16 +171,58 @@ function renderizarEquacao() {
     });
 }
 
+// ==========================================
+// PARSER QUÍMICO COM SUPORTE TOTAL A PARÊNTESES
+// Resolve Ca(OH)2, Fe2(SO4)3, Ca3(PO4)2, Cu(NO3)2
+// ==========================================
 function extrairElementos(formula) {
-    let elementos = [];
-    let regex = /([A-Z][a-z]*)(\d*)/g;
-    let match;
-    while((match = regex.exec(formula)) !== null) {
-        let sigla = match[1];
-        let qtd = match[2] ? parseInt(match[2]) : 1;
-        for(let i=0; i<qtd; i++) elementos.push(sigla);
+    let pilha = [{}];
+    let i = 0;
+    while (i < formula.length) {
+        if (formula[i] === '(') {
+            pilha.push({});
+            i++;
+        } else if (formula[i] === ')') {
+            i++;
+            let numStr = "";
+            while (i < formula.length && /\d/.test(formula[i])) {
+                numStr += formula[i];
+                i++;
+            }
+            let mult = numStr ? parseInt(numStr) : 1;
+            let topo = pilha.pop();
+            let anterior = pilha[pilha.length - 1];
+            for (let el in topo) {
+                anterior[el] = (anterior[el] || 0) + topo[el] * mult;
+            }
+        } else if (/[A-Z]/.test(formula[i])) {
+            let el = formula[i];
+            i++;
+            if (i < formula.length && /[a-z]/.test(formula[i])) {
+                el += formula[i];
+                i++;
+            }
+            let numStr = "";
+            while (i < formula.length && /\d/.test(formula[i])) {
+                numStr += formula[i];
+                i++;
+            }
+            let qtd = numStr ? parseInt(numStr) : 1;
+            let topo = pilha[pilha.length - 1];
+            topo[el] = (topo[el] || 0) + qtd;
+        } else {
+            i++;
+        }
     }
-    return elementos;
+
+    let resultado = [];
+    let contagem = pilha[0];
+    for (let el in contagem) {
+        for (let j = 0; j < contagem[el]; j++) {
+            resultado.push(el);
+        }
+    }
+    return resultado;
 }
 
 function criarBolinha(nomeElemento, transX, transY, zIndex = 5) {
@@ -198,14 +276,6 @@ function desenharMoleculaGeometria(formula) {
         caixa.appendChild(criarBolinha(atomos[2], 14, 8, 5)); 
         caixa.appendChild(criarBolinha(atomos[3], 0, 14, 5)); 
     }
-    else if (formula === "CH4") {
-        caixa.style.height = "50px";
-        caixa.appendChild(criarBolinha('C', 0, 0, 10)); 
-        caixa.appendChild(criarBolinha('H', 0, -18, 5)); 
-        caixa.appendChild(criarBolinha('H', -16, 6, 5)); 
-        caixa.appendChild(criarBolinha('H', 16, 6, 5)); 
-        caixa.appendChild(criarBolinha('H', 0, 18, 5)); 
-    }
     else {
         let central = criarBolinha(atomos[0], 0, 0, 10);
         caixa.appendChild(central);
@@ -245,9 +315,14 @@ function atualizarBalanca() {
     desenharPrato(pratoReagentes, faseAtual.reagentes, coeficientesReagentes);
     desenharPrato(pratoProdutos, faseAtual.produtos, coeficientesProdutos);
 
-    let massaEsq = 0; let massaDir = 0;
-    faseAtual.reagentes.forEach((mol, idx) => { massaEsq += (extrairElementos(mol).length * coeficientesReagentes[idx]); });
-    faseAtual.produtos.forEach((mol, idx) => { massaDir += (extrairElementos(mol).length * coeficientesProdutos[idx]); });
+    let massaEsq = 0; 
+    let massaDir = 0;
+    faseAtual.reagentes.forEach((mol, idx) => { 
+        massaEsq += (extrairElementos(mol).length * coeficientesReagentes[idx]); 
+    });
+    faseAtual.produtos.forEach((mol, idx) => { 
+        massaDir += (extrairElementos(mol).length * coeficientesProdutos[idx]); 
+    });
     
     let diferenca = massaEsq - massaDir;
     let angulo = diferenca * 2.5; 
@@ -259,16 +334,38 @@ function atualizarBalanca() {
 }
 
 // -----------------------------------------------------
-// LÓGICA DE VERIFICAÇÃO COM ANIMAÇÃO DA ESTRELA
+// VERIFICAÇÃO DE BALANCEAMENTO
 // -----------------------------------------------------
 window.verificarBalanceamento = function() {
     if(typeof tocarSomClick === "function") tocarSomClick();
 
-    let angHaste = hasteBalanca.style.transform;
-    if (!angHaste.includes("rotate(0deg)")) {
-        perderVidaDesafio("A balança não está equilibrada! Ajuste os botões de (+) e (-) e tente novamente.");
+    // Checagem rigorosa por tipo de átomo (garantia química absoluta)
+    let contagemEsq = {};
+    let contagemDir = {};
+
+    faseAtual.reagentes.forEach((mol, idx) => {
+        let coef = coeficientesReagentes[idx];
+        extrairElementos(mol).forEach(el => { contagemEsq[el] = (contagemEsq[el] || 0) + coef; });
+    });
+    faseAtual.produtos.forEach((mol, idx) => {
+        let coef = coeficientesProdutos[idx];
+        extrairElementos(mol).forEach(el => { contagemDir[el] = (contagemDir[el] || 0) + coef; });
+    });
+
+    let balanceadoQuimicamente = true;
+    let todosElementos = new Set([...Object.keys(contagemEsq), ...Object.keys(contagemDir)]);
+    todosElementos.forEach(el => {
+        if ((contagemEsq[el] || 0) !== (contagemDir[el] || 0)) {
+            balanceadoQuimicamente = false;
+        }
+    });
+
+    if (!balanceadoQuimicamente) {
+        perderVidaDesafio("A balança não está equilibrada! Verifique a quantidade de cada tipo de átomo dos dois lados.");
         return;
     }
+
+    clearInterval(intervaloCronometro);
 
     let todosCoeficientes = [...coeficientesReagentes, ...coeficientesProdutos];
     let mdc = todosCoeficientes[0];
@@ -284,7 +381,7 @@ window.verificarBalanceamento = function() {
         dispararEstrelaAnimacao("Você ganhou 1 estrela! Simplifique para a próxima!");
     } else {
         if(somCorreto) { somCorreto.currentTime=0; somCorreto.play().catch(()=>{}); }
-        estrelasGanhas += 2; // Ganha as duas!
+        estrelasGanhas += 2;
         dispararEstrelaAnimacao("Perfeito! 2 estrelas garantidas!");
     }
 };
@@ -301,7 +398,6 @@ window.continuarModoBalanceando = function() {
     if(typeof tocarSomClick === "function") tocarSomClick();
     document.getElementById("modal-estrela").style.display = "none";
     
-    // Se o balanço já estava perfeito, ele avança de fase
     let todosCoeficientes = [...coeficientesReagentes, ...coeficientesProdutos];
     let mdc = todosCoeficientes[0];
     for (let i = 1; i < todosCoeficientes.length; i++) {
@@ -309,14 +405,20 @@ window.continuarModoBalanceando = function() {
         while (b !== 0) { let temp = b; b = a % b; a = temp; }
         mdc = a;
     }
+    
     if (mdc === 1) {
         if(estrelasGanhas >= 10 || indexFaseAtual >= bancoFases[modoAtual].length - 1) { 
             window.encerrarDesafioBalanceando(true); 
         } else { 
-            window.pularFaseBalanceando(true); // Pula silencioso
+            window.pularFaseBalanceando(true); 
+        }
+    } else {
+        if (modoAtual === "balanceando-impossivel") {
+            tempoRestante = tempoMaximo;
+            iniciarCronometro();
         }
     }
-}
+};
 
 function perderVidaDesafio(motivo) {
     if(somErro) { somErro.currentTime=0; somErro.play().catch(()=>{}); }
@@ -324,12 +426,22 @@ function perderVidaDesafio(motivo) {
     atualizarHUD();
     
     if(vidasRestantes <= 0) { 
-        window.encerrarDesafioBalanceando(); 
+        window.encerrarDesafioBalanceando(false); 
     } else { 
+        clearInterval(intervaloCronometro);
         document.getElementById("texto-erro-desafio").innerText = motivo;
         document.getElementById("modal-erro-desafio").style.display = "flex";
     }
 }
+
+window.fecharErroBalanceando = function() {
+    if(typeof tocarSomClick === "function") tocarSomClick();
+    document.getElementById("modal-erro-desafio").style.display = "none";
+    if (modoAtual === "balanceando-impossivel") {
+        tempoRestante = tempoMaximo;
+        iniciarCronometro();
+    }
+};
 
 window.pularFaseBalanceando = function(silencioso = false) {
     if(!silencioso && typeof tocarSomClick === "function") tocarSomClick();
@@ -351,33 +463,66 @@ window.voltarFaseBalanceando = function() {
     }
 };
 
-window.encerrarDesafioBalanceando = function() {
+window.encerrarDesafioBalanceando = function(vitoriaForcada = null) {
+    clearInterval(intervaloCronometro);
     if(typeof tocarSomClick === "function") tocarSomClick();
     
+    let isVitoria = vitoriaForcada !== null ? vitoriaForcada : (estrelasGanhas > 0);
     document.getElementById("modal-resultado-desafio").style.display = "flex";
+    
     let box = document.getElementById("box-resultado-desafio");
     let header = document.getElementById("header-resultado-desafio");
-    let titulo = document.getElementById("texto-resultado-desafio");
+    let tituloRes = document.getElementById("texto-resultado-desafio");
     let sub = document.getElementById("subtexto-resultado-desafio");
     let btn = document.getElementById("btn-resultado-desafio");
 
-    if (estrelasGanhas > 0) {
+    if (isVitoria) {
         box.style.border = "4px solid #16a34a";
         box.style.background = "linear-gradient(135deg, #f0fdf4, #dcfce7)";
-        header.style.background = "#16a34a"; header.style.borderBottom = "4px solid #15803d";
-        titulo.style.color = "#15803d"; btn.style.background = "#16a34a";
-        titulo.innerText = "Desafio Concluído! ⭐";
-        sub.innerText = `Você escolheu encerrar e salvou ${estrelasGanhas} estrela(s). Bom trabalho!`;
+        header.style.background = "#16a34a"; 
+        header.style.borderBottom = "4px solid #15803d";
+        tituloRes.style.color = "#15803d"; 
+        btn.style.background = "#16a34a";
+        tituloRes.innerText = "Desafio Concluído! ⭐";
+        sub.innerText = `Você salvou ${estrelasGanhas} estrela(s). Balanço químico impecável!`;
         if(somGanhou) { somGanhou.currentTime=0; somGanhou.play().catch(()=>{}); }
+
+        // Desbloqueio das novas conquistas do modo Balanceando
+        if (typeof desbloquearConquista === "function") {
+            if (modoAtual === "balanceando-facil") desbloquearConquista('c8');
+            if (modoAtual === "balanceando-medio") desbloquearConquista('c9');
+            if (modoAtual === "balanceando-dificil") desbloquearConquista('c10');
+            if (modoAtual === "balanceando-impossivel") desbloquearConquista('c11');
+        }
     } else {
         box.style.border = "4px solid #ef4444";
         box.style.background = "linear-gradient(135deg, #fef2f2, #fee2e2)";
-        header.style.background = "#ef4444"; header.style.borderBottom = "4px solid #b91c1c";
-        titulo.style.color = "#b91c1c"; btn.style.background = "#ef4444";
-        titulo.innerText = "Fim do Teste!";
+        header.style.background = "#ef4444"; 
+        header.style.borderBottom = "4px solid #b91c1c";
+        tituloRes.style.color = "#b91c1c"; 
+        btn.style.background = "#ef4444";
+        tituloRes.innerText = "Fim do Teste!";
         
         if(somPerdeu) { somPerdeu.currentTime=0; somPerdeu.play().catch(()=>{}); }
         sub.innerText = "Não desanime! Ajustar coeficientes requer muita atenção."; 
+    }
+};
+
+// ==========================================
+// CHEATS ADMINISTRATIVOS INTEGRADOS AO BALANCEANDO
+// ==========================================
+window.cheatCompletarFase = function() {
+    estrelasGanhas = 10;
+    window.encerrarDesafioBalanceando(true);
+};
+
+window.cheatEstrelas = function(qtd) {
+    estrelasGanhas = qtd;
+    atualizarHUD();
+    if(estrelasGanhas >= 10) {
+        window.encerrarDesafioBalanceando(true);
+    } else {
+        dispararEstrelaAnimacao(`Você recebeu ${qtd} estrela(s)! (Cheat ADM)`);
     }
 };
 

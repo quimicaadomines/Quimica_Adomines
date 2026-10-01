@@ -1,24 +1,5 @@
 // ==========================================
-// ARQUITETURA GLOBAL DO INSTALADOR PWA (PRIORIDADE ZERO)
-// ==========================================
-window.deferredPrompt = null;
-
-window.addEventListener('beforeinstallprompt', (e) => {
-  // Previna o comportamento padrão do navegador
-  e.preventDefault();
-  // Armazena o evento na variável global
-  window.deferredPrompt = e;
-  console.log("✅ PWA Detectado! O instalador nativo está pronto e armazenado.");
-  
-  // Como o instalador nativo está pronto e capturado de forma segura, garante a exibição do botão na tela
-  const botao = document.getElementById('btn-instalar');
-  if (botao) {
-    botao.style.display = 'inline-block';
-  }
-});
-
-// ==========================================
-// GLOBAL JAVASCRIPT
+// GLOBAL JAVASCRIPT - QUÍMICA ADÔMINES
 // ==========================================
 let musica = document.getElementById("musica");
 let clickAudio = document.getElementById("click");
@@ -46,20 +27,19 @@ function gerenciarBateriaQuimiChat() {
     return dados;
 }
 
-const listaDeConquistas =[
-  { id: "c1", texto: "Complete o nível fácil do modo de jogo estruturando pela primeira vez." },
-  { id: "c2", texto: "Complete o nível médio do modo de jogo estruturando pela primeira vez." },
-  { id: "c3", texto: "Complete o nível difícil do modo de jogo estruturando pela primeira vez." },
-  { id: "c4", texto: "Complete o nível impossível do modo de jogo estruturando pela primeira vez." },
-  { id: "c5", texto: "Complete todos os níveis do modo de jogo estruturando pelo menos 5 vezes." },
+// LISTA TOTAL DE CONQUISTAS (Agora com o Modo Balanceando integrado)
+const listaDeConquistas = [
+  { id: "c1", texto: "Complete o nível fácil do modo estruturando pela primeira vez." },
+  { id: "c2", texto: "Complete o nível médio do modo estruturando pela primeira vez." },
+  { id: "c3", texto: "Complete o nível difícil do modo estruturando pela primeira vez." },
+  { id: "c4", texto: "Complete o nível impossível do modo estruturando pela primeira vez." },
+  { id: "c5", texto: "Complete níveis do modo estruturando pelo menos 5 vezes." },
   { id: "c6", texto: "Conclua o catálogo do modo livre do jogo estruturando." }, 
-  { id: "c7", texto: "Complete um nível inclusivo do modo de jogo estruturando." }
-];
-
-const nomesCatalogoDemo =[
-    "Água", "Gás Carbônico", "Amônia", "Metano", "Monóxido de Carbono", "Ácido Clorídrico", "Cloreto de Sódio", 
-    "Etanol", "Ácido Sulfúrico", "Gás Oxigênio", "Gás Nitrogênio", "Gás Hidrogênio", "Ozônio", "Dióxido de Enxofre",
-    "Ácido Nítrico", "Benzeno", "Glicose", "Ureia", "Acetona", "Ácido Acético"
+  { id: "c7", texto: "Complete um nível inclusivo do jogo." },
+  { id: "c8", texto: "Complete o nível fácil do modo balanceando pela primeira vez." },
+  { id: "c9", texto: "Complete o nível médio do modo balanceando pela primeira vez." },
+  { id: "c10", texto: "Complete o nível difícil do modo balanceando pela primeira vez." },
+  { id: "c11", texto: "Complete o nível impossível do modo balanceando pela primeira vez." }
 ];
 
 function carregarConfiguracoes() {
@@ -80,15 +60,14 @@ function carregarConfiguracoes() {
   
   if (estavaTocando === "true" && !mutado && musica) {
     let p = musica.play();
-    if (p !== undefined) { p.then(_ => { musicaIniciada = true; }).catch(e => { console.log("Bloqueio de autoplay."); }); }
+    if (p !== undefined) { p.then(_ => { musicaIniciada = true; }).catch(() => {}); }
   }
 
   renderizarConquistas();
   renderizarTrofeus();
   gerenciarBateriaQuimiChat(); 
   injetarElementosGlobais(); 
-  inicializarControleInstalacao(); // Configura o comportamento do PWA com base no sistema
-  ajustarEscalaFullscreen(); // Ajusta a escala ao carregar caso já esteja em fullscreen
+  ajustarEscalaFullscreen();
 }
 
 if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', carregarConfiguracoes); } 
@@ -102,12 +81,15 @@ function mudarTela(url) {
   if (isNavegando) return; 
   isNavegando = true;
   
-  if (typeof assistenteReconhecimento !== 'undefined' && assistenteReconhecimento) { assistenteReconhecimento.onend = null; assistenteReconhecimento.stop(); }
+  if (typeof assistenteReconhecimento !== 'undefined' && assistenteReconhecimento) { 
+      assistenteReconhecimento.onend = null; 
+      try { assistenteReconhecimento.stop(); } catch(e){}
+  }
   
   if (transicaoAudio) { transicaoAudio.volume = 1.0; transicaoAudio.currentTime = 0; transicaoAudio.play().catch(()=>{}); }
   document.body.classList.add("saindo");
   if(musica) { localStorage.setItem("tempoMusica", musica.currentTime); localStorage.setItem("musicaTocando", !musica.paused); }
-  setTimeout(() => { window.location.href = url; }, 500);
+  setTimeout(() => { window.location.href = url; }, 400);
 }
 
 document.addEventListener("click", () => { if (!musicaIniciada && !mutado && musica) { musica.play().catch(()=>{}); musicaIniciada = true; } }, { once: true });
@@ -158,9 +140,6 @@ function volumeMusica(v) {
     let rg = document.getElementById("rangeMusica"); if(rg) rg.value = v;
 }
 
-// ==========================================
-// OUTROS ELEMENTOS E COMPLEMENTOS GLOBAIS
-// ==========================================
 function volumeEfeitos(v) { 
     v = Math.max(0, Math.min(1, v));
     if(clickAudio) clickAudio.volume = v; 
@@ -179,7 +158,13 @@ function toggleEfeitos(forcarEstado = null) {
     aplicarEfeitosNaLogo(efeitosVisuaisAtivos); 
 }
 
-function aplicarEfeitosNaLogo(ativo) { let logo = document.getElementById("logo"); if (logo) { ativo ? logo.classList.remove("logo-sem-efeito") : logo.classList.add("logo-sem-efeito"); logo.style.animation = ativo ? "flutuar 4s ease-in-out infinite" : "none"; } }
+function aplicarEfeitosNaLogo(ativo) { 
+    let logo = document.getElementById("logo"); 
+    if (logo) { 
+        ativo ? logo.classList.remove("logo-sem-efeito") : logo.classList.add("logo-sem-efeito"); 
+        logo.style.animation = ativo ? "flutuar 4s ease-in-out infinite" : "none"; 
+    } 
+}
 
 function mostrarMensagemGlob(texto) {
     let toast = document.getElementById("toast-mensagem");
@@ -191,22 +176,30 @@ function mostrarMensagemGlob(texto) {
 }
 
 function desbloquearConquista(id, silencioso=false) {
-    let concluidas = JSON.parse(localStorage.getItem("conquistasDesbloqueadas")) ||[];
+    let concluidas = JSON.parse(localStorage.getItem("conquistasDesbloqueadas")) || [];
     if(!concluidas.includes(id)) {
         concluidas.push(id);
         localStorage.setItem("conquistasDesbloqueadas", JSON.stringify(concluidas));
         if(!silencioso) {
             if(somConquistaGlob) { somConquistaGlob.volume = 1.0; somConquistaGlob.currentTime = 0; somConquistaGlob.play().catch(()=>{}); }
             let c = listaDeConquistas.find(x => x.id === id);
-            mostrarMensagemGlob(`🏆 CONQUISTA DESBLOQUEADA:\n${c.texto}`);
+            if(c) mostrarMensagemGlob(`🏆 CONQUISTA DESBLOQUEADA:\n${c.texto}`);
         }
         renderizarConquistas();
         verificarPlatina();
     }
 }
 
+function registrarVitoriaEstruturando() {
+    let total = parseInt(localStorage.getItem("estruturando_vitorias_total") || "0") + 1;
+    localStorage.setItem("estruturando_vitorias_total", total);
+    if(total >= 5) {
+        desbloquearConquista('c5');
+    }
+}
+
 function verificarPlatina() {
-    let concluidas = JSON.parse(localStorage.getItem("conquistasDesbloqueadas")) ||[];
+    let concluidas = JSON.parse(localStorage.getItem("conquistasDesbloqueadas")) || [];
     if(concluidas.length === listaDeConquistas.length) {
         if(!localStorage.getItem("platinado")) {
             localStorage.setItem("platinado", "true");
@@ -218,7 +211,7 @@ function verificarPlatina() {
 }
 
 window.verificarCatalogador = function() {
-    let cat = JSON.parse(localStorage.getItem("catalogoDesbloqueado")) ||[];
+    let cat = JSON.parse(localStorage.getItem("catalogoDesbloqueado")) || [];
     if(cat.length === 20) {
         desbloquearConquista('c6', true); 
         if(!localStorage.getItem("catalogador")) {
@@ -258,7 +251,7 @@ function celebrar(tipo) {
     for(let i=0; i<60; i++) {
         let conf = document.createElement("div"); conf.className = "confete";
         conf.style.left = Math.random() * 100 + "vw";
-        conf.style.backgroundColor =['red','blue','yellow','green','purple','orange'][Math.floor(Math.random()*6)];
+        conf.style.backgroundColor = ['red','blue','yellow','green','purple','orange'][Math.floor(Math.random()*6)];
         conf.style.animationDuration = (Math.random() * 2 + 2) + "s";
         tela.appendChild(conf);
     }
@@ -269,6 +262,17 @@ function abrirChat() { tocarSomClick(); document.getElementById("chat-overlay").
 function fecharChatBtn() { tocarSomClick(); document.getElementById("chat-overlay").style.display = "none"; document.body.style.overflow = "auto"; }
 function abrirConquistas() { tocarSomClick(); document.getElementById("conquistas-overlay").style.display = "block"; document.body.style.overflow = "hidden"; }
 function fecharConquistasBtn() { tocarSomClick(); document.getElementById("conquistas-overlay").style.display = "none"; document.body.style.overflow = "auto"; }
+
+function abrirComandosVoz() {
+    tocarSomClick();
+    let modal = document.getElementById("modal-comandos-voz");
+    if (modal) { modal.style.display = "flex"; document.body.style.overflow = "hidden"; }
+}
+function fecharComandosVoz() {
+    tocarSomClick();
+    let modal = document.getElementById("modal-comandos-voz");
+    if (modal) { modal.style.display = "none"; document.body.style.overflow = "auto"; }
+}
 
 function fecharModais(event) { 
     if (event.target.classList.contains("modal-overlay")) { 
@@ -289,25 +293,39 @@ function processarChat(e) {
             listaDeConquistas.forEach(c => desbloquearConquista(c.id, true)); verificarPlatina();
             div.innerHTML += `<div style="color:#16a34a; margin-bottom:5px;"><b>Sistema:</b> Todas as conquistas ativadas!</div>`;
         } else if (cmd === "\\catalogador") {
-            let dbIds =[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20];
+            let dbIds = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20];
             localStorage.setItem("catalogoDesbloqueado", JSON.stringify(dbIds)); window.verificarCatalogador();
             div.innerHTML += `<div style="color:#16a34a; margin-bottom:5px;"><b>Sistema:</b> Catálogo completo ativado!</div>`;
         } else if (cmd === "\\limpar") {
             localStorage.removeItem("conquistasDesbloqueadas"); localStorage.removeItem("catalogoDesbloqueado");
             localStorage.removeItem("platinado"); localStorage.removeItem("catalogador");
+            localStorage.removeItem("estruturando_vitorias_total");
             renderizarTrofeus(); renderizarConquistas();
             div.innerHTML += `<div style="color:#ef4444; margin-bottom:5px;"><b>Sistema:</b> Dados resetados! Recarregue a página.</div>`;
         } else if (cmd === "\\completar") {
-            if(typeof window.cheatCompletarFase === "function") { window.cheatCompletarFase(); div.innerHTML += `<div style="color:#16a34a; margin-bottom:5px;"><b>Sistema:</b> Fase completada automaticamente!</div>`; } 
-            else { div.innerHTML += `<div style="color:#ef4444; margin-bottom:5px;"><b>Sistema:</b> Você precisa estar dentro de um Modo Desafio!</div>`; }
+            if(typeof window.cheatCompletarFase === "function") { 
+                window.cheatCompletarFase(); 
+                div.innerHTML += `<div style="color:#16a34a; margin-bottom:5px;"><b>Sistema:</b> Desafio completado automaticamente!</div>`; 
+            } else { 
+                div.innerHTML += `<div style="color:#ef4444; margin-bottom:5px;"><b>Sistema:</b> Você precisa estar dentro de um modo com desafios!</div>`; 
+            }
         } else if (cmd.startsWith("\\estrela")) {
             let num = parseInt(cmd.replace("\\estrela", ""));
-            if(num >= 1 && num <= 5) {
-                if(typeof window.cheatEstrelas === "function") { window.cheatEstrelas(num); div.innerHTML += `<div style="color:#16a34a; margin-bottom:5px;"><b>Sistema:</b> Você recebeu ${num} estrela(s)!</div>`; } 
-                else { div.innerHTML += `<div style="color:#ef4444; margin-bottom:5px;"><b>Sistema:</b> Você precisa estar dentro de um Modo Desafio!</div>`; }
-            } else { div.innerHTML += `<div style="color:#ef4444; margin-bottom:5px;"><b>Sistema:</b> Comando inválido. Use \\estrela1 a \\estrela5.</div>`; }
-        } else if (cmd === "\\help") { div.innerHTML += `<div style="color:#0284c7; margin-bottom:5px;"><b>Comandos ADM:</b><br>\\platinar<br>\\catalogador<br>\\limpar<br>\\completar<br>\\estrela[1 a 5]<br>\\help</div>`; } 
-        else { div.innerHTML += `<div style="color:#64748b; margin-bottom:5px;"><b>Sistema:</b> Comando '${cmd}' não reconhecido. Digite \\help</div>`; }
+            if(num >= 1 && num <= 10) {
+                if(typeof window.cheatEstrelas === "function") { 
+                    window.cheatEstrelas(num); 
+                    div.innerHTML += `<div style="color:#16a34a; margin-bottom:5px;"><b>Sistema:</b> Você recebeu ${num} estrela(s)!</div>`; 
+                } else { 
+                    div.innerHTML += `<div style="color:#ef4444; margin-bottom:5px;"><b>Sistema:</b> Você precisa estar dentro de um Modo Desafio!</div>`; 
+                }
+            } else { 
+                div.innerHTML += `<div style="color:#ef4444; margin-bottom:5px;"><b>Sistema:</b> Comando inválido. Use \\estrela1 a \\estrela10.</div>`; 
+            }
+        } else if (cmd === "\\help") { 
+            div.innerHTML += `<div style="color:#0284c7; margin-bottom:5px;"><b>Comandos ADM:</b><br>\\platinar<br>\\catalogador<br>\\limpar<br>\\completar<br>\\estrela[1 a 10]<br>\\help</div>`; 
+        } else { 
+            div.innerHTML += `<div style="color:#64748b; margin-bottom:5px;"><b>Sistema:</b> Comando '${cmd}' não reconhecido. Digite \\help</div>`; 
+        }
         div.scrollTop = div.scrollHeight;
     }
 }
@@ -316,9 +334,10 @@ function renderizarConquistas() {
   let container = document.getElementById("lista-conquistas");
   if (!container) return;
   container.innerHTML = ""; 
-  let conquistadas = JSON.parse(localStorage.getItem("conquistasDesbloqueadas")) ||[];
+  let conquistadas = JSON.parse(localStorage.getItem("conquistasDesbloqueadas")) || [];
   listaDeConquistas.forEach(conq => {
-    let div = document.createElement("div"); let desbloqueada = conquistadas.includes(conq.id);
+    let div = document.createElement("div"); 
+    let desbloqueada = conquistadas.includes(conq.id);
     div.className = `conquista-item ${desbloqueada ? 'conquista-desbloqueada' : ''}`;
     div.innerHTML = `<div class="conquista-icone">${desbloqueada ? '🏆' : '🔒'}</div><div class="conquista-texto">${conq.texto}</div>`;
     container.appendChild(div);
@@ -326,9 +345,9 @@ function renderizarConquistas() {
 }
 
 // ==========================================
-// INJEÇÃO GLOBAL DOS MODAIS (Tabela, QuimiChat, iOS PWA, Rotação, Sugestões)
+// INJEÇÃO GLOBAL DOS MODAIS (Tabela, QuimiChat, Sugestões, Rotação e Guia de Voz)
 // ==========================================
-const elementosTabela =[
+const elementosTabela = [
     { n: 1, s: 'H', nome: 'Hidrogênio', l: '1', m: '1.008', c: 1, r: 1 }, { n: 2, s: 'He', nome: 'Hélio', l: '0', m: '4.002', c: 18, r: 1 },
     { n: 3, s: 'Li', nome: 'Lítio', l: '1', m: '6.94', c: 1, r: 2 }, { n: 4, s: 'Be', nome: 'Berílio', l: '2', m: '9.012', c: 2, r: 2 },
     { n: 5, s: 'B', nome: 'Boro', l: '3', m: '10.81', c: 13, r: 2 }, { n: 6, s: 'C', nome: 'Carbono', l: '4', m: '12.011', c: 14, r: 2 },
@@ -378,7 +397,7 @@ const elementosTabela =[
     { n: 91, s: 'Pa', nome: 'Protactínio', l: 'Variável', m: '231.04', c: 6, r: 9 }, { n: 92, s: 'U', nome: 'Urânio', l: 'Variável', m: '238.03', c: 7, r: 9 },
     { n: 93, s: 'Np', nome: 'Netúnio', l: 'Variável', m: '[237]', c: 8, r: 9 }, { n: 94, s: 'Pu', nome: 'Plutônio', l: 'Variável', m: '[244]', c: 9, r: 9 },
     { n: 95, s: 'Am', nome: 'Amerício', l: 'Variável', m: '[243]', c: 10, r: 9 }, { n: 96, s: 'Cm', nome: 'Cúrio', l: 'Variável', m: '[247]', c: 11, r: 9 },
-    { n: 97, s: 'Bk', merge: true, s: 'Bk', nome: 'Berquélio', l: 'Variável', m: '[247]', c: 12, r: 9 }, { n: 98, s: 'Cf', nome: 'Califórnio', l: 'Variável', m: '[251]', c: 13, r: 9 },
+    { n: 97, s: 'Bk', nome: 'Berquélio', l: 'Variável', m: '[247]', c: 12, r: 9 }, { n: 98, s: 'Cf', nome: 'Califórnio', l: 'Variável', m: '[251]', c: 13, r: 9 },
     { n: 99, s: 'Es', nome: 'Einstênio', l: 'Variável', m: '[252]', c: 14, r: 9 }, { n: 100, s: 'Fm', nome: 'Férmio', l: 'Variável', m: '[257]', c: 15, r: 9 },
     { n: 101, s: 'Md', nome: 'Mendelévio', l: 'Variável', m: '[258]', c: 16, r: 9 }, { n: 102, s: 'No', nome: 'Nobélio', l: 'Variável', m: '[259]', c: 17, r: 9 },
     { n: 103, s: 'Lr', nome: 'Laurêncio', l: 'Variável', m: '[266]', c: 18, r: 9 },
@@ -441,37 +460,54 @@ function injetarElementosGlobais() {
         atualizarBateriaUI();
     }
 
-    if (!document.getElementById('modal-ios')) {
-        const iosHTML = `
-        <div id="modal-ios" class="modal-overlay" onclick="fecharModais(event)" style="z-index: 100000; display: none; align-items: center; justify-content: center;">
-          <div class="modal-box" style="max-width: 400px; text-align: center; margin: 20vh auto; padding: 25px;">
-            <div style="font-size: 50px; margin-bottom: 15px;">📲</div>
-            <h3 style="margin-bottom: 15px; color: var(--text-color);">Instalar no iPhone</h3>
-            <p style="font-size: 14px; line-height: 1.6; margin-bottom: 20px; color: var(--text-color);">
-              Para instalar no seu iPhone, clique no ícone de <strong>Compartilhar</strong> (o quadrado com uma seta para cima) na barra inferior do Safari e selecione <strong>"Adicionar à Tela de Início"</strong>. ➕
-            </p>
-            <button onclick="window.fecharModalIos()" style="background: var(--btn-bg); color: white; border: none; padding: 10px 20px; border-radius: 20px; font-weight: bold; cursor: pointer;">Entendi</button>
-          </div>
-        </div>`;
-        document.body.insertAdjacentHTML('beforeend', iosHTML);
-    }
+    // Modal com a Central de Comandos de Voz (Local e Transparente)
+    if (!document.getElementById('modal-comandos-voz')) {
+        const comandosHTML = `
+        <div id="modal-comandos-voz" class="modal-overlay" onclick="fecharModais(event)" style="z-index: 100000; display: none;">
+          <div class="modal-box" style="max-width: 600px; max-height: 85vh;">
+            <div class="modal-header" style="background: #0284c7; color: white;">
+              <h3>🎤 Central de Comandos de Voz</h3>
+              <button onclick="fecharComandosVoz()">✖</button>
+            </div>
+            <div class="modal-body" style="font-size: 14px; line-height: 1.6;">
+              <p style="margin-bottom: 12px; font-weight: bold; color: #0284c7;">Segure a tecla ESPAÇO (ou use o microfone) e diga:</p>
+              
+              <h4 style="margin-top: 10px; color: #16a34a;">🧭 Navegação & Menus</h4>
+              <ul style="margin-left: 20px; margin-bottom: 10px;">
+                <li><b>"iniciar"</b> ou <b>"jogar"</b>: vai para a tela de modos</li>
+                <li><b>"voltar"</b>: retorna para a tela anterior</li>
+                <li><b>"tabela periódica"</b>: abre a tabela</li>
+                <li><b>"conquistas"</b>: abre seus troféus</li>
+                <li><b>"fechar tudo"</b>: fecha janelas abertas</li>
+                <li><b>"modo escuro" / "modo claro"</b>: troca o tema visual</li>
+                <li><b>"mutar som" / "ativar som"</b>: controla o áudio</li>
+              </ul>
 
-    if (!document.getElementById('modal-instalacao')) {
-        const instalacaoHTML = `
-        <div id="modal-instalacao" class="modal-overlay" onclick="fecharModais(event)" style="z-index: 100000; display: none; align-items: center; justify-content: center;">
-          <div class="modal-box" style="max-width: 400px; text-align: center; margin: 20vh auto; padding: 25px;">
-            <div style="font-size: 50px; margin-bottom: 15px;">📲</div>
-            <h3 style="margin-bottom: 15px; color: var(--text-color);">Baixar Aplicativo (PWA)</h3>
-            <p style="font-size: 14px; line-height: 1.6; margin-bottom: 20px; color: var(--text-color);">
-              Após baixar o aplicativo, ele aparecerá na sua tela de aplicativos (ou área de trabalho do computador) para fácil acesso, funcionando de forma rápida e sem ocupar a memória física do seu dispositivo!
-            </p>
-            <div style="display: flex; gap: 10px; justify-content: center;">
-              <button id="btn-confirmar-baixar" style="background: var(--btn-bg); color: white; border: none; padding: 10px 20px; border-radius: 20px; font-weight: bold; cursor: pointer;">Baixar Aplicativo</button>
-              <button onclick="window.fecharModalInstalacao()" style="background: #94a3b8; color: white; border: none; padding: 10px 20px; border-radius: 20px; font-weight: bold; cursor: pointer;">Cancelar</button>
+              <h4 style="margin-top: 10px; color: #0284c7;">🧪 Modo Estruturando</h4>
+              <ul style="margin-left: 20px; margin-bottom: 10px;">
+                <li><b>"criar carbono"</b>, <b>"criar oxigênio"</b>, etc.</li>
+                <li><b>"ligação simples"</b>, <b>"dupla"</b> ou <b>"tripla"</b></li>
+                <li><b>"completar tudo"</b>: adiciona hidrogênios</li>
+                <li><b>"verificar estrutura"</b> ou <b>"terminei"</b></li>
+                <li><b>"ver em 3d"</b>: abre a molécula tridimensional</li>
+                <li><b>"limpar quadro"</b>: apaga as peças</li>
+                <li><b>"pular fase" / "voltar fase"</b></li>
+              </ul>
+
+              <h4 style="margin-top: 10px; color: #eab308;">⚖️ Modo Balanceando</h4>
+              <ul style="margin-left: 20px; margin-bottom: 10px;">
+                <li><b>"verificar balança"</b> ou <b>"verificar"</b></li>
+                <li><b>"pular fase"</b> ou <b>"voltar fase"</b></li>
+                <li><b>"encerrar desafio"</b></li>
+              </ul>
+
+              <p style="text-align: center; margin-top: 15px; font-size: 13px; opacity: 0.8;">
+                💡 Diga <b>"fechar"</b> a qualquer momento para sair desta janela.
+              </p>
             </div>
           </div>
         </div>`;
-        document.body.insertAdjacentHTML('beforeend', instalacaoHTML);
+        document.body.insertAdjacentHTML('beforeend', comandosHTML);
     }
 
     if (!document.getElementById('modal-sugestoes')) {
@@ -535,7 +571,7 @@ function enviarPerguntaQuimiChatInput() {
 }
 
 function pareceQuimica(pergunta) {
-    let proibidas =["futebol", "neymar", "filme", "capital", "politica", "bbb", "quem ganhou", "idade de"];
+    let proibidas = ["futebol", "neymar", "filme", "capital", "politica", "bbb", "quem ganhou", "idade de"];
     let p = pergunta.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
     if(proibidas.some(x => p.includes(x))) return false;
     return true; 
@@ -583,9 +619,7 @@ async function enviarPerguntaQuimiChat(pergunta, lerVozAlta) {
         }
 
         let respostaTexto = dados.candidates[0].content.parts[0].text.trim();
-        
-        respostaTexto = respostaTexto.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
-        respostaTexto = respostaTexto.replace(/\n/g, '<br>');
+        respostaTexto = respostaTexto.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
         
         if (!respostaTexto.includes("Desculpe, eu só posso responder")) {
             descontarBateria(); 
@@ -609,17 +643,6 @@ async function enviarPerguntaQuimiChat(pergunta, lerVozAlta) {
 }
 
 // ==========================================
-// REGISTRO DO SERVICE WORKER (PWA)
-// ==========================================
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js')
-      .then(reg => console.log('Service Worker registrado:', reg.scope))
-      .catch(err => console.log('Erro ao registrar Service Worker:', err));
-  });
-}
-
-// ==========================================
 // FUNÇÕES DE SUGESTÕES (ENVIADAS POR E-MAIL)
 // ==========================================
 window.abrirSugestoes = function() {
@@ -630,13 +653,13 @@ window.abrirSugestoes = function() {
     const textarea = document.getElementById('sugestao-texto');
     if (textarea) textarea.value = '';
   }
-}
+};
 
 window.fecharModalSugestoes = function() {
   if (typeof tocarSomClick === 'function') tocarSomClick();
   const modal = document.getElementById('modal-sugestoes');
   if (modal) modal.style.display = 'none';
-}
+};
 
 window.enviarSugestao = async function() {
   if (typeof tocarSomClick === 'function') tocarSomClick();
@@ -649,20 +672,13 @@ window.enviarSugestao = async function() {
     return;
   }
 
-  // Configuração da URL ativa do seu Formspree institucional
   const urlFormspree = "https://formspree.io/f/mwvjzbog";
 
   try {
     const response = await fetch(urlFormspree, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json"
-      },
-      body: JSON.stringify({
-        message: texto,
-        subject: "Sugestão - Química Adômines"
-      })
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify({ message: texto, subject: "Sugestão - Química Adômines" })
     });
     
     if (!response.ok) throw new Error("Erro na requisição Formspree");
@@ -674,73 +690,11 @@ window.enviarSugestao = async function() {
     console.error("Erro ao enviar sugestão:", error);
     mostrarMensagemGlob("❌ Não foi possível conectar ao servidor. Verifique a internet e tente mais tarde.");
   }
-}
+};
 
 // ==========================================
-// CONTROLE DE INSTALAÇÃO PWA E TELA CHEIA (COM FIX DE ESCALA DESKTOP)
+// ESCALA EM TELA CHEIA E ORIENTAÇÃO
 // ==========================================
-window.fecharModalInstalacao = function() {
-  if (typeof tocarSomClick === 'function') tocarSomClick();
-  const modalInstalacao = document.getElementById('modal-instalacao');
-  if (modalInstalacao) modalInstalacao.style.display = 'none';
-}
-
-window.fecharModalIos = function() {
-  if (typeof tocarSomClick === 'function') tocarSomClick();
-  const modalIos = document.getElementById('modal-ios');
-  if (modalIos) modalIos.style.display = 'none';
-}
-
-function inicializarControleInstalacao() {
-  const botao = document.getElementById('btn-instalar');
-  if (!botao) return;
-
-  // Se já estiver instalado/rodando como App standalone, esconde o botão
-  const estaInstalado = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-  if (estaInstalado) {
-    botao.style.display = 'none';
-    return;
-  }
-
-  // Mantemos o botão visível por padrão em todos os aparelhos de forma confiável
-  botao.style.display = 'inline-block';
-
-  // Vincula a ação de clique ao botão abrindo primeiramente o modal explicativo
-  botao.onclick = () => {
-    tocarSomClick();
-    const modalInstalacao = document.getElementById('modal-instalacao');
-    if (modalInstalacao) {
-      modalInstalacao.style.display = 'flex';
-      
-      const btnConfirmar = document.getElementById('btn-confirmar-baixar');
-      if (btnConfirmar) {
-        btnConfirmar.onclick = async () => {
-          tocarSomClick();
-          modalInstalacao.style.display = 'none'; // Fecha o modal de confirmação
-          
-          const esIphone = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-          if (esIphone) {
-            const modalIos = document.getElementById('modal-ios');
-            if (modalIos) modalIos.style.display = 'flex';
-          } else {
-            if (window.deferredPrompt) {
-              window.deferredPrompt.prompt();
-              const { outcome } = await window.deferredPrompt.userChoice;
-              console.log(`Escolha de instalação: ${outcome}`);
-              window.deferredPrompt = null;
-              botao.style.display = 'none';
-            } else {
-              // Se o evento nativo ainda não disparou (HTTPS necessário para instalação silenciosa programada)
-              mostrarMensagemGlob("📲 Carregando instalador... Para efetuar o download automático, o site deve ser acessado por uma conexão segura (HTTPS).");
-            }
-          }
-        };
-      }
-    }
-  };
-}
-
-// Controla e força a escala Desktop (1280px x 720px) mantendo a proporção de aspecto (aspect-ratio) para evitar qualquer compressão ou deformação de layout (Corrigido com Math.min)
 function ajustarEscalaFullscreen() {
   const isFullscreen = document.fullscreenElement || 
                        document.webkitFullscreenElement || 
@@ -754,12 +708,10 @@ function ajustarEscalaFullscreen() {
     const larguraIdeal = 1280;
     const alturaIdeal = 720;
     
-    // Evita distorções: calcula a escala com base tanto na largura quanto na altura, preservando a proporção de aspecto original (letterboxing)
     const scaleX = window.innerWidth / larguraIdeal;
     const scaleY = window.innerHeight / alturaIdeal;
     const scale = Math.min(scaleX, scaleY);
     
-    // Força o body a atuar como um contêiner absoluto e aplicar escala uniforme sem deformar
     document.body.style.position = "absolute";
     document.body.style.top = "0";
     document.body.style.left = "0";
@@ -769,16 +721,13 @@ function ajustarEscalaFullscreen() {
     document.body.style.transformOrigin = "top left";
     document.body.style.overflow = "hidden";
     
-    // Centraliza o jogo perfeitamente na tela
     const leftOffset = (window.innerWidth - (larguraIdeal * scale)) / 2;
     const topOffset = (window.innerHeight - (alturaIdeal * scale)) / 2;
     document.body.style.left = `${leftOffset}px`;
     document.body.style.top = `${topOffset}px`;
     
-    // Oculta barras de rolagem no container raiz
     document.documentElement.style.overflow = "hidden";
   } else {
-    // Restaura as dimensões padrão do dispositivo ao sair
     document.body.style.position = "";
     document.body.style.top = "";
     document.body.style.left = "";
@@ -791,7 +740,6 @@ function ajustarEscalaFullscreen() {
   }
 }
 
-// Vincula o redimensionamento de janela e mudanças de tela cheia para recalcular a escala do jogo de forma imediata
 window.addEventListener('resize', ajustarEscalaFullscreen);
 document.addEventListener('fullscreenchange', ajustarEscalaFullscreen);
 document.addEventListener('webkitfullscreenchange', ajustarEscalaFullscreen);
@@ -799,35 +747,21 @@ document.addEventListener('webkitfullscreenchange', ajustarEscalaFullscreen);
 function toggleFullScreen() {
   tocarSomClick();
   const elemento = document.documentElement;
-  
-  // Detecção dedicada de iPhone/iOS
   const esIphone = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
   if (esIphone) {
     document.body.classList.toggle("fullscreen-ios-fake");
-    const estaAtivo = document.body.classList.contains("fullscreen-ios-fake");
-    mostrarMensagemGlob(estaAtivo ? "Modo tela cheia simulado ativado!" : "Modo tela cheia desativado.");
-    
-    // Força o ajuste de escala no iOS imediatamente
     ajustarEscalaFullscreen();
     return;
   }
   
-  // Comportamento padrão para Android e computadores
   if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
-    if (elemento.requestFullscreen) {
-      elemento.requestFullscreen().catch(err => { console.log("Erro ao entrar em tela cheia:", err); });
-    } else if (elemento.webkitRequestFullscreen) {
-      elemento.webkitRequestFullscreen();
-    } else if (elemento.msRequestFullscreen) {
-      elemento.msRequestFullscreen();
-    }
+    if (elemento.requestFullscreen) elemento.requestFullscreen().catch(()=>{});
+    else if (elemento.webkitRequestFullscreen) elemento.webkitRequestFullscreen();
+    else if (elemento.msRequestFullscreen) elemento.msRequestFullscreen();
   } else {
-    if (document.exitFullscreen) {
-      document.exitFullscreen();
-    } else if (document.webkitExitFullscreen) {
-      document.webkitExitFullscreen();
-    } else if (document.msExitFullscreen) {
-      document.msExitFullscreen();
-    }
+    if (document.exitFullscreen) document.exitFullscreen();
+    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+    else if (document.msExitFullscreen) document.msExitFullscreen();
   }
 }

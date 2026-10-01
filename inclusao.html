@@ -23,12 +23,8 @@
     <button class="icon-btn" onclick="toggleMenu(event)">⚙️</button>
     <button class="icon-btn" onclick="toggleMute()" id="muteBtn">🔊</button>
     <button class="icon-btn" onclick="abrirConquistas()">🏅</button>
-    
-    <!-- BOTÃO DO ASSISTENTE ADICIONADO AQUI -->
     <button class="icon-btn" onclick="toggleAssistenteVoz()" id="btnAssistente" title="Assistente de Voz">🎤</button>
-    
-    <!-- BOTÕES ADICIONADOS PARA PWA E TELA CHEIA (Começa visível por padrão) -->
-    <button id="btn-instalar" class="icon-btn" style="display: inline-block;" title="Baixar Aplicativo">📲</button>
+    <button class="icon-btn" onclick="abrirComandosVoz()" title="Lista de Comandos de Voz">📜</button>
     <button class="icon-btn" onclick="toggleFullScreen()" id="btnFullscreen" title="Tela Cheia">📺</button>
     
     <div id="trofeus-globais" class="trofeus-container"></div>
@@ -41,7 +37,6 @@
   </div>
   
   <div class="direita">
-    <!-- BOTÕES DO CHAT E TABELA FIXADOS -->
     <button class="icon-btn btn-chat-global" onclick="abrirQuimiChat()" title="QuimiChat">💬</button>
     <button class="icon-btn btn-tabela-global" onclick="abrirTabelaPeriodica()" title="Tabela Periódica">📊</button>
     <button class="icon-btn" onclick="toggleModo()" id="temaBtn">🌙</button>
@@ -132,7 +127,6 @@
   </div>
 </main>
 
-<!-- RODAPÉ RESTAURADO COM ADM E CRÉDITOS -->
 <footer class="rodape">
   <div class="adm" style="text-align: center; margin-bottom: 20px;">
       <button class="btn-adm" onclick="abrirChat()">[ADM]</button>
@@ -159,7 +153,6 @@
   </div>
 </div>
 
-<!-- MODAL ESTRELA SEM BOTOES -->
 <div id="modal-estrela" class="modal-overlay" style="z-index: 100000;">
     <div class="modal-box modal-box-epic" style="background: transparent; box-shadow: none; text-align: center; color: white;">
         <div style="font-size: 150px; text-shadow: 0 0 30px gold; animation: flutuarGigante 2s infinite ease-in-out;">⭐</div>
@@ -167,7 +160,6 @@
     </div>
 </div>
 
-<!-- NOVA TELA DE VITÓRIA DO MODO INCLUSIVO SEM BOTÕES -->
 <div id="modal-vitoria-inclusao" class="modal-overlay" style="z-index: 100000;">
     <div class="modal-box modal-box-epic" style="background: linear-gradient(135deg, #f0fdf4, #dcfce7); border: 4px solid #16a34a; text-align: center;">
         <div class="modal-header" style="background: #16a34a; justify-content: center; font-size: 26px; border-bottom: 4px solid #15803d;">

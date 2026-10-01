@@ -19,7 +19,10 @@ function mostrarMensagemGlob(texto) {
         setTimeout(() => { toast.classList.add("escondido"); }, 3000);
     }
 }
-function abrirAjuda() { tocarSomClick(); document.getElementById('ajuda-overlay').style.display = 'flex'; }
+function abrirAjuda() { 
+    if(typeof tocarSomClick === "function") tocarSomClick(); 
+    document.getElementById('ajuda-overlay').style.display = 'flex'; 
+}
 
 const bancoDesafios = {
     "facil":[
@@ -68,7 +71,6 @@ if (modoAtual === "livre") {
     document.getElementById("texto-modo-livre").classList.remove("escondido");
     document.getElementById("btn-catalogo").classList.remove("escondido");
     
-    // Força a remoção total dos botões de desafio
     let btnP = document.getElementById("btn-pular-fase"); if(btnP) { btnP.style.display = "none"; btnP.classList.add("escondido"); }
     let btnV = document.getElementById("btn-voltar-fase"); if(btnV) { btnV.style.display = "none"; btnV.classList.add("escondido"); }
     let btnC = document.getElementById("btn-completar-desafio"); if(btnC) { btnC.style.display = "none"; btnC.classList.add("escondido"); }
@@ -77,7 +79,6 @@ if (modoAtual === "livre") {
     document.getElementById("hud-desafio").classList.remove("escondido");
     document.getElementById("btn-verificar-desafio").classList.remove("escondido");
     
-    // Força a exibição dos botões de desafio
     let btnP = document.getElementById("btn-pular-fase"); if(btnP) { btnP.style.display = "inline-block"; btnP.classList.remove("escondido"); }
     let btnV = document.getElementById("btn-voltar-fase"); if(btnV) { btnV.style.display = "inline-block"; btnV.classList.remove("escondido"); }
     let btnC = document.getElementById("btn-completar-desafio"); if(btnC) { btnC.style.display = "inline-block"; btnC.classList.remove("escondido"); }
@@ -109,6 +110,7 @@ function atualizarHUD() {
 function iniciarCronometro() {
     clearInterval(intervaloCronometro);
     let display = document.getElementById("cronometro-desafio");
+    if (!display) return;
     display.classList.remove("perigo");
     
     let m = Math.floor(tempoRestante / 60).toString().padStart(2, '0');
@@ -126,13 +128,13 @@ function iniciarCronometro() {
 }
 
 window.mostrarDicaDesafio = function() {
-    tocarSomClick();
+    if(typeof tocarSomClick === "function") tocarSomClick();
     let dAtual = bancoDesafios[modoAtual][indexDesafioAtual];
     mostrarMensagemGlob("💡 Dica: " + dAtual.dica);
 };
 
 window.verificarMoleculaDesafio = function() {
-    tocarSomClick();
+    if(typeof tocarSomClick === "function") tocarSomClick();
     let dAtual = bancoDesafios[modoAtual][indexDesafioAtual];
     let allPecas = Array.from(quadroInner.querySelectorAll(`.peca-draggable.no-quadro`));
     if(allPecas.length === 0) { mostrarMensagemGlob("⚠️ O quadro está vazio!"); return; }
@@ -167,8 +169,14 @@ window.verificarMoleculaDesafio = function() {
     if(acertou) {
         if(somCorreto) { somCorreto.currentTime=0; somCorreto.play().catch(()=>{}); }
         clearInterval(intervaloCronometro); 
-        if (modoAtual === "impossivel") { document.getElementById("modal-classificacao").style.display = "flex"; } else { ganharEstrela(); }
-    } else { perderVidaDesafio(`Estrutura Incorreta!\n\n💡 Lembrete: ${dAtual.dica}`); }
+        if (modoAtual === "impossivel") { 
+            document.getElementById("modal-classificacao").style.display = "flex"; 
+        } else { 
+            ganharEstrela(); 
+        }
+    } else { 
+        perderVidaDesafio(`Estrutura Incorreta!\n\n💡 Lembrete: ${dAtual.dica}`); 
+    }
 };
 
 function perderVidaDesafio(motivo) {
@@ -186,14 +194,13 @@ function perderVidaDesafio(motivo) {
 }
 
 window.fecharErroDesafio = function() {
-    tocarSomClick();
-    document.getElementById("modal-erro-desafio").style.none = "none";
+    if(typeof tocarSomClick === "function") tocarSomClick();
     document.getElementById("modal-erro-desafio").style.display = "none";
     if (modoAtual === "impossivel") { tempoRestante = tempoMaximo; iniciarCronometro(); }
 };
 
 window.verificarClassificacao = function() {
-    tocarSomClick();
+    if(typeof tocarSomClick === "function") tocarSomClick();
     let classCorreta = bancoDesafios["impossivel"][indexDesafioAtual].class; 
     let cCadeia = document.querySelector('input[name="classCadeia"]:checked');
     let cDisp = document.querySelector('input[name="classDisp"]:checked');
@@ -202,7 +209,7 @@ window.verificarClassificacao = function() {
 
     if(!cCadeia || !cDisp || !cSat || !cNat) { mostrarMensagemGlob("⚠️ Preencha todas as classificações antes de confirmar!"); return; }
 
-    let respostas =[cCadeia.value, cDisp.value, cSat.value, cNat.value];
+    let respostas = [cCadeia.value, cDisp.value, cSat.value, cNat.value];
     if(classCorreta.every(val => respostas.includes(val))) {
         document.getElementById("modal-classificacao").style.display = "none";
         document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
@@ -221,10 +228,16 @@ function ganharEstrela() {
 }
 
 window.continuarDesafio = function() {
-    tocarSomClick();
+    if(typeof tocarSomClick === "function") tocarSomClick();
     document.getElementById("modal-estrela").style.display = "none";
-    atualizarHUD(); limparQuadro(); 
-    if(estrelasGanhas >= 5) { finalizarDesafio(true); } else { indexDesafioAtual++; iniciarRodadaDesafio(); }
+    atualizarHUD(); 
+    limparQuadro(); 
+    if(estrelasGanhas >= 5) { 
+        finalizarDesafio(true); 
+    } else { 
+        indexDesafioAtual++; 
+        iniciarRodadaDesafio(); 
+    }
 };
 
 function finalizarDesafio(vitoria) {
@@ -232,7 +245,7 @@ function finalizarDesafio(vitoria) {
     document.getElementById("modal-resultado-desafio").style.display = "flex";
     let box = document.getElementById("box-resultado-desafio");
     let header = document.getElementById("header-resultado-desafio");
-    let titulo = document.getElementById("texto-resultado-desafio");
+    let tituloRes = document.getElementById("texto-resultado-desafio");
     let sub = document.getElementById("subtexto-resultado-desafio");
     let btn = document.getElementById("btn-resultado-desafio");
 
@@ -241,9 +254,9 @@ function finalizarDesafio(vitoria) {
         box.style.background = "linear-gradient(135deg, #f0fdf4, #dcfce7)";
         header.style.background = "#16a34a"; 
         header.style.borderBottom = "4px solid #15803d";
-        titulo.style.color = "#15803d";
+        tituloRes.style.color = "#15803d";
         btn.style.background = "#16a34a";
-        titulo.innerText = "Excelente! Você completou o desafio! ⭐";
+        tituloRes.innerText = "Excelente! Você completou o desafio! ⭐";
         sub.innerText = `Você conseguiu ${estrelasGanhas} estrela(s). Sua habilidade em química estrutural é incrível!`;
         if(somGanhou) { somGanhou.currentTime=0; somGanhou.play().catch(()=>{}); }
         
@@ -252,15 +265,18 @@ function finalizarDesafio(vitoria) {
             if(modoAtual === "medio" && typeof desbloquearConquista === "function") desbloquearConquista('c2');
             if(modoAtual === "dificil" && typeof desbloquearConquista === "function") desbloquearConquista('c3');
             if(modoAtual === "impossivel" && typeof desbloquearConquista === "function") desbloquearConquista('c4');
+            
+            // Registra vitória orgânica para alimentar a conquista c5
+            if(typeof registrarVitoriaEstruturando === "function") registrarVitoriaEstruturando();
         }
     } else {
         box.style.border = "4px solid #ef4444";
         box.style.background = "linear-gradient(135deg, #fef2f2, #fee2e2)";
         header.style.background = "#ef4444"; 
         header.style.borderBottom = "4px solid #b91c1c";
-        titulo.style.color = "#b91c1c";
+        tituloRes.style.color = "#b91c1c";
         btn.style.background = "#ef4444";
-        titulo.innerText = "Fim de Jogo!";
+        tituloRes.innerText = "Fim de Jogo!";
         
         if(somPerdeu) { somPerdeu.currentTime=0; somPerdeu.play().catch(()=>{}); }
         if (estrelasGanhas === 4) { sub.innerText = "Muito bem! Você conseguiu 4 estrelas. Faltou muito pouco!"; } 
@@ -288,18 +304,18 @@ window.cheatEstrelas = function(qtd) {
     }
 };
 
-const dbCatalogo =[
+const dbCatalogo = [
     { id:1, form:"H2O", nome:"Água", desc:"Essencial para a vida, compõe a maior parte dos seres vivos.", chk:(c)=> c.O==1 && c.H==2 && c.total==3 && c.simples==2 },
     { id:2, form:"CH4", nome:"Metano", desc:"Principal componente do gás natural, usado como combustível.", chk:(c)=> c.C==1 && c.H==4 && c.total==5 && c.simples==4 },
     { id:3, form:"C2H6", nome:"Etano", desc:"Gás usado na produção de eteno para a indústria de plásticos.", chk:(c)=> c.C==2 && c.H==6 && c.total==8 && c.simples==7 },
     { id:4, form:"C2H4", nome:"Eteno", desc:"Usado na agricultura para amadurecer frutas e base para polietileno.", chk:(c)=> c.C==2 && c.H==4 && c.total==6 && c.dupla==1 && c.simples==4 },
     { id:5, form:"C2H2", nome:"Etino", desc:"Gás usado em maçaricos de solda devido à sua chama super quente.", chk:(c)=> c.C==2 && c.H==2 && c.total==4 && c.tripla==1 && c.simples==2 },
     { id:6, form:"C2H5OH", nome:"Etanol", desc:"Álcool comum presente em bebidas, perfumes e combustíveis.", chk:(c)=> c.C==2 && c.H==6 && c.O==1 && c.total==9 && c.simples==8 },
-    { id:7, form:"CH3COOH", nome:"Ácido acético", desc:"Principal componente del vinagre, usado como tempero.", chk:(c)=> c.C==2 && c.H==4 && c.O==2 && c.total==8 && c.dupla==1 && c.simples==6 },
-    { id:8, form:"C3H6O", nome:"Acetona", desc:"Solvente muy comum, famoso por remover esmaltes.", chk:(c)=> c.C==3 && c.H==6 && c.O==1 && c.total==10 && c.dupla==1 && c.simples==8 },
-    { id:9, form:"CO2", nome:"Dióxido de carbono", desc:"Gás exhalado na respiração, usado en refrigerantes.", chk:(c)=> c.C==1 && c.O==2 && c.total==3 && c.dupla==2 },
+    { id:7, form:"CH3COOH", nome:"Ácido acético", desc:"Principal componente do vinagre, usado como tempero.", chk:(c)=> c.C==2 && c.H==4 && c.O==2 && c.total==8 && c.dupla==1 && c.simples==6 },
+    { id:8, form:"C3H6O", nome:"Acetona", desc:"Solvente muito comum, famoso por remover esmaltes.", chk:(c)=> c.C==3 && c.H==6 && c.O==1 && c.total==10 && c.dupla==1 && c.simples==8 },
+    { id:9, form:"CO2", nome:"Dióxido de carbono", desc:"Gás exalado na respiração, usado em refrigerantes.", chk:(c)=> c.C==1 && c.O==2 && c.total==3 && c.dupla==2 },
     { id:10, form:"NH3", nome:"Amônia", desc:"Gás de cheiro forte usado em produtos de limpeza.", chk:(c)=> c.N==1 && c.H==3 && c.total==4 && c.simples==3 },
-    { id:11, form:"CH3NH2", nome:"Metilamina", desc:"Gás con cheiro de peixe, usado na síntesis de medicamentos.", chk:(c)=> c.C==1 && c.H==5 && c.N==1 && c.total==7 && c.simples==6 },
+    { id:11, form:"CH3NH2", nome:"Metilamina", desc:"Gás com cheiro de peixe, usado na síntese de medicamentos.", chk:(c)=> c.C==1 && c.H==5 && c.N==1 && c.total==7 && c.simples==6 },
     { id:12, form:"CO(NH2)2", nome:"Ureia", desc:"Presente na urina, muito usado como fertilizante agrícola.", chk:(c)=> c.C==1 && c.H==4 && c.N==2 && c.O==1 && c.total==8 && c.dupla==1 && c.simples==6 },
     { id:13, form:"H2S", nome:"Sulfeto de hidrogênio", desc:"Gás tóxico com cheiro de ovo podre.", chk:(c)=> c.S==1 && c.H==2 && c.total==3 && c.simples==2 },
     { id:14, form:"CH3SH", nome:"Metanotiol", desc:"Gás de cheiro repulsivo adicionado ao gás de cozinha.", chk:(c)=> c.C==1 && c.H==4 && c.S==1 && c.total==6 && c.simples==5 },
@@ -312,10 +328,10 @@ const dbCatalogo =[
 ];
 
 function abrirCatalogo() {
-    tocarSomClick();
+    if(typeof tocarSomClick === "function") tocarSomClick();
     let grid = document.getElementById("grid-catalogo");
     grid.innerHTML = "";
-    let desbloqueados = JSON.parse(localStorage.getItem("catalogoDesbloqueado")) ||[];
+    let desbloqueados = JSON.parse(localStorage.getItem("catalogoDesbloqueado")) || [];
     dbCatalogo.forEach(mol => {
         let isUnlk = desbloqueados.includes(mol.id);
         grid.innerHTML += `<div class="item-catalogo ${isUnlk ? 'desbloqueado' : 'bloqueado'}">${isUnlk ? '' : '<span class="icone-lock">🔒</span>'}<h4>${mol.form} - ${mol.nome}</h4><p>${mol.desc}</p></div>`;
@@ -345,7 +361,7 @@ function checarPokedex(grupoId) {
         }
     });
 
-    let desbloqueados = JSON.parse(localStorage.getItem("catalogoDesbloqueado")) ||[];
+    let desbloqueados = JSON.parse(localStorage.getItem("catalogoDesbloqueado")) || [];
     dbCatalogo.forEach(mol => {
         if(mol.chk(c)) {
             if(!desbloqueados.includes(mol.id)) {
@@ -365,7 +381,7 @@ const bancoDeAtomos = {
   "dificil":[{sigla:"Cl",val:1}, {sigla:"F",val:1}, {sigla:"Br",val:1}, {sigla:"I",val:1}]
 };
 
-let atomosPermitidos = modoAtual.includes("medio") ?[...bancoDeAtomos.facil, ...bancoDeAtomos.medio] : (modoAtual.includes("livre") || modoAtual.includes("dificil") || modoAtual.includes("impossivel") ?[...bancoDeAtomos.facil, ...bancoDeAtomos.medio, ...bancoDeAtomos.dificil] :[...bancoDeAtomos.facil]);
+let atomosPermitidos = modoAtual.includes("medio") ? [...bancoDeAtomos.facil, ...bancoDeAtomos.medio] : (modoAtual.includes("livre") || modoAtual.includes("dificil") || modoAtual.includes("impossivel") ? [...bancoDeAtomos.facil, ...bancoDeAtomos.medio, ...bancoDeAtomos.dificil] : [...bancoDeAtomos.facil]);
 
 atomosPermitidos.forEach(atomo => {
   let div = document.createElement("div");
@@ -377,9 +393,12 @@ atomosPermitidos.forEach(atomo => {
   listaAtomos.appendChild(div);
 });
 
-let pecaEmMovimento = null; let grupoEmMovimento =[];
-let mouseStartX = 0, mouseStartY = 0; let zoomLevel = 1;
-let historico =[]; let groupIdCounter = 1; 
+let pecaEmMovimento = null; 
+let grupoEmMovimento = [];
+let mouseStartX = 0, mouseStartY = 0; 
+let zoomLevel = 1;
+let historico = []; 
+let groupIdCounter = 1; 
 let pecaAlvoMenu = null;
 
 function salvarEstado() { historico.push(quadroInner.innerHTML); if(historico.length > 2) historico.shift(); }
@@ -416,7 +435,7 @@ function abrirNovoTutorial() {
 }
 
 function abrirTutorialManual() {
-    tocarSomClick();
+    if(typeof tocarSomClick === "function") tocarSomClick();
     document.getElementById('ajuda-overlay').style.display = 'none';
     abrirNovoTutorial();
 }
@@ -439,7 +458,7 @@ function renderizarPassoTutorialGenshin() {
 
         let playPromise = video.play();
         if (playPromise !== undefined) {
-            playPromise.catch(error => {
+            playPromise.catch(() => {
                 video.muted = true;
                 video.play();
             });
@@ -469,14 +488,14 @@ function renderizarPassoTutorialGenshin() {
 }
 
 window.avancarTutorialGenshin = function() {
-    tocarSomClick();
+    if(typeof tocarSomClick === "function") tocarSomClick();
     if (tutorialGenshinStep < tutorialGenshinData.length - 1) {
         tutorialGenshinStep++;
         renderizarPassoTutorialGenshin();
     } else {
         fecharTutorialGenshin();
     }
-}
+};
 
 function fecharTutorialGenshin() {
     let modal = document.getElementById("tutorial-genshin-overlay");
@@ -495,22 +514,16 @@ let toqueEmEspera = null;
 let isDragging = false; 
 let startX = 0, startY = 0; 
 let pecaPotencial = null;
-
-// ==========================================
-// SUPORTE DE TOQUE LONGO (LONG PRESS) PARA DISPOSITIVOS TOUCH (iOS/Android)
-// ==========================================
 let timerMenuContextoTouch = null;
 
 function iniciarTimerLongPress(peca, x, y) {
     cancelarTimerLongPress();
     timerMenuContextoTouch = setTimeout(() => {
-        // Interrompe o processo de arrasto para abrir apenas as opções da peça
         isDragging = false;
         grupoEmMovimento = [];
         pecaEmMovimento = null;
-        
         exibirMenuContexto(peca, x, y);
-    }, 600); // 600ms pressionando
+    }, 600);
 }
 
 function cancelarTimerLongPress() {
@@ -564,7 +577,6 @@ document.addEventListener("pointerdown", (e) => {
     let peca = e.target.closest(".peca-draggable");
     if (!peca) return;
     
-    // Inicia o timer de long press para abrir o menu por toque no celular/iPhone
     if (peca.dataset.noQuadro === "true" && e.pointerType === "touch") {
         iniciarTimerLongPress(peca, e.clientX, e.clientY);
     }
@@ -590,13 +602,15 @@ document.addEventListener("pointerdown", (e) => {
             nova.dataset.noQuadro = "true"; nova.style.position = "absolute"; nova.style.zIndex = 10;
             
             grupoEmMovimento = []; pecaEmMovimento = null; isDragging = false;
-            resolverColisaoGlobal(); verificarLigacoesQuimicas(); atualizarContadores(); tocarSomClick();
+            resolverColisaoGlobal(); verificarLigacoesQuimicas(); atualizarContadores(); 
+            if(typeof tocarSomClick === "function") tocarSomClick();
             cancelarTimerLongPress();
             return; 
         }
         if (peca.classList.contains("ligacao") && peca.dataset.noQuadro === "true") {
             if (!peca.dataset.grupo) { 
-                salvarEstado(); peca.style.transform = ""; peca.dataset.angle = 0; peca.classList.toggle("lig-vertical"); tocarSomClick();
+                salvarEstado(); peca.style.transform = ""; peca.dataset.angle = 0; peca.classList.toggle("lig-vertical"); 
+                if(typeof tocarSomClick === "function") tocarSomClick();
                 grupoEmMovimento = []; pecaEmMovimento = null; isDragging = false;
             }
             cancelarTimerLongPress();
@@ -676,18 +690,17 @@ document.addEventListener("pointerup", (e) => {
                 mostrarMensagemGlob("🗑️ Peça sobreposta removida!");
             }
         }
-        resolverColisaoGlobal(); verificarLigacoesQuimicas(); tocarSomClick();
+        resolverColisaoGlobal(); verificarLigacoesQuimicas(); 
+        if(typeof tocarSomClick === "function") tocarSomClick();
     } else { grupoEmMovimento.forEach(p => p.remove()); }
 
     atualizarContadores(); pecaEmMovimento = null; grupoEmMovimento = []; isDragging = false;
 });
 
-// Em caso de o gesto de toque ser cancelado pelo sistema operacional
 document.addEventListener("pointercancel", () => {
     cancelarTimerLongPress();
 });
 
-// Lógica única para renderização do menu de contexto (toque longo ou clique direito)
 function exibirMenuContexto(peca, x, y) {
     pecaAlvoMenu = peca;
     let menu = document.getElementById("menu-contexto");
@@ -746,7 +759,8 @@ window.cmCopiar = function() {
     let currX = parseFloat(pecaAlvoMenu.style.left); let currY = parseFloat(pecaAlvoMenu.style.top);
     nova.style.left = (currX + 30) + "px"; nova.style.top = (currY + 30) + "px";
     quadroInner.appendChild(nova); fecharMenuContexto();
-    resolverColisaoGlobal(); verificarLigacoesQuimicas(); atualizarContadores(); tocarSomClick();
+    resolverColisaoGlobal(); verificarLigacoesQuimicas(); atualizarContadores(); 
+    if(typeof tocarSomClick === "function") tocarSomClick();
 };
 
 window.cmExcluir = function() { if(!pecaAlvoMenu) return; salvarEstado(); let p = pecaAlvoMenu; fecharMenuContexto(); p.remove(); curarQuadro(); atualizarContadores(); };
@@ -901,15 +915,14 @@ function checarValidacaoAtomo(atomo) {
     } else { atomo.dataset.tocado = "false"; }
 }
 
-// Vincula o redimensionamento de janela e mudanças de tela cheia para recalcular a escala do jogo de forma imediata
-function mudarZoom(d) { tocarSomClick(); zoomLevel = Math.max(0.5, Math.min(2, zoomLevel+d)); atualizarVisao(); resolverColisaoGlobal(); }
-function resetarVisao() { tocarSomClick(); zoomLevel = 1; atualizarVisao(); resolverColisaoGlobal(); }
+function mudarZoom(d) { if(typeof tocarSomClick === "function") tocarSomClick(); zoomLevel = Math.max(0.5, Math.min(2, zoomLevel+d)); atualizarVisao(); resolverColisaoGlobal(); }
+function resetarVisao() { if(typeof tocarSomClick === "function") tocarSomClick(); zoomLevel = 1; atualizarVisao(); resolverColisaoGlobal(); }
 function atualizarVisao() { quadroInner.style.transform = `scale(${zoomLevel})`; }
-function limparQuadro() { salvarEstado(); tocarSomClick(); quadroInner.innerHTML = ""; atualizarContadores(); }
-function desfazerAcao() { tocarSomClick(); if(historico.length > 0){ quadroInner.innerHTML = historico.pop(); verificarLigacoesQuimicas(); atualizarContadores(); } }
+function limparQuadro() { salvarEstado(); if(typeof tocarSomClick === "function") tocarSomClick(); quadroInner.innerHTML = ""; atualizarContadores(); }
+function desfazerAcao() { if(typeof tocarSomClick === "function") tocarSomClick(); if(historico.length > 0){ quadroInner.innerHTML = historico.pop(); verificarLigacoesQuimicas(); atualizarContadores(); } }
 
 window.girarMoleculas = function() {
-    salvarEstado(); tocarSomClick();
+    salvarEstado(); if(typeof tocarSomClick === "function") tocarSomClick();
     let allPecas = Array.from(quadroInner.querySelectorAll('.peca-draggable.no-quadro'));
     if(allPecas.length === 0) return;
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
@@ -930,7 +943,8 @@ window.girarMoleculas = function() {
 };
 
 function tirarFoto() {
-  tocarSomClick(); mostrarMensagemGlob("📸 Processando...");
+  if(typeof tocarSomClick === "function") tocarSomClick(); 
+  mostrarMensagemGlob("📸 Processando...");
   html2canvas(document.getElementById("quadro-inner"), { backgroundColor: "#ffffff" }).then(c => {
     let l = document.createElement('a'); l.download = 'molecula.png'; l.href = c.toDataURL('image/png'); l.click(); mostrarMensagemGlob("✅ Foto salva!");
   });
@@ -943,7 +957,8 @@ function atualizarContadores() {
 }
 
 function togglePainel(id) { 
-    tocarSomClick(); let p = document.getElementById(id); p.classList.toggle("painel-recolhido"); let btn = p.querySelector("button");
+    if(typeof tocarSomClick === "function") tocarSomClick(); 
+    let p = document.getElementById(id); p.classList.toggle("painel-recolhido"); let btn = p.querySelector("button");
     if(p.classList.contains("painel-recolhido")) { btn.innerText = "▶ Mostrar"; } else { btn.innerText = id === 'painelInfo' ? "📊 Ocultar" : "🛠️ Ferramentas ⬇"; }
 }
 
@@ -953,17 +968,17 @@ function togglePainel(id) {
 window.pularFaseDesafio = function() {
     if(modoAtual === "livre") {
         mostrarMensagemGlob("⚠️ O modo livre não possui fases.");
-        if(typeof falarAssistente === "function") falarAssistente("O modo livre não possui fases para pular.");
+        if(typeof falarAssistente === "function") falarAssistente("O modo livre não possui fases.");
         return;
     }
-    tocarSomClick();
+    if(typeof tocarSomClick === "function") tocarSomClick();
     let desafiosDoModo = bancoDesafios[modoAtual];
     if (indexDesafioAtual < desafiosDoModo.length - 1) {
         indexDesafioAtual++;
         limparQuadro();
         iniciarRodadaDesafio();
         mostrarMensagemGlob("⏭️ Fase pulada!");
-        if(typeof falarAssistente === "function") falarAssistente("Fase pulada. Novo desafio na tela.");
+        if(typeof falarAssistente === "function") falarAssistente("Fase pulada.");
     } else {
         mostrarMensagemGlob("⚠️ Esta já é a última fase deste nível!");
         if(typeof falarAssistente === "function") falarAssistente("Você já está na última fase.");
@@ -976,7 +991,7 @@ window.voltarFaseDesafio = function() {
         if(typeof falarAssistente === "function") falarAssistente("O modo livre não possui fases.");
         return;
     }
-    tocarSomClick();
+    if(typeof tocarSomClick === "function") tocarSomClick();
     if (indexDesafioAtual > 0) {
         indexDesafioAtual--;
         limparQuadro();
@@ -995,12 +1010,12 @@ window.encerrarDesafioCedo = function() {
         if(typeof falarAssistente === "function") falarAssistente("O modo livre não possui um fim específico.");
         return;
     }
-    tocarSomClick();
+    if(typeof tocarSomClick === "function") tocarSomClick();
     finalizarDesafio(estrelasGanhas >= 5);
 };
 
 // ==========================================
-// MOTOR 3D (REFORMULADO COM COMPACTAÇÃO E GEOMETRIA EM ZIGUE-ZAGUE COMPLETA)
+// MOTOR 3D (ZIGUE-ZAGUE COMPLETO)
 // ==========================================
 let idAnimacao3D = null;
 window.abrirVisualizador3D = function() {
@@ -1012,7 +1027,7 @@ window.abrirVisualizador3D = function() {
     }
 
     if (!window.THREE) {
-        mostrarMensagemGlob("⚠️ Erro: Biblioteca 3D não carregou. Verifique a sua internet.");
+        mostrarMensagemGlob("⚠️ Erro: Biblioteca 3D não carregou. Verifique sua conexão.");
         return;
     }
 
@@ -1058,8 +1073,6 @@ window.abrirVisualizador3D = function() {
 
     const cores = { 'C': 0x333333, 'O': 0xef4444, 'H': 0xffffff, 'N': 0x3b82f6, 'S': 0xeab308, 'P': 0xf97316, 'CL': 0x22c55e, 'F': 0x4ade80, 'BR': 0x991b1b, 'I': 0x8b5cf6 };
     const raios = { 'H': 0.25, 'C': 0.45, 'O': 0.4, 'N': 0.4, 'S': 0.5, 'P': 0.5, 'CL': 0.5, 'F': 0.35, 'BR': 0.55, 'I': 0.6 };
-
-    // Fator de compressão da escala (Aumentado de 35 para 55 para encurtar e aproximar as ligações)
     const fatorDivisao = 55;
 
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
@@ -1077,16 +1090,10 @@ window.abrirVisualizador3D = function() {
         let cor = cores[sigla] || 0xaaaaaa;
         let raio = raios[sigla] || 0.45;
 
-        // --- CÁLCULO DA GEOMETRIA EM ZIGUE-ZAGUE (tetraédrica sp3 ~109,5°) ---
-        // Dividimos o left/top por 80 (distância de encaixe real entre átomos conectados no grid 2D)
-        // Isso faz com que a paridade da coluna mude de 1 em 1 para todos os átomos conectados
         let col = Math.round(parseFloat(a.style.left) / 80);
         let row = Math.round(parseFloat(a.style.top) / 80);
 
-        // Zigue-zague principal no eixo Y baseado na coluna
         let zigzagY = (col % 2 === 0) ? 0.28 : -0.28;
-        
-        // Empurra verticalmente o substituinte no eixo Z para formar a geometria de pernas de tripé
         let zigzagZ = (row % 2 === 0) ? 0.48 : -0.48;
 
         let x3d = (parseFloat(a.style.left) - centroX) / fatorDivisao;
@@ -1157,7 +1164,6 @@ window.abrirVisualizador3D = function() {
         });
     }
 
-    // Oculta barras de rolagem no container raiz
     function animar() {
         idAnimacao3D = requestAnimationFrame(animar);
         controls.update();

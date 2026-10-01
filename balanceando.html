@@ -17,6 +17,8 @@
 <audio id="somGanhou" src="ganhou.mp3"></audio>
 <audio id="somPerdeu" src="perdeu.mp3"></audio>
 <audio id="somEstrela" src="estrela.mp3"></audio>
+<audio id="somConquista" src="conquista.mp3"></audio>
+<audio id="transicaoSom" src="transicao.mp3"></audio>
 
 <header class="topo">
   <div class="esquerda">
@@ -24,9 +26,7 @@
     <button class="icon-btn" onclick="toggleMute()" id="muteBtn">🔊</button>
     <button class="icon-btn" onclick="abrirConquistas()">🏅</button>
     <button class="icon-btn" onclick="toggleAssistenteVoz()" id="btnAssistente" title="Assistente de Voz">🎤</button>
-    
-    <!-- BOTÕES ADICIONADOS PARA PWA E TELA CHEIA (Começa visível por padrão) -->
-    <button id="btn-instalar" class="icon-btn" style="display: inline-block;" title="Baixar Aplicativo">📲</button>
+    <button class="icon-btn" onclick="abrirComandosVoz()" title="Lista de Comandos de Voz">📜</button>
     <button class="icon-btn" onclick="toggleFullScreen()" id="btnFullscreen" title="Tela Cheia">📺</button>
     
     <div id="trofeus-globais" class="trofeus-container"></div>
@@ -64,7 +64,7 @@
       </div>
       <div class="hud-pergunta" style="text-align: center;">
           <strong style="font-size: 20px;">Equilibre a balança química!</strong><br>
-          <span style="font-size: 16px; opacity: 0.9;">Adicione moléculas aos pratos.<br>
+          <span style="font-size: 16px; opacity: 0.9;">Ajuste os coeficientes e iguale a quantidade de átomos nos dois pratos.<br>
           <span style="color: #0ea5e9; font-weight: bold;">(Dica: Simplifique a equação final para ganhar 2 estrelas!)</span>
           </span>
       </div>
@@ -104,7 +104,6 @@
   <div class="creditos"><p class="creditos-titulo">Desenvolvido por</p><p class="autor">Zayde CASTRO</p><p class="email">zayde.lucas@aluno.uece.br</p><div class="logos"><img src="pibid.png"><img src="faced.png"><img src="uece.png"></div></div>
 </footer>
 
-<!-- MODAL DA ESTRELA QUE TINHA SUMIDO -->
 <div id="modal-estrela" class="modal-overlay" style="z-index: 100000; display: none;">
     <div class="modal-box modal-box-epic" style="background: transparent; box-shadow: none; text-align: center; color: white;">
         <div id="animacao-estrela" style="font-size: 150px; text-shadow: 0 0 30px gold; animation: flutuarGigante 2s infinite ease-in-out;">⭐</div>
@@ -116,12 +115,12 @@
 <div id="modal-erro-desafio" class="modal-overlay" style="z-index: 100000; display: none;">
     <div class="modal-box modal-box-epic" style="border: 4px solid #ef4444; background: linear-gradient(135deg, #fef2f2, #fee2e2); animation: tremer 0.4s;">
         <div class="modal-header" style="background: #ef4444; justify-content: center; font-size: 24px; border-bottom: 4px solid #b91c1c;">
-            <h3 style="text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">❌ Balança Torta!</h3>
+            <h3 style="text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">❌ Balança Desequilibrada!</h3>
         </div>
         <div class="modal-body" style="text-align: center;">
             <div style="font-size: 60px; margin-bottom: 10px;">⚠️</div>
             <p id="texto-erro-desafio" style="font-size: 20px; margin-bottom: 25px; color: #b91c1c; font-weight: bold;"></p>
-            <button type="button" onclick="document.getElementById('modal-erro-desafio').style.display='none'" class="btn-epic-red" style="background: #ef4444; font-size: 20px;">Tentar Novamente</button>
+            <button type="button" onclick="fecharErroBalanceando()" class="btn-epic-red" style="background: #ef4444; font-size: 20px;">Tentar Novamente</button>
         </div>
     </div>
 </div>
