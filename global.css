@@ -1,14 +1,43 @@
-:root { --bg-color: #f0f4f8; --text-color: #334155; --header-bg: rgba(255, 255, 255, 0.8); --btn-bg: linear-gradient(135deg, #38bdf8, #0284c7); --btn-hover: scale(1.1); --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-body.dark { --bg-color: #0f172a; --text-color: #e2e8f0; --header-bg: rgba(15, 23, 42, 0.8); --btn-bg: linear-gradient(135deg, #0ea5e9, #0369a1); --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5); }
+:root { 
+  --bg-color: #f0f4f8; 
+  --text-color: #334155; 
+  --header-bg: rgba(255, 255, 255, 0.8); 
+  --btn-bg: linear-gradient(135deg, #38bdf8, #0284c7); 
+  --btn-hover: scale(1.1); 
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); 
+  --bordas: #cbd5e1;
+  --painel-bg: #ffffff;
+}
+
+body.dark { 
+  --bg-color: #0f172a; 
+  --text-color: #e2e8f0; 
+  --header-bg: rgba(15, 23, 42, 0.8); 
+  --btn-bg: linear-gradient(135deg, #0ea5e9, #0369a1); 
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5); 
+  --bordas: #334155;
+  --painel-bg: #1e293b;
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
 
-body { background-color: var(--bg-color); color: var(--text-color); display: flex; flex-direction: column; min-height: 100vh; overflow-x: hidden; transition: background-color 0.4s, color 0.4s; animation: entrarTela 0.5s ease forwards; }
+body { 
+  background-color: var(--bg-color); 
+  color: var(--text-color); 
+  display: flex; 
+  flex-direction: column; 
+  min-height: 100vh; 
+  overflow-x: hidden; 
+  transition: background-color 0.4s, color 0.4s; 
+  animation: entrarTela 0.5s ease forwards; 
+}
+
 body.saindo { animation: sairTela 0.5s ease forwards; }
 @keyframes entrarTela { 0% { opacity: 0; } 100% { opacity: 1; } }
 @keyframes sairTela { 0% { opacity: 1; } 100% { opacity: 0; } }
 
 /* ==========================================================================
-   BLOQUEIO GERAL DE SELEÇÃO DE TEXTO E TOQUE SEGURO (MÓVEL/DESKTOP)
+   BLOQUEIO GERAL DE SELEÇÃO DE TEXTO E TOQUE SEGURO
    ========================================================================== */
 body, .peca-draggable, .elemento-tabela, .quadro-grid, img, .linha, h1, h2, h3, p, label {
   -webkit-touch-callout: none;
@@ -19,7 +48,6 @@ body, .peca-draggable, .elemento-tabela, .quadro-grid, img, .linha, h1, h2, h3, 
   user-select: none;
 }
 
-/* Garante que caixas de texto e entradas de dados funcionem normalmente */
 input, textarea, [contenteditable="true"] {
   -webkit-user-select: text;
   -moz-user-select: text;
@@ -47,10 +75,10 @@ body.fullscreen-ios-fake .container {
 }
 
 /* ==========================================================================
-   OVERLAY DE ROTAÇÃO PARA DISPOSITIVOS EM MODO RETRATO (EM PÉ) - CSS PURO
+   AVISO DE ROTAÇÃO HORIZONTAL
    ========================================================================== */
 #aviso-virar-tela {
-  display: none; /* Oculto por padrão */
+  display: none;
   position: fixed;
   top: 0;
   left: 0;
@@ -78,24 +106,72 @@ body.fullscreen-ios-fake .container {
 
 @media screen and (orientation: portrait) {
   #aviso-virar-tela {
-    display: flex !important; /* Exibe o overlay automaticamente apenas na vertical */
+    display: flex !important;
   }
 }
 
 /* ==========================================================================
-   ELEMENTOS GLOBAIS DO SITE
+   ELEMENTOS GLOBAIS
    ========================================================================== */
 .escondido { display: none !important; opacity: 0; pointer-events: none;}
-.toast { position: fixed; top: 90px; left: 50%; transform: translateX(-50%); background: var(--btn-bg); color: white; padding: 12px 25px; border-radius: 30px; font-weight: bold; font-size: 16px; box-shadow: 0 10px 20px rgba(0,0,0,0.3); z-index: 99999; transition: opacity 0.4s ease, top 0.4s ease; text-align: center; width: max-content; max-width: 90vw;}
+.toast { 
+  position: fixed; 
+  top: 90px; 
+  left: 50%; 
+  transform: translateX(-50%); 
+  background: var(--btn-bg); 
+  color: white; 
+  padding: 12px 25px; 
+  border-radius: 30px; 
+  font-weight: bold; 
+  font-size: 16px; 
+  box-shadow: 0 10px 20px rgba(0,0,0,0.3); 
+  z-index: 99999; 
+  transition: opacity 0.4s ease, top 0.4s ease; 
+  text-align: center; 
+  width: max-content; 
+  max-width: 90vw;
+}
 
-.topo { position: fixed; top: 0; width: 100%; display: flex; justify-content: space-between; padding: 15px 30px; background: var(--header-bg); backdrop-filter: blur(10px); z-index: 1000; box-shadow: var(--shadow); }
-.icon-btn { background: none; border: none; font-size: 24px; cursor: pointer; margin-right: 15px; transition: transform 0.2s; padding: 5px;}
+.topo { 
+  position: fixed; 
+  top: 0; 
+  width: 100%; 
+  display: flex; 
+  justify-content: space-between; 
+  padding: 15px 30px; 
+  background: var(--header-bg); 
+  backdrop-filter: blur(10px); 
+  z-index: 1000; 
+  box-shadow: var(--shadow); 
+}
+.icon-btn { 
+  background: none; 
+  border: none; 
+  font-size: 24px; 
+  cursor: pointer; 
+  margin-right: 15px; 
+  transition: transform 0.2s; 
+  padding: 5px;
+}
 .icon-btn:hover { transform: scale(1.2); }
 
 .mic-ouvindo { animation: piscarMic 1s infinite alternate; color: #ef4444 !important; }
 @keyframes piscarMic { 0% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(239,68,68,0.5)); } 100% { transform: scale(1.3); filter: drop-shadow(0 0 15px rgba(239,68,68,1)); } }
 
-.menu { display: none; position: absolute; top: 60px; left: 30px; background: #ffffff; color: #1e293b; padding: 20px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 250px; z-index: 1000;}
+.menu { 
+  display: none; 
+  position: absolute; 
+  top: 60px; 
+  left: 30px; 
+  background: #ffffff; 
+  color: #1e293b; 
+  padding: 20px; 
+  border-radius: 12px; 
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2); 
+  width: 250px; 
+  z-index: 1000;
+}
 .menu-item { margin-bottom: 15px; }
 .menu-item p { font-size: 14px; font-weight: bold; margin-bottom: 5px; }
 .menu input[type="range"] { width: 100%; cursor: pointer; }
@@ -110,13 +186,56 @@ body.fullscreen-ios-fake .container {
 .logos img { height: 65px; margin: 0 15px; opacity: 0.85; transition: 0.3s; }
 .logos img:hover { opacity: 1; transform: scale(1.15); }
 
-.bolha { position: fixed; border: 2px solid #00d2ff; border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; animation: gota 0.6s ease-out forwards; z-index: 9999; }
+.bolha { 
+  position: fixed; 
+  border: 2px solid #00d2ff; 
+  border-radius: 50%; 
+  transform: translate(-50%, -50%); 
+  pointer-events: none; 
+  animation: gota 0.6s ease-out forwards; 
+  z-index: 9999; 
+}
 @keyframes gota { 0% { width: 0px; height: 0px; opacity: 0.8; border-width: 4px; } 100% { width: 120px; height: 120px; opacity: 0; border-width: 1px; } }
 
-.modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); z-index: 9000; backdrop-filter: blur(5px); }
-.modal-box { background: var(--bg-color); width: 90%; max-width: 500px; margin: 10vh auto; border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); overflow: hidden; max-height: 80vh; display: flex; flex-direction: column; }
-.modal-header { background: var(--btn-bg); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
-.modal-header button { background: none; border: none; color: white; font-size: 18px; cursor: pointer; padding: 5px;}
+.modal-overlay { 
+  display: none; 
+  position: fixed; 
+  top: 0; 
+  left: 0; 
+  width: 100%; 
+  height: 100%; 
+  background: rgba(0, 0, 0, 0.6); 
+  z-index: 9000; 
+  backdrop-filter: blur(5px); 
+}
+.modal-box { 
+  background: var(--bg-color); 
+  width: 90%; 
+  max-width: 500px; 
+  margin: 10vh auto; 
+  border-radius: 12px; 
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3); 
+  overflow: hidden; 
+  max-height: 80vh; 
+  display: flex; 
+  flex-direction: column; 
+}
+.modal-header { 
+  background: var(--btn-bg); 
+  color: white; 
+  padding: 15px; 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+}
+.modal-header button { 
+  background: none; 
+  border: none; 
+  color: white; 
+  font-size: 18px; 
+  cursor: pointer; 
+  padding: 5px;
+}
 .modal-body { padding: 30px; overflow-y: auto; }
 
 .conquista-item { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid rgba(128,128,128,0.2); gap: 15px; text-align: left; }
@@ -132,7 +251,23 @@ body.fullscreen-ios-fake .container {
 .trofeu-mini { font-size: 20px; animation: flutuar 3s infinite ease-in-out; cursor: help; }
 .trofeu-prata { filter: grayscale(100%) brightness(1.2); }
 
-.tela-comemoracao { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 100000; display: flex; flex-direction: column; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.5s; text-align: center; }
+.tela-comemoracao { 
+  position: fixed; 
+  top: 0; 
+  left: 0; 
+  width: 100%; 
+  height: 100%; 
+  background: rgba(0,0,0,0.9); 
+  z-index: 100000; 
+  display: flex; 
+  flex-direction: column; 
+  justify-content: center; 
+  align-items: center; 
+  opacity: 0; 
+  pointer-events: none; 
+  transition: opacity 0.5s; 
+  text-align: center; 
+}
 .tela-comemoracao.ativa { opacity: 1; pointer-events: all; }
 .trofeu-gigante { font-size: 180px; animation: flutuarGigante 2s infinite ease-in-out, brilhoOuro 2s alternate infinite; }
 
@@ -179,7 +314,7 @@ body.fullscreen-ios-fake .container {
 .carregando-ai { align-self: flex-start; font-size: 12px; opacity: 0.6; font-style: italic; margin-left: 10px;}
 
 /* ==========================================
-   RESPONSIVIDADE GLOBAL (MOBILE & TABLET)
+   RESPONSIVIDADE GLOBAL
    ========================================== */
 @media (max-width: 768px) {
     .topo { padding: 10px 15px; }

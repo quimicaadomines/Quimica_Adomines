@@ -1,46 +1,6 @@
-let modoAtual = localStorage.getItem("modoAtual") || "balanceando-facil";
-let titulo = document.getElementById("titulo-modo");
-let hasteBalanca = document.getElementById("balanca-haste");
-let cordaEsq = document.getElementById("corda-esquerda");
-let cordaDir = document.getElementById("corda-direita");
-let pratoReagentes = document.getElementById("prato-reagentes");
-let pratoProdutos = document.getElementById("prato-produtos");
-let areaEquacao = document.getElementById("area-equacao");
-
-let somErro = document.getElementById("somErro");
-let somCorreto = document.getElementById("somCorreto");
-let somEstrela = document.getElementById("somEstrela");
-let somGanhou = document.getElementById("somGanhou");
-let somPerdeu = document.getElementById("somPerdeu");
-
 // ==========================================
-// TABELA DE MASSAS ATÔMICAS REAIS (LEI DE LAVOISIER)
+// MODO BALANCEANDO - QUÍMICA ADÔMINES
 // ==========================================
-const MASSAS_ATOMICAS = {
-    'H': 1, 'C': 12, 'N': 14, 'O': 16, 'Na': 23, 'Mg': 24, 'Al': 27,
-    'Si': 28, 'P': 31, 'S': 32, 'Cl': 35.5, 'K': 39, 'Ca': 40, 'Mn': 55,
-    'Fe': 56, 'Cu': 63.5, 'Zn': 65.4
-};
-
-const CORES_ATOMOS = {
-    'H': { cor: '#ffffff', texto: '#000', size: 14 },
-    'O': { cor: '#ef4444', texto: '#fff', size: 20 },
-    'C': { cor: '#333333', texto: '#fff', size: 22 },
-    'N': { cor: '#3b82f6', texto: '#fff', size: 20 },
-    'Fe':{ cor: '#d97706', texto: '#fff', size: 24 },
-    'Na':{ cor: '#8b5cf6', texto: '#fff', size: 22 },
-    'Cl':{ cor: '#22c55e', texto: '#fff', size: 22 },
-    'K': { cor: '#a855f7', texto: '#fff', size: 24 },
-    'Al':{ cor: '#94a3b8', texto: '#000', size: 22 },
-    'Ca':{ cor: '#cbd5e1', texto: '#000', size: 24 },
-    'Zn':{ cor: '#64748b', texto: '#fff', size: 22 },
-    'Mg':{ cor: '#84cc16', texto: '#000', size: 22 },
-    'S': { cor: '#eab308', texto: '#000', size: 22 },
-    'Mn':{ cor: '#ec4899', texto: '#fff', size: 22 },
-    'P': { cor: '#f97316', texto: '#fff', size: 22 },
-    'Si':{ cor: '#6ee7b7', texto: '#000', size: 22 },
-    'Cu':{ cor: '#b45309', texto: '#fff', size: 22 }
-};
 
 const bancoFases = {
     "balanceando-facil": [
@@ -73,6 +33,54 @@ const bancoFases = {
     ]
 };
 
+// Trava de segurança para impedir erro de undefined ao trocar de tela
+let modoAtual = localStorage.getItem("modoAtual") || "balanceando-facil";
+if (!bancoFases[modoAtual]) {
+    modoAtual = "balanceando-facil";
+    localStorage.setItem("modoAtual", modoAtual);
+}
+
+let titulo = document.getElementById("titulo-modo");
+let hasteBalanca = document.getElementById("balanca-haste");
+let cordaEsq = document.getElementById("corda-esquerda");
+let cordaDir = document.getElementById("corda-direita");
+let pratoReagentes = document.getElementById("prato-reagentes");
+let pratoProdutos = document.getElementById("prato-produtos");
+let areaEquacao = document.getElementById("area-equacao");
+
+let somErro = document.getElementById("somErro");
+let somCorreto = document.getElementById("somCorreto");
+let somEstrela = document.getElementById("somEstrela");
+let somGanhou = document.getElementById("somGanhou");
+let somPerdeu = document.getElementById("somPerdeu");
+
+// Massas Atômicas Reais para que cada elemento pese com precisão física
+const MASSAS_ATOMICAS = {
+    'H': 1, 'C': 12, 'N': 14, 'O': 16, 'Na': 23, 'Mg': 24, 'Al': 27,
+    'Si': 28, 'P': 31, 'S': 32, 'Cl': 35.5, 'K': 39, 'Ca': 40, 'Mn': 55,
+    'Fe': 56, 'Cu': 63.5, 'Zn': 65.4
+};
+
+const CORES_ATOMOS = {
+    'H': { cor: '#ffffff', texto: '#000', size: 14 },
+    'O': { cor: '#ef4444', texto: '#fff', size: 20 },
+    'C': { cor: '#333333', texto: '#fff', size: 22 },
+    'N': { cor: '#3b82f6', texto: '#fff', size: 20 },
+    'Fe':{ cor: '#d97706', texto: '#fff', size: 24 },
+    'Na':{ cor: '#8b5cf6', texto: '#fff', size: 22 },
+    'Cl':{ cor: '#22c55e', texto: '#fff', size: 22 },
+    'K': { cor: '#a855f7', texto: '#fff', size: 24 },
+    'Al':{ cor: '#94a3b8', texto: '#000', size: 22 },
+    'Ca':{ cor: '#cbd5e1', texto: '#000', size: 24 },
+    'Zn':{ cor: '#64748b', texto: '#fff', size: 22 },
+    'Mg':{ cor: '#84cc16', texto: '#000', size: 22 },
+    'S': { cor: '#eab308', texto: '#000', size: 22 },
+    'Mn':{ cor: '#ec4899', texto: '#fff', size: 22 },
+    'P': { cor: '#f97316', texto: '#fff', size: 22 },
+    'Si':{ cor: '#6ee7b7', texto: '#000', size: 22 },
+    'Cu':{ cor: '#b45309', texto: '#fff', size: 22 }
+};
+
 let indexFaseAtual = 0;
 let estrelasGanhas = 0;
 let vidasIniciais = modoAtual === "balanceando-impossivel" ? 2 : 3;
@@ -81,12 +89,12 @@ let coeficientesReagentes = [];
 let coeficientesProdutos = [];
 let faseAtual = null;
 
-let tempoMaximo = 90; // 01:30
+let tempoMaximo = 90; // 01:30 para o modo impossível
 let tempoRestante = tempoMaximo;
 let intervaloCronometro = null;
 
 let nivelDisplay = modoAtual.replace("balanceando-", "").toUpperCase();
-titulo.innerText = `BALANCEANDO (${nivelDisplay})`;
+if (titulo) titulo.innerText = `BALANCEANDO (${nivelDisplay})`;
 
 function obterLimiteCoeficiente() {
     if (modoAtual === "balanceando-facil" || modoAtual === "balanceando-medio") return 8;
@@ -145,7 +153,7 @@ function atualizarHUD() {
 function formatarFormula(texto) { return texto.replace(/(\d+)/g, '<sub>$1</sub>'); }
 
 // ==========================================
-// CONTROLE COM LIMITE INTELIGENTE DE COEFICIENTES
+// ALTERAÇÃO DE COEFICIENTES COM LIMITE MÁXIMO
 // ==========================================
 window.alterarCoeficiente = function(tipo, indice, valor) {
     if(typeof tocarSomClick === "function") tocarSomClick();
@@ -169,6 +177,7 @@ window.alterarCoeficiente = function(tipo, indice, valor) {
 };
 
 function renderizarEquacao() {
+    if (!areaEquacao) return;
     areaEquacao.innerHTML = "";
     
     faseAtual.reagentes.forEach((mol, idx) => {
@@ -200,6 +209,7 @@ function renderizarEquacao() {
     });
 }
 
+// Parser estequiométrico com suporte total a parênteses
 function extrairElementos(formula) {
     let pilha = [{}];
     let i = 0;
@@ -329,9 +339,9 @@ function desenharMoleculaGeometria(formula) {
 
 // ==========================================
 // DISTRIBUIÇÃO EM MÚLTIPLAS COLUNAS LADO A LADO
-// (Organização compacta que nunca sobe até o topo)
 // ==========================================
 function desenharPrato(pratoElemento, moleculas, coeficientes) {
+    if (!pratoElemento) return;
     pratoElemento.innerHTML = "";
     
     let listaMol = [];
@@ -357,7 +367,6 @@ function desenharPrato(pratoElemento, moleculas, coeficientes) {
         colunasDOM.push(col);
     }
 
-    // Escala adaptável para acomodar confortavelmente no prato
     let scale = 1;
     if (qtdColunas === 2) scale = 0.85;
     else if (qtdColunas === 3) scale = 0.72;
@@ -391,14 +400,12 @@ function atualizarBalanca() {
     });
     
     let diferenca = massaEsq - massaDir;
-    
-    // Sensibilidade calibrada para que 1 H2 + 2 O2 vs 2 H2O (diferença de 30u) incline a balança a 24°
     let angulo = diferenca * 0.8; 
     angulo = Math.max(-25, Math.min(25, angulo));
 
-    hasteBalanca.style.transform = `translate(-50%, 0) rotate(${angulo}deg)`;
-    cordaEsq.style.transform = `rotate(${-angulo}deg)`;
-    cordaDir.style.transform = `rotate(${-angulo}deg)`;
+    if (hasteBalanca) hasteBalanca.style.transform = `translate(-50%, 0) rotate(${angulo}deg)`;
+    if (cordaEsq) cordaEsq.style.transform = `rotate(${-angulo}deg)`;
+    if (cordaDir) cordaDir.style.transform = `rotate(${-angulo}deg)`;
 }
 
 // -----------------------------------------------------
@@ -457,13 +464,16 @@ function dispararEstrelaAnimacao(texto) {
     atualizarHUD();
     if(somEstrela) { somEstrela.currentTime=0; somEstrela.play().catch(()=>{}); }
     
-    document.getElementById("texto-estrela").innerText = texto;
-    document.getElementById("modal-estrela").style.display = "flex";
+    let elTxt = document.getElementById("texto-estrela");
+    if (elTxt) elTxt.innerText = texto;
+    let modal = document.getElementById("modal-estrela");
+    if (modal) modal.style.display = "flex";
 }
 
 window.continuarModoBalanceando = function() {
     if(typeof tocarSomClick === "function") tocarSomClick();
-    document.getElementById("modal-estrela").style.display = "none";
+    let modal = document.getElementById("modal-estrela");
+    if (modal) modal.style.display = "none";
     
     let todosCoeficientes = [...coeficientesReagentes, ...coeficientesProdutos];
     let mdc = todosCoeficientes[0];
@@ -496,14 +506,17 @@ function perderVidaDesafio(motivo) {
         window.encerrarDesafioBalanceando(false); 
     } else { 
         clearInterval(intervaloCronometro);
-        document.getElementById("texto-erro-desafio").innerText = motivo;
-        document.getElementById("modal-erro-desafio").style.display = "flex";
+        let elTxt = document.getElementById("texto-erro-desafio");
+        if (elTxt) elTxt.innerText = motivo;
+        let modal = document.getElementById("modal-erro-desafio");
+        if (modal) modal.style.display = "flex";
     }
 }
 
 window.fecharErroBalanceando = function() {
     if(typeof tocarSomClick === "function") tocarSomClick();
-    document.getElementById("modal-erro-desafio").style.display = "none";
+    let modal = document.getElementById("modal-erro-desafio");
+    if (modal) modal.style.display = "none";
     if (modoAtual === "balanceando-impossivel") {
         tempoRestante = tempoMaximo;
         iniciarCronometro();
@@ -530,12 +543,24 @@ window.voltarFaseBalanceando = function() {
     }
 };
 
+// ==========================================
+// ENCERRAMENTO COM DISTINÇÃO CLARA ENTRE VITÓRIA REAL E DESISTÊNCIA
+// ==========================================
 window.encerrarDesafioBalanceando = function(vitoriaForcada = null) {
     clearInterval(intervaloCronometro);
     if(typeof tocarSomClick === "function") tocarSomClick();
+
+    // Salva o recorde de estrelas obtido até o momento
+    if (typeof salvarRecordeEstrelas === "function") {
+        salvarRecordeEstrelas(modoAtual, estrelasGanhas);
+    }
     
-    let isVitoria = vitoriaForcada !== null ? vitoriaForcada : (estrelasGanhas > 0);
-    document.getElementById("modal-resultado-desafio").style.display = "flex";
+    let completouTodasFases = (indexFaseAtual >= bancoFases[modoAtual].length - 1 && estrelasGanhas > 0);
+    let isVitoriaReal = vitoriaForcada === true || (vitoriaForcada === null && completouTodasFases && estrelasGanhas >= 5);
+    let encerrouCedo = (vitoriaForcada === null && !completouTodasFases && estrelasGanhas > 0);
+
+    let modalRes = document.getElementById("modal-resultado-desafio");
+    if (modalRes) modalRes.style.display = "flex";
     
     let box = document.getElementById("box-resultado-desafio");
     let header = document.getElementById("header-resultado-desafio");
@@ -543,34 +568,65 @@ window.encerrarDesafioBalanceando = function(vitoriaForcada = null) {
     let sub = document.getElementById("subtexto-resultado-desafio");
     let btn = document.getElementById("btn-resultado-desafio");
 
-    if (isVitoria) {
-        box.style.border = "4px solid #16a34a";
-        box.style.background = "linear-gradient(135deg, #f0fdf4, #dcfce7)";
-        header.style.background = "#16a34a"; 
-        header.style.borderBottom = "4px solid #15803d";
-        tituloRes.style.color = "#15803d"; 
-        btn.style.background = "#16a34a";
-        tituloRes.innerText = "Desafio Concluído! ⭐";
-        sub.innerText = `Você salvou ${estrelasGanhas} estrela(s). Balanço químico impecável!`;
-        if(somGanhou) { somGanhou.currentTime=0; somGanhou.play().catch(()=>{}); }
+    if (isVitoriaReal) {
+        if (box) {
+            box.style.border = "4px solid #16a34a";
+            box.style.background = "linear-gradient(135deg, #f0fdf4, #dcfce7)";
+        }
+        if (header) {
+            header.style.background = "#16a34a"; 
+            header.style.borderBottom = "4px solid #15803d";
+        }
+        if (tituloRes) {
+            tituloRes.style.color = "#15803d"; 
+            tituloRes.innerText = "Nível Completado! ⭐";
+        }
+        if (btn) btn.style.background = "#16a34a";
+        if (sub) sub.innerText = `Sensacional! Você completou todas as fases e acumulou ${estrelasGanhas} estrela(s). Balanço estequiométrico dominado!`;
+        if (somGanhou) { somGanhou.currentTime=0; somGanhou.play().catch(()=>{}); }
 
+        // Libera a conquista específica do nível
         if (typeof desbloquearConquista === "function") {
             if (modoAtual === "balanceando-facil") desbloquearConquista('c8');
             if (modoAtual === "balanceando-medio") desbloquearConquista('c9');
             if (modoAtual === "balanceando-dificil") desbloquearConquista('c10');
             if (modoAtual === "balanceando-impossivel") desbloquearConquista('c11');
+            
+            // Registra vitória para a conquista c12 (completar 5 vezes)
+            if (typeof registrarVitoriaBalanceando === "function") registrarVitoriaBalanceando();
         }
+    } else if (encerrouCedo) {
+        if (box) {
+            box.style.border = "4px solid #f59e0b";
+            box.style.background = "linear-gradient(135deg, #fefce8, #fef08a)";
+        }
+        if (header) {
+            header.style.background = "#f59e0b"; 
+            header.style.borderBottom = "4px solid #d97706";
+        }
+        if (tituloRes) {
+            tituloRes.style.color = "#b45309"; 
+            tituloRes.innerText = "Desafio Interrompido";
+        }
+        if (btn) btn.style.background = "#f59e0b";
+        if (sub) sub.innerText = `Você escolheu encerrar antes de completar todas as fases. Você garantiu ${estrelasGanhas} estrela(s) para o seu recorde! Complete o nível todo para ganhar a conquista.`;
+        if (somCorreto) { somCorreto.currentTime=0; somCorreto.play().catch(()=>{}); }
     } else {
-        box.style.border = "4px solid #ef4444";
-        box.style.background = "linear-gradient(135deg, #fef2f2, #fee2e2)";
-        header.style.background = "#ef4444"; 
-        header.style.borderBottom = "4px solid #b91c1c";
-        tituloRes.style.color = "#b91c1c"; 
-        btn.style.background = "#ef4444";
-        tituloRes.innerText = "Fim do Teste!";
-        
-        if(somPerdeu) { somPerdeu.currentTime=0; somPerdeu.play().catch(()=>{}); }
-        sub.innerText = "Não desanime! Ajustar coeficientes requer muita atenção."; 
+        if (box) {
+            box.style.border = "4px solid #ef4444";
+            box.style.background = "linear-gradient(135deg, #fef2f2, #fee2e2)";
+        }
+        if (header) {
+            header.style.background = "#ef4444"; 
+            header.style.borderBottom = "4px solid #b91c1c";
+        }
+        if (tituloRes) {
+            tituloRes.style.color = "#b91c1c"; 
+            tituloRes.innerText = "Fim de Jogo!";
+        }
+        if (btn) btn.style.background = "#ef4444";
+        if (somPerdeu) { somPerdeu.currentTime=0; somPerdeu.play().catch(()=>{}); }
+        if (sub) sub.innerText = "Não desanime! Ajustar coeficientes requer prática e atenção aos átomos."; 
     }
 };
 

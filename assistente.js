@@ -193,7 +193,7 @@ const normalizarVozNum = (str) => {
 };
 
 // ==========================================
-// PROCESSAMENTO 100% LOCAL (SEM CHAVES, SEM API EXTERNA)
+// PROCESSAMENTO 100% LOCAL (SEM API EXTERNA)
 // ==========================================
 function processarComandoVoz(comandoOriginal) {
     let limpo = normalizarVozNum(comandoOriginal); 
@@ -253,7 +253,7 @@ function processarComandoVoz(comandoOriginal) {
         return executarIntencao({acao: "FECHAR_TUDO"});
     }
 
-    // 4. QuimiChat e Conversa
+    // 4. QuimiChat
     let ativadorQuimi = /\b(ad[oô]mines|quimichat|kimichat)\b/i;
     if (ativadorQuimi.test(limpo)) {
         let pergunta = comandoOriginal.replace(/.*(ad[oô]mines|quimichat|kimichat)\s*/i, "").trim(); 
@@ -266,7 +266,7 @@ function processarComandoVoz(comandoOriginal) {
         }
     }
 
-    // 5. Navegação de Fases (Híbrida entre Estruturando e Balanceando)
+    // 5. Navegação de Fases (Funciona tanto no Balanceando quanto no Estruturando)
     if (tem("voltar fase", "fase anterior", "desafio anterior")) return executarIntencao({acao: "VOLTAR_FASE"});
     if (tem("encerrar desafio", "completar desafio", "finalizar desafio", "concluir desafio")) return executarIntencao({acao: "ENCERRAR_DESAFIO"});
     if (tem("pular fase", "pula a fase", "proximo desafio", "proxima fase", "pular desafio")) return executarIntencao({acao: "PULAR_FASE"});
@@ -348,7 +348,7 @@ function processarComandoVoz(comandoOriginal) {
     }
 
     // Resposta padrão imediata para comandos não catalogados
-    falarAssistente(`Eu ouvi "${comandoOriginal}". Diga "comandos" para ver o que posso fazer.`);
+    falarAssistente(`Eu ouvi "${comandoOriginal}". Diga "comandos" para ver a lista de ações.`);
 }
 
 // ==========================================
@@ -474,6 +474,6 @@ function executarIntencao(intencao) {
         case "TIRAR_FOTO": if(typeof window.tirarFoto === "function") window.tirarFoto(); break;
         case "DICA_DESAFIO": if(typeof window.mostrarDicaDesafio === "function") window.mostrarDicaDesafio(); break;
 
-        default: falarAssistente("Não reconheci esse comando. Diga 'comandos' para ajuda."); break;
+        default: falarAssistente("Não reconheci esse comando. Diga 'comandos' para ver a lista."); break;
     }
 }

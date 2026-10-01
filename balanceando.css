@@ -45,7 +45,9 @@
     color: var(--text-color);
 }
 
-/* CONTAINER DA BALANÇA TRAVADO: BASE E TOPO SEMPRE JUNTOS */
+/* ==========================================
+   CONTAINER DA BALANÇA
+   ========================================== */
 .area-balanca {
     display: flex;
     flex-direction: column;
@@ -140,7 +142,7 @@
 }
 
 /* ==========================================
-   SISTEMA DE MÚLTIPLAS COLUNAS LADO A LADO
+   DISTRIBUIÇÃO EM COLUNAS LADO A LADO
    ========================================== */
 .conteudo-prato {
     position: absolute;
@@ -193,6 +195,9 @@
     100% { transform: translateY(0) scale(1); opacity: 1; }
 }
 
+/* ==========================================
+   ÁREA DA EQUAÇÃO QUÍMICA
+   ========================================== */
 .area-equacao {
     display: flex;
     align-items: center;
@@ -255,6 +260,9 @@
 .sinal-mais, .sinal-seta { font-size: 30px; font-weight: bold; color: #94a3b8; }
 .sinal-seta { color: #10b981; }
 
+/* ==========================================
+   CONTROLES E BOTÕES
+   ========================================== */
 .controles-fase {
     display: flex;
     flex-direction: column;

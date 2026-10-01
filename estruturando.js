@@ -1,28 +1,6 @@
-let modoAtual = localStorage.getItem("modoAtual") || "livre";
-let titulo = document.getElementById("titulo-modo");
-let quadroOuter = document.getElementById("quadro");
-let quadroInner = document.getElementById("quadro-inner");
-let listaAtomos = document.getElementById("lista-atomos");
-
-let somErro = document.getElementById("somErro");
-let somCorreto = document.getElementById("somCorreto");
-let somConquista = document.getElementById("somConquista");
-let somEstrela = document.getElementById("somEstrela");
-let somGanhou = document.getElementById("somGanhou");
-let somPerdeu = document.getElementById("somPerdeu");
-
-function mostrarMensagemGlob(texto) {
-    let toast = document.getElementById("toast-mensagem");
-    if(toast) {
-        toast.innerText = texto;
-        toast.classList.remove("escondido");
-        setTimeout(() => { toast.classList.add("escondido"); }, 3000);
-    }
-}
-function abrirAjuda() { 
-    if(typeof tocarSomClick === "function") tocarSomClick(); 
-    document.getElementById('ajuda-overlay').style.display = 'flex'; 
-}
+// ==========================================
+// MODO ESTRUTURANDO - QUÍMICA ADÔMINES
+// ==========================================
 
 const bancoDesafios = {
     "facil":[
@@ -55,6 +33,39 @@ const bancoDesafios = {
     ]
 };
 
+// Trava de segurança para impedir erro de undefined ao trocar de tela
+let modoAtual = localStorage.getItem("modoAtual") || "livre";
+if (modoAtual !== "livre" && !bancoDesafios[modoAtual]) {
+    modoAtual = "livre";
+    localStorage.setItem("modoAtual", modoAtual);
+}
+
+let titulo = document.getElementById("titulo-modo");
+let quadroOuter = document.getElementById("quadro");
+let quadroInner = document.getElementById("quadro-inner");
+let listaAtomos = document.getElementById("lista-atomos");
+
+let somErro = document.getElementById("somErro");
+let somCorreto = document.getElementById("somCorreto");
+let somConquista = document.getElementById("somConquista");
+let somEstrela = document.getElementById("somEstrela");
+let somGanhou = document.getElementById("somGanhou");
+let somPerdeu = document.getElementById("somPerdeu");
+
+function mostrarMensagemGlob(texto) {
+    let toast = document.getElementById("toast-mensagem");
+    if(toast) {
+        toast.innerText = texto;
+        toast.classList.remove("escondido");
+        setTimeout(() => { toast.classList.add("escondido"); }, 3000);
+    }
+}
+function abrirAjuda() { 
+    if(typeof tocarSomClick === "function") tocarSomClick(); 
+    let aj = document.getElementById('ajuda-overlay');
+    if (aj) aj.style.display = 'flex'; 
+}
+
 let indexDesafioAtual = 0;
 let estrelasGanhas = 0;
 let vidasIniciais = modoAtual === "impossivel" ? 2 : 3;
@@ -67,29 +78,38 @@ let intervaloCronometro = null;
 // CONFIGURAÇÃO DOS BOTÕES POR MODO
 // ==========================================
 if (modoAtual === "livre") { 
-    titulo.innerText = "ESTRUTURANDO (Modo Livre)"; 
-    document.getElementById("texto-modo-livre").classList.remove("escondido");
-    document.getElementById("btn-catalogo").classList.remove("escondido");
+    if (titulo) titulo.innerText = "ESTRUTURANDO (Modo Livre)"; 
+    let txtLivre = document.getElementById("texto-modo-livre");
+    if (txtLivre) txtLivre.classList.remove("escondido");
+    let btnCat = document.getElementById("btn-catalogo");
+    if (btnCat) btnCat.classList.remove("escondido");
     
     let btnP = document.getElementById("btn-pular-fase"); if(btnP) { btnP.style.display = "none"; btnP.classList.add("escondido"); }
     let btnV = document.getElementById("btn-voltar-fase"); if(btnV) { btnV.style.display = "none"; btnV.classList.add("escondido"); }
     let btnC = document.getElementById("btn-completar-desafio"); if(btnC) { btnC.style.display = "none"; btnC.classList.add("escondido"); }
 } else { 
-    titulo.innerText = `ESTRUTURANDO (Modo ${modoAtual.toUpperCase()})`; 
-    document.getElementById("hud-desafio").classList.remove("escondido");
-    document.getElementById("btn-verificar-desafio").classList.remove("escondido");
+    if (titulo) titulo.innerText = `ESTRUTURANDO (Modo ${modoAtual.toUpperCase()})`; 
+    let hudDesafio = document.getElementById("hud-desafio");
+    if (hudDesafio) hudDesafio.classList.remove("escondido");
+    let btnVerif = document.getElementById("btn-verificar-desafio");
+    if (btnVerif) btnVerif.classList.remove("escondido");
     
     let btnP = document.getElementById("btn-pular-fase"); if(btnP) { btnP.style.display = "inline-block"; btnP.classList.remove("escondido"); }
     let btnV = document.getElementById("btn-voltar-fase"); if(btnV) { btnV.style.display = "inline-block"; btnV.classList.remove("escondido"); }
     let btnC = document.getElementById("btn-completar-desafio"); if(btnC) { btnC.style.display = "inline-block"; btnC.classList.remove("escondido"); }
     
-    if (modoAtual === "impossivel") { document.getElementById("cronometro-desafio").classList.remove("escondido"); }
+    if (modoAtual === "impossivel") { 
+        let cron = document.getElementById("cronometro-desafio");
+        if (cron) cron.classList.remove("escondido"); 
+    }
     iniciarRodadaDesafio(true);
 }
 
 function iniciarRodadaDesafio(isStart = false) {
     let desafiosDoModo = bancoDesafios[modoAtual];
-    document.getElementById("nome-desafio-atual").innerText = desafiosDoModo[indexDesafioAtual].nome;
+    if (!desafiosDoModo) return;
+    let nomeDesafio = document.getElementById("nome-desafio-atual");
+    if (nomeDesafio) nomeDesafio.innerText = desafiosDoModo[indexDesafioAtual].nome;
     atualizarHUD();
     
     if (modoAtual === "impossivel") { 
@@ -99,12 +119,18 @@ function iniciarRodadaDesafio(isStart = false) {
 }
 
 function atualizarHUD() {
-    let spans = document.getElementById("estrelas-container").querySelectorAll("span");
-    spans.forEach((sp, index) => {
-        if(index < estrelasGanhas) { sp.classList.add("ganha"); sp.innerText = "★"; }
-        else { sp.classList.remove("ganha"); }
-    });
-    document.getElementById("vidas-container").innerHTML = "❤️".repeat(vidasRestantes) + "🖤".repeat(vidasIniciais - vidasRestantes);
+    let cont = document.getElementById("estrelas-container");
+    if (cont) {
+        let spans = cont.querySelectorAll("span");
+        spans.forEach((sp, index) => {
+            if(index < estrelasGanhas) { sp.classList.add("ganha"); sp.innerText = "★"; }
+            else { sp.classList.remove("ganha"); }
+        });
+    }
+    let vidasCont = document.getElementById("vidas-container");
+    if (vidasCont) {
+        vidasCont.innerHTML = "❤️".repeat(vidasRestantes) + "🖤".repeat(vidasIniciais - vidasRestantes);
+    }
 }
 
 function iniciarCronometro() {
@@ -123,7 +149,10 @@ function iniciarCronometro() {
         let s = (tempoRestante % 60).toString().padStart(2, '0');
         display.innerText = `${m}:${s}`;
         if(tempoRestante <= 30) display.classList.add("perigo");
-        if (tempoRestante <= 0) { clearInterval(intervaloCronometro); perderVidaDesafio("O tempo acabou!"); }
+        if (tempoRestante <= 0) { 
+            clearInterval(intervaloCronometro); 
+            perderVidaDesafio("O tempo acabou!"); 
+        }
     }, 1000);
 }
 
@@ -170,7 +199,8 @@ window.verificarMoleculaDesafio = function() {
         if(somCorreto) { somCorreto.currentTime=0; somCorreto.play().catch(()=>{}); }
         clearInterval(intervaloCronometro); 
         if (modoAtual === "impossivel") { 
-            document.getElementById("modal-classificacao").style.display = "flex"; 
+            let modalClass = document.getElementById("modal-classificacao");
+            if (modalClass) modalClass.style.display = "flex"; 
         } else { 
             ganharEstrela(); 
         }
@@ -188,14 +218,17 @@ function perderVidaDesafio(motivo) {
         finalizarDesafio(false); 
     } else { 
         clearInterval(intervaloCronometro); 
-        document.getElementById("texto-erro-desafio").innerText = motivo;
-        document.getElementById("modal-erro-desafio").style.display = "flex";
+        let txtErro = document.getElementById("texto-erro-desafio");
+        if (txtErro) txtErro.innerText = motivo;
+        let modalErro = document.getElementById("modal-erro-desafio");
+        if (modalErro) modalErro.style.display = "flex";
     }
 }
 
 window.fecharErroDesafio = function() {
     if(typeof tocarSomClick === "function") tocarSomClick();
-    document.getElementById("modal-erro-desafio").style.display = "none";
+    let modalErro = document.getElementById("modal-erro-desafio");
+    if (modalErro) modalErro.style.display = "none";
     if (modoAtual === "impossivel") { tempoRestante = tempoMaximo; iniciarCronometro(); }
 };
 
@@ -211,7 +244,8 @@ window.verificarClassificacao = function() {
 
     let respostas = [cCadeia.value, cDisp.value, cSat.value, cNat.value];
     if(classCorreta.every(val => respostas.includes(val))) {
-        document.getElementById("modal-classificacao").style.display = "none";
+        let modalClass = document.getElementById("modal-classificacao");
+        if (modalClass) modalClass.style.display = "none";
         document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
         ganharEstrela();
     } else {
@@ -223,13 +257,16 @@ window.verificarClassificacao = function() {
 function ganharEstrela() {
     estrelasGanhas++;
     if(somEstrela) { somEstrela.currentTime=0; somEstrela.play().catch(()=>{}); }
-    document.getElementById("texto-estrela").innerText = `Você ganhou a ${estrelasGanhas}ª estrela!`;
-    document.getElementById("modal-estrela").style.display = "flex";
+    let txtEstrela = document.getElementById("texto-estrela");
+    if (txtEstrela) txtEstrela.innerText = `Você ganhou a ${estrelasGanhas}ª estrela!`;
+    let modalEstrela = document.getElementById("modal-estrela");
+    if (modalEstrela) modalEstrela.style.display = "flex";
 }
 
 window.continuarDesafio = function() {
     if(typeof tocarSomClick === "function") tocarSomClick();
-    document.getElementById("modal-estrela").style.display = "none";
+    let modalEstrela = document.getElementById("modal-estrela");
+    if (modalEstrela) modalEstrela.style.display = "none";
     atualizarHUD(); 
     limparQuadro(); 
     if(estrelasGanhas >= 5) { 
@@ -242,7 +279,15 @@ window.continuarDesafio = function() {
 
 function finalizarDesafio(vitoria) {
     clearInterval(intervaloCronometro);
-    document.getElementById("modal-resultado-desafio").style.display = "flex";
+
+    // Salva o recorde de estrelas no modo
+    if (typeof salvarRecordeEstrelas === "function") {
+        salvarRecordeEstrelas(modoAtual, estrelasGanhas);
+    }
+
+    let modalRes = document.getElementById("modal-resultado-desafio");
+    if (modalRes) modalRes.style.display = "flex";
+    
     let box = document.getElementById("box-resultado-desafio");
     let header = document.getElementById("header-resultado-desafio");
     let tituloRes = document.getElementById("texto-resultado-desafio");
@@ -250,15 +295,21 @@ function finalizarDesafio(vitoria) {
     let btn = document.getElementById("btn-resultado-desafio");
 
     if (vitoria) {
-        box.style.border = "4px solid #16a34a";
-        box.style.background = "linear-gradient(135deg, #f0fdf4, #dcfce7)";
-        header.style.background = "#16a34a"; 
-        header.style.borderBottom = "4px solid #15803d";
-        tituloRes.style.color = "#15803d";
-        btn.style.background = "#16a34a";
-        tituloRes.innerText = "Excelente! Você completou o desafio! ⭐";
-        sub.innerText = `Você conseguiu ${estrelasGanhas} estrela(s). Sua habilidade em química estrutural é incrível!`;
-        if(somGanhou) { somGanhou.currentTime=0; somGanhou.play().catch(()=>{}); }
+        if (box) {
+            box.style.border = "4px solid #16a34a";
+            box.style.background = "linear-gradient(135deg, #f0fdf4, #dcfce7)";
+        }
+        if (header) {
+            header.style.background = "#16a34a"; 
+            header.style.borderBottom = "4px solid #15803d";
+        }
+        if (tituloRes) {
+            tituloRes.style.color = "#15803d";
+            tituloRes.innerText = "Excelente! Você completou o desafio! ⭐";
+        }
+        if (btn) btn.style.background = "#16a34a";
+        if (sub) sub.innerText = `Você conseguiu ${estrelasGanhas} estrela(s). Sua habilidade em química estrutural é incrível!`;
+        if (somGanhou) { somGanhou.currentTime=0; somGanhou.play().catch(()=>{}); }
         
         if(estrelasGanhas >= 5) {
             if(modoAtual === "facil" && typeof desbloquearConquista === "function") desbloquearConquista('c1');
@@ -266,22 +317,30 @@ function finalizarDesafio(vitoria) {
             if(modoAtual === "dificil" && typeof desbloquearConquista === "function") desbloquearConquista('c3');
             if(modoAtual === "impossivel" && typeof desbloquearConquista === "function") desbloquearConquista('c4');
             
-            // Registra vitória orgânica para alimentar a conquista c5
+            // Registra vitória orgânica para alimentar a conquista c5 (5 vezes)
             if(typeof registrarVitoriaEstruturando === "function") registrarVitoriaEstruturando();
         }
     } else {
-        box.style.border = "4px solid #ef4444";
-        box.style.background = "linear-gradient(135deg, #fef2f2, #fee2e2)";
-        header.style.background = "#ef4444"; 
-        header.style.borderBottom = "4px solid #b91c1c";
-        tituloRes.style.color = "#b91c1c";
-        btn.style.background = "#ef4444";
-        tituloRes.innerText = "Fim de Jogo!";
+        if (box) {
+            box.style.border = "4px solid #ef4444";
+            box.style.background = "linear-gradient(135deg, #fef2f2, #fee2e2)";
+        }
+        if (header) {
+            header.style.background = "#ef4444"; 
+            header.style.borderBottom = "4px solid #b91c1c";
+        }
+        if (tituloRes) {
+            tituloRes.style.color = "#b91c1c";
+            tituloRes.innerText = "Fim de Jogo!";
+        }
+        if (btn) btn.style.background = "#ef4444";
         
         if(somPerdeu) { somPerdeu.currentTime=0; somPerdeu.play().catch(()=>{}); }
-        if (estrelasGanhas === 4) { sub.innerText = "Muito bem! Você conseguiu 4 estrelas. Faltou muito pouco!"; } 
-        else if (estrelasGanhas > 0) { sub.innerText = `Você conseguiu ${estrelasGanhas} estrela(s). Tente novamente para dominar as estruturas!`; } 
-        else { sub.innerText = "Não desanime! A química exige prática. Comece pelos níveis mais fáceis!"; }
+        if (sub) {
+            if (estrelasGanhas === 4) { sub.innerText = "Muito bem! Você conseguiu 4 estrelas. Faltou muito pouco!"; } 
+            else if (estrelasGanhas > 0) { sub.innerText = `Você conseguiu ${estrelasGanhas} estrela(s). Tente novamente para dominar as estruturas!`; } 
+            else { sub.innerText = "Não desanime! A química exige prática. Comece pelos níveis mais fáceis!"; }
+        }
     }
 }
 
@@ -299,8 +358,10 @@ window.cheatEstrelas = function(qtd) {
         finalizarDesafio(true);
     } else {
         if(somEstrela) { somEstrela.currentTime=0; somEstrela.play().catch(()=>{}); }
-        document.getElementById("texto-estrela").innerText = `Você ganhou a ${estrelasGanhas}ª estrela! (Cheat)`;
-        document.getElementById("modal-estrela").style.display = "flex";
+        let txtEstrela = document.getElementById("texto-estrela");
+        if (txtEstrela) txtEstrela.innerText = `Você ganhou a ${estrelasGanhas}ª estrela! (Cheat)`;
+        let modalEstrela = document.getElementById("modal-estrela");
+        if (modalEstrela) modalEstrela.style.display = "flex";
     }
 };
 
@@ -330,13 +391,15 @@ const dbCatalogo = [
 function abrirCatalogo() {
     if(typeof tocarSomClick === "function") tocarSomClick();
     let grid = document.getElementById("grid-catalogo");
+    if (!grid) return;
     grid.innerHTML = "";
     let desbloqueados = JSON.parse(localStorage.getItem("catalogoDesbloqueado")) || [];
     dbCatalogo.forEach(mol => {
         let isUnlk = desbloqueados.includes(mol.id);
         grid.innerHTML += `<div class="item-catalogo ${isUnlk ? 'desbloqueado' : 'bloqueado'}">${isUnlk ? '' : '<span class="icone-lock">🔒</span>'}<h4>${mol.form} - ${mol.nome}</h4><p>${mol.desc}</p></div>`;
     });
-    document.getElementById('catalogo-overlay').style.display = 'flex';
+    let catOverlay = document.getElementById('catalogo-overlay');
+    if (catOverlay) catOverlay.style.display = 'flex';
 }
 
 function checarPokedex(grupoId) {
@@ -383,15 +446,18 @@ const bancoDeAtomos = {
 
 let atomosPermitidos = modoAtual.includes("medio") ? [...bancoDeAtomos.facil, ...bancoDeAtomos.medio] : (modoAtual.includes("livre") || modoAtual.includes("dificil") || modoAtual.includes("impossivel") ? [...bancoDeAtomos.facil, ...bancoDeAtomos.medio, ...bancoDeAtomos.dificil] : [...bancoDeAtomos.facil]);
 
-atomosPermitidos.forEach(atomo => {
-  let div = document.createElement("div");
-  div.className = `peca-draggable atomo atomo-${atomo.sigla}`;
-  div.innerText = atomo.sigla;
-  div.dataset.tipo = "atomo";
-  div.dataset.sigla = atomo.sigla;
-  div.dataset.valencia = atomo.val;
-  listaAtomos.appendChild(div);
-});
+if (listaAtomos) {
+    listaAtomos.innerHTML = "";
+    atomosPermitidos.forEach(atomo => {
+      let div = document.createElement("div");
+      div.className = `peca-draggable atomo atomo-${atomo.sigla}`;
+      div.innerText = atomo.sigla;
+      div.dataset.tipo = "atomo";
+      div.dataset.sigla = atomo.sigla;
+      div.dataset.valencia = atomo.val;
+      listaAtomos.appendChild(div);
+    });
+}
 
 let pecaEmMovimento = null; 
 let grupoEmMovimento = [];
@@ -401,7 +467,12 @@ let historico = [];
 let groupIdCounter = 1; 
 let pecaAlvoMenu = null;
 
-function salvarEstado() { historico.push(quadroInner.innerHTML); if(historico.length > 2) historico.shift(); }
+function salvarEstado() { 
+    if (quadroInner) {
+        historico.push(quadroInner.innerHTML); 
+        if(historico.length > 2) historico.shift(); 
+    }
+}
 
 const tutorialGenshinData = [
     { type: 'video', src: 'passo1.mp4', text: '<b>Arraste os átomos</b> para o quadro branco para começar a montar as estruturas moleculares. No celular, <b>toque e segure</b> o átomo com o dedo e arraste até o local desejado. No computador, <b>clique com o botão esquerdo</b> do mouse, segure e mova o átomo até a posição adequada.' },
@@ -429,14 +500,17 @@ function abrirNovoTutorial() {
     tutorialGenshinStep = 0;
     document.body.classList.add("no-scroll");
     let modal = document.getElementById("tutorial-genshin-overlay");
-    modal.classList.remove("escondido");
-    modal.style.display = "flex";
-    renderizarPassoTutorialGenshin();
+    if (modal) {
+        modal.classList.remove("escondido");
+        modal.style.display = "flex";
+        renderizarPassoTutorialGenshin();
+    }
 }
 
 function abrirTutorialManual() {
     if(typeof tocarSomClick === "function") tocarSomClick();
-    document.getElementById('ajuda-overlay').style.display = 'none';
+    let ajudaOverlay = document.getElementById('ajuda-overlay');
+    if (ajudaOverlay) ajudaOverlay.style.display = 'none';
     abrirNovoTutorial();
 }
 
@@ -446,6 +520,8 @@ function renderizarPassoTutorialGenshin() {
     const textContainer = document.getElementById("tutorial-genshin-texto");
     const dotsContainer = document.getElementById("tutorial-dots");
     const btnProsseguir = document.getElementById("btn-tutorial-prosseguir");
+
+    if (!mediaContainer || !textContainer || !dotsContainer) return;
 
     mediaContainer.innerHTML = "";
     if (data.type === 'video') {
@@ -478,12 +554,14 @@ function renderizarPassoTutorialGenshin() {
         dotsContainer.appendChild(dot);
     }
 
-    if (tutorialGenshinStep === tutorialGenshinData.length - 1) {
-        btnProsseguir.innerText = "Concluir ✔️";
-        btnProsseguir.style.background = "#16a34a";
-    } else {
-        btnProsseguir.innerText = "Prosseguir ➡";
-        btnProsseguir.style.background = "#0284c7";
+    if (btnProsseguir) {
+        if (tutorialGenshinStep === tutorialGenshinData.length - 1) {
+            btnProsseguir.innerText = "Concluir ✔️";
+            btnProsseguir.style.background = "#16a34a";
+        } else {
+            btnProsseguir.innerText = "Prosseguir ➡";
+            btnProsseguir.style.background = "#0284c7";
+        }
     }
 }
 
@@ -499,10 +577,13 @@ window.avancarTutorialGenshin = function() {
 
 function fecharTutorialGenshin() {
     let modal = document.getElementById("tutorial-genshin-overlay");
-    modal.classList.add("escondido");
-    modal.style.display = "none";
+    if (modal) {
+        modal.classList.add("escondido");
+        modal.style.display = "none";
+    }
     document.body.classList.remove("no-scroll");
-    document.getElementById("tutorial-media-container").innerHTML = ""; 
+    let mediaCont = document.getElementById("tutorial-media-container");
+    if (mediaCont) mediaCont.innerHTML = ""; 
     
     if (modoAtual === "impossivel") { iniciarCronometro(); }
 }
@@ -798,7 +879,11 @@ window.cmDesvincular = function() {
     resolverColisaoGlobal(); curarQuadro(); atualizarContadores(); 
 };
 
-function fecharMenuContexto() { document.getElementById("menu-contexto").classList.add("escondido"); pecaAlvoMenu = null; }
+function fecharMenuContexto() { 
+    let menuCtx = document.getElementById("menu-contexto");
+    if (menuCtx) menuCtx.classList.add("escondido"); 
+    pecaAlvoMenu = null; 
+}
 
 function moverGrupo(mouseX, mouseY) {
     let rawDx = (mouseX - mouseStartX) / zoomLevel; let rawDy = (mouseY - mouseStartY) / zoomLevel;
@@ -843,7 +928,11 @@ function getSnapPoints(peca) {
     return pts;
 }
 
-function verificarLigacoesQuimicas() { let allPecas = Array.from(quadroInner.querySelectorAll('.peca-draggable.no-quadro')); recalcularTudo(allPecas); }
+function verificarLigacoesQuimicas() { 
+    if (!quadroInner) return;
+    let allPecas = Array.from(quadroInner.querySelectorAll('.peca-draggable.no-quadro')); 
+    recalcularTudo(allPecas); 
+}
 
 function recalcularTudo(allPecas) {
     allPecas.forEach(p => { p.dataset.occL = ""; p.dataset.occR = ""; p.dataset.occT = ""; p.dataset.occB = ""; p.dataset.valUso = parseInt(p.dataset.hExtras || 0); });
@@ -883,6 +972,7 @@ function recalcularTudo(allPecas) {
 }
 
 function resolverColisaoGlobal() {
+    if (!quadroInner || !quadroOuter) return;
     let all = Array.from(quadroInner.querySelectorAll('.peca-draggable.no-quadro'));
     if(all.length === 0) return;
     let oRect = quadroOuter.getBoundingClientRect(); let iRect = quadroInner.getBoundingClientRect();
@@ -917,9 +1007,9 @@ function checarValidacaoAtomo(atomo) {
 
 function mudarZoom(d) { if(typeof tocarSomClick === "function") tocarSomClick(); zoomLevel = Math.max(0.5, Math.min(2, zoomLevel+d)); atualizarVisao(); resolverColisaoGlobal(); }
 function resetarVisao() { if(typeof tocarSomClick === "function") tocarSomClick(); zoomLevel = 1; atualizarVisao(); resolverColisaoGlobal(); }
-function atualizarVisao() { quadroInner.style.transform = `scale(${zoomLevel})`; }
-function limparQuadro() { salvarEstado(); if(typeof tocarSomClick === "function") tocarSomClick(); quadroInner.innerHTML = ""; atualizarContadores(); }
-function desfazerAcao() { if(typeof tocarSomClick === "function") tocarSomClick(); if(historico.length > 0){ quadroInner.innerHTML = historico.pop(); verificarLigacoesQuimicas(); atualizarContadores(); } }
+function atualizarVisao() { if(quadroInner) quadroInner.style.transform = `scale(${zoomLevel})`; }
+function limparQuadro() { salvarEstado(); if(typeof tocarSomClick === "function") tocarSomClick(); if(quadroInner) quadroInner.innerHTML = ""; atualizarContadores(); }
+function desfazerAcao() { if(typeof tocarSomClick === "function") tocarSomClick(); if(historico.length > 0 && quadroInner){ quadroInner.innerHTML = historico.pop(); verificarLigacoesQuimicas(); atualizarContadores(); } }
 
 window.girarMoleculas = function() {
     salvarEstado(); if(typeof tocarSomClick === "function") tocarSomClick();
@@ -951,20 +1041,27 @@ function tirarFoto() {
 }
 
 function atualizarContadores() { 
+    if (!quadroInner) return;
     let allA = quadroInner.querySelectorAll('.atomo'); let t = 0, u = 0;
     allA.forEach(a => { t += parseInt(a.dataset.valencia||0); u += parseInt(a.dataset.valUso||0); });
-    document.getElementById("cont-atomos").innerText = allA.length; document.getElementById("cont-valencias").innerText = (t - u);
+    let elAt = document.getElementById("cont-atomos");
+    if (elAt) elAt.innerText = allA.length;
+    let elVal = document.getElementById("cont-valencias");
+    if (elVal) elVal.innerText = (t - u);
 }
 
 function togglePainel(id) { 
     if(typeof tocarSomClick === "function") tocarSomClick(); 
-    let p = document.getElementById(id); p.classList.toggle("painel-recolhido"); let btn = p.querySelector("button");
-    if(p.classList.contains("painel-recolhido")) { btn.innerText = "▶ Mostrar"; } else { btn.innerText = id === 'painelInfo' ? "📊 Ocultar" : "🛠️ Ferramentas ⬇"; }
+    let p = document.getElementById(id); 
+    if (!p) return;
+    p.classList.toggle("painel-recolhido"); 
+    let btn = p.querySelector("button");
+    if (btn) {
+        if(p.classList.contains("painel-recolhido")) { btn.innerText = "▶ Mostrar"; } 
+        else { btn.innerText = id === 'painelInfo' ? "📊 Ocultar" : "🛠️ Ferramentas ⬇"; }
+    }
 }
 
-// ==========================================
-// FUNÇÕES DE NAVEGAÇÃO DE DESAFIO
-// ==========================================
 window.pularFaseDesafio = function() {
     if(modoAtual === "livre") {
         mostrarMensagemGlob("⚠️ O modo livre não possui fases.");
@@ -1011,12 +1108,12 @@ window.encerrarDesafioCedo = function() {
         return;
     }
     if(typeof tocarSomClick === "function") tocarSomClick();
+    if (typeof salvarRecordeEstrelas === "function") {
+        salvarRecordeEstrelas(modoAtual, estrelasGanhas);
+    }
     finalizarDesafio(estrelasGanhas >= 5);
 };
 
-// ==========================================
-// MOTOR 3D (ZIGUE-ZAGUE COMPLETO)
-// ==========================================
 let idAnimacao3D = null;
 window.abrirVisualizador3D = function() {
     let atomosDOM = document.querySelectorAll('#quadro-inner .atomo.no-quadro');
@@ -1174,7 +1271,8 @@ window.abrirVisualizador3D = function() {
 
 window.fecharVisualizador3D = function() {
     if(typeof tocarSomClick === "function") tocarSomClick();
-    document.getElementById("modal-3d-overlay").style.display = "none";
+    let modal3D = document.getElementById("modal-3d-overlay");
+    if (modal3D) modal3D.style.display = "none";
     document.body.style.overflow = "auto";
     if(idAnimacao3D) cancelAnimationFrame(idAnimacao3D);
 };

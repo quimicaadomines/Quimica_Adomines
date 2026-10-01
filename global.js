@@ -27,20 +27,60 @@ function gerenciarBateriaQuimiChat() {
     return dados;
 }
 
-// LISTA TOTAL DE CONQUISTAS (Agora com o Modo Balanceando integrado)
+// ==========================================
+// LISTA OFICIAL DE CONQUISTAS DO JOGO
+// ==========================================
 const listaDeConquistas = [
   { id: "c1", texto: "Complete o nível fácil do modo estruturando pela primeira vez." },
   { id: "c2", texto: "Complete o nível médio do modo estruturando pela primeira vez." },
   { id: "c3", texto: "Complete o nível difícil do modo estruturando pela primeira vez." },
   { id: "c4", texto: "Complete o nível impossível do modo estruturando pela primeira vez." },
-  { id: "c5", texto: "Complete níveis do modo estruturando pelo menos 5 vezes." },
+  { id: "c5", texto: "Complete todos os níveis do modo estruturando pelo menos cinco vezes." },
   { id: "c6", texto: "Conclua o catálogo do modo livre do jogo estruturando." }, 
-  { id: "c7", texto: "Complete um nível inclusivo do jogo." },
+  { id: "c7", texto: "Complete os níveis inclusivos do modo estruturando." },
   { id: "c8", texto: "Complete o nível fácil do modo balanceando pela primeira vez." },
   { id: "c9", texto: "Complete o nível médio do modo balanceando pela primeira vez." },
   { id: "c10", texto: "Complete o nível difícil do modo balanceando pela primeira vez." },
-  { id: "c11", texto: "Complete o nível impossível do modo balanceando pela primeira vez." }
+  { id: "c11", texto: "Complete o nível impossível do modo balanceando pela primeira vez." },
+  { id: "c12", texto: "Complete todos os níveis do modo balanceando pelo menos cinco vezes." },
+  { id: "c13", texto: "Complete os níveis inclusivos do modo balanceando." }
 ];
+
+// ==========================================
+// SISTEMA DE RECORDES DE ESTRELAS
+// ==========================================
+window.salvarRecordeEstrelas = function(modo, estrelas) {
+    if (!modo) return;
+    let chave = "recorde_estrelas_" + modo;
+    let recordeAtual = parseInt(localStorage.getItem(chave) || "0");
+    if (estrelas > recordeAtual) {
+        localStorage.setItem(chave, estrelas);
+    }
+};
+
+window.obterRecordeEstrelas = function(modo) {
+    if (!modo) return 0;
+    return parseInt(localStorage.getItem("recorde_estrelas_" + modo) || "0");
+};
+
+// ==========================================
+// REGISTRO DE VITÓRIAS ORGÂNICAS (5 VEZES)
+// ==========================================
+window.registrarVitoriaEstruturando = function() {
+    let total = parseInt(localStorage.getItem("estruturando_vitorias_total") || "0") + 1;
+    localStorage.setItem("estruturando_vitorias_total", total);
+    if(total >= 5) {
+        desbloquearConquista('c5');
+    }
+};
+
+window.registrarVitoriaBalanceando = function() {
+    let total = parseInt(localStorage.getItem("balanceando_vitorias_total") || "0") + 1;
+    localStorage.setItem("balanceando_vitorias_total", total);
+    if(total >= 5) {
+        desbloquearConquista('c12');
+    }
+};
 
 function carregarConfiguracoes() {
   if (localStorage.getItem("tema") === "escuro") { document.body.classList.add("dark"); let btn = document.getElementById("temaBtn"); if(btn) btn.innerText = "☀️"; }
@@ -190,17 +230,12 @@ function desbloquearConquista(id, silencioso=false) {
     }
 }
 
-function registrarVitoriaEstruturando() {
-    let total = parseInt(localStorage.getItem("estruturando_vitorias_total") || "0") + 1;
-    localStorage.setItem("estruturando_vitorias_total", total);
-    if(total >= 5) {
-        desbloquearConquista('c5');
-    }
-}
-
 function verificarPlatina() {
     let concluidas = JSON.parse(localStorage.getItem("conquistasDesbloqueadas")) || [];
-    if(concluidas.length === listaDeConquistas.length) {
+    let conquistasNecessarias = listaDeConquistas.filter(c => c.id !== "c13").map(c => c.id);
+    let temTodas = conquistasNecessarias.every(id => concluidas.includes(id));
+
+    if(temTodas) {
         if(!localStorage.getItem("platinado")) {
             localStorage.setItem("platinado", "true");
             celebrar('platina');
@@ -221,7 +256,7 @@ window.verificarCatalogador = function() {
         }
     }
     renderizarTrofeus();
-}
+};
 
 function renderizarTrofeus() {
     let cont = document.getElementById("trofeus-globais");
@@ -290,17 +325,26 @@ function processarChat(e) {
         div.innerHTML += `<div style="margin-bottom:5px;"><b>Você:</b> ${cmd}</div>`;
         
         if(cmd === "\\platinar") {
-            listaDeConquistas.forEach(c => desbloquearConquista(c.id, true)); verificarPlatina();
+            listaDeConquistas.filter(c => c.id !== "c13").forEach(c => desbloquearConquista(c.id, true)); 
+            verificarPlatina();
             div.innerHTML += `<div style="color:#16a34a; margin-bottom:5px;"><b>Sistema:</b> Todas as conquistas ativadas!</div>`;
         } else if (cmd === "\\catalogador") {
             let dbIds = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20];
             localStorage.setItem("catalogoDesbloqueado", JSON.stringify(dbIds)); window.verificarCatalogador();
             div.innerHTML += `<div style="color:#16a34a; margin-bottom:5px;"><b>Sistema:</b> Catálogo completo ativado!</div>`;
         } else if (cmd === "\\limpar") {
-            localStorage.removeItem("conquistasDesbloqueadas"); localStorage.removeItem("catalogoDesbloqueado");
-            localStorage.removeItem("platinado"); localStorage.removeItem("catalogador");
+            localStorage.removeItem("conquistasDesbloqueadas"); 
+            localStorage.removeItem("catalogoDesbloqueado");
+            localStorage.removeItem("platinado"); 
+            localStorage.removeItem("catalogador");
             localStorage.removeItem("estruturando_vitorias_total");
-            renderizarTrofeus(); renderizarConquistas();
+            localStorage.removeItem("balanceando_vitorias_total");
+            
+            const modosLimpar = ["facil", "medio", "dificil", "impossivel", "balanceando-facil", "balanceando-medio", "balanceando-dificil", "balanceando-impossivel"];
+            modosLimpar.forEach(m => localStorage.removeItem("recorde_estrelas_" + m));
+
+            renderizarTrofeus(); 
+            renderizarConquistas();
             div.innerHTML += `<div style="color:#ef4444; margin-bottom:5px;"><b>Sistema:</b> Dados resetados! Recarregue a página.</div>`;
         } else if (cmd === "\\completar") {
             if(typeof window.cheatCompletarFase === "function") { 
@@ -344,9 +388,7 @@ function renderizarConquistas() {
   });
 }
 
-// ==========================================
-// INJEÇÃO GLOBAL DOS MODAIS (Tabela, QuimiChat, Sugestões, Rotação e Guia de Voz)
-// ==========================================
+// Injeção global de modais
 const elementosTabela = [
     { n: 1, s: 'H', nome: 'Hidrogênio', l: '1', m: '1.008', c: 1, r: 1 }, { n: 2, s: 'He', nome: 'Hélio', l: '0', m: '4.002', c: 18, r: 1 },
     { n: 3, s: 'Li', nome: 'Lítio', l: '1', m: '6.94', c: 1, r: 2 }, { n: 4, s: 'Be', nome: 'Berílio', l: '2', m: '9.012', c: 2, r: 2 },
@@ -460,7 +502,6 @@ function injetarElementosGlobais() {
         atualizarBateriaUI();
     }
 
-    // Modal com a Central de Comandos de Voz (Local e Transparente)
     if (!document.getElementById('modal-comandos-voz')) {
         const comandosHTML = `
         <div id="modal-comandos-voz" class="modal-overlay" onclick="fecharModais(event)" style="z-index: 100000; display: none;">
@@ -579,7 +620,6 @@ function pareceQuimica(pergunta) {
 
 async function enviarPerguntaQuimiChat(pergunta, lerVozAlta) {
     let container = document.getElementById("quimichat-mensagens");
-    
     container.innerHTML += `<div class="msg-user">${pergunta}</div>`;
     container.scrollTop = container.scrollHeight;
 
@@ -610,7 +650,6 @@ async function enviarPerguntaQuimiChat(pergunta, lerVozAlta) {
         });
 
         const dados = await responseApi.json();
-        
         let avisoPensando = document.getElementById(idTemp);
         if(avisoPensando) avisoPensando.remove();
 
@@ -626,10 +665,8 @@ async function enviarPerguntaQuimiChat(pergunta, lerVozAlta) {
         }
 
         container.innerHTML += `<div class="msg-ai">${respostaTexto}</div>`;
-        
         let textoParaVoz = respostaTexto.replace(/<br>/g, " ").replace(/<b>/g, "").replace(/<\/b>/g, "");
         if(lerVozAlta && typeof falarAssistente === "function") falarAssistente(textoParaVoz);
-        
         container.scrollTop = container.scrollHeight;
 
     } catch (e) {
@@ -642,9 +679,6 @@ async function enviarPerguntaQuimiChat(pergunta, lerVozAlta) {
     }
 }
 
-// ==========================================
-// FUNÇÕES DE SUGESTÕES (ENVIADAS POR E-MAIL)
-// ==========================================
 window.abrirSugestoes = function() {
   if (typeof tocarSomClick === 'function') tocarSomClick();
   const modal = document.getElementById('modal-sugestoes');
@@ -692,9 +726,6 @@ window.enviarSugestao = async function() {
   }
 };
 
-// ==========================================
-// ESCALA EM TELA CHEIA E ORIENTAÇÃO
-// ==========================================
 function ajustarEscalaFullscreen() {
   const isFullscreen = document.fullscreenElement || 
                        document.webkitFullscreenElement || 

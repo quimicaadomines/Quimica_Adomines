@@ -1,3 +1,7 @@
+/* ==========================================
+   ESTILOS DA TELA DE MODOS - QUÍMICA ADÔMINES
+   ========================================== */
+
 .modos-container {
   padding-top: 100px;
   width: 100%;
@@ -10,6 +14,7 @@
   font-size: 32px;
   text-transform: uppercase;
   letter-spacing: 2px;
+  text-align: center;
 }
 
 /* CAIXA DO MODO (Estilo mundo do Minecraft) */
@@ -103,7 +108,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0.5; /* Embaçado */
+  opacity: 0.5;
   filter: blur(1.5px);
 }
 
@@ -114,14 +119,13 @@
   z-index: 2;
 }
 
-/* CLASSE NOVA E EXCLUSIVA PARA O FUNDO BRANCO DO BALANCEANDO */
 .btn-balanceando {
   background-color: #ffffff;
   color: #0284c7;
   font-size: 24px;
 }
 
-/* SUBMENUS e BOTÕES COLORIDOS */
+/* SUBMENUS E BOTÕES DE DIFICULDADE */
 .submenu {
   margin-top: 20px;
   padding-top: 20px;
@@ -140,22 +144,54 @@
 }
 
 .btn-nivel {
-  padding: 10px 25px;
+  padding: 10px 20px;
   font-size: 16px;
   font-weight: bold;
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
-  transition: 0.3s;
+  transition: transform 0.2s, box-shadow 0.2s;
   box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
-.btn-nivel:hover { transform: scale(1.05); }
+.btn-nivel:hover { 
+  transform: translateY(-2px) scale(1.05); 
+  box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+}
+
+/* ==========================================
+   ETIQUETAS DO PLACAR DE ESTRELAS
+   ========================================== */
+.badge-estrelas {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: 0.5px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+/* Destaque dourado para quem platinou as estrelas do nível */
+.badge-estrelas.ouro {
+  background: rgba(234, 179, 8, 0.35);
+  border: 1px solid #facc15;
+  color: #fef08a;
+  text-shadow: 0 0 6px rgba(250, 204, 21, 0.8);
+  box-shadow: 0 0 8px rgba(250, 204, 21, 0.5);
+}
 
 /* Cores de Dificuldade */
 .btn-verde { background-color: #22c55e; }
-.btn-amarelo { background-color: #eab308; color: #451a03; }
+.btn-amarelo { background-color: #eab308; color: #1e293b; }
 .btn-laranja { background-color: #f97316; }
 .btn-vermelho { background-color: #ef4444; }
 
@@ -172,9 +208,16 @@
   .textos-modo {
     text-align: center;
   }
+  .linha-botoes {
+    gap: 10px;
+  }
+  .btn-nivel {
+    font-size: 14px;
+    padding: 8px 15px;
+  }
 }
 
-/* ================= EFEITO DE TRANSIÇÃO E BOTÃO VOLTAR ================= */
+/* Transições de Tela */
 body {
   animation: entrarTela 0.5s ease forwards;
 }
