@@ -35,6 +35,9 @@ function mostrarDificuldades() {
   }
 }
 
+// ==========================================
+// ROTEAMENTO DE MODOS (AGORA COM O LABORATÓRIO VIRTUAL)
+// ==========================================
 function iniciarModo(modoEscolhido) {
   if (typeof tocarSomClick === "function") tocarSomClick();
  
@@ -44,6 +47,8 @@ function iniciarModo(modoEscolhido) {
       mudarTela("inclusao.html");
   } else if(modoEscolhido.includes("balanceando")) {
       mudarTela("balanceando.html");
+  } else if(modoEscolhido.includes("laboratorio")) {
+      mudarTela("laboratorio.html");
   } else {
       mudarTela("estruturando.html");
   }
@@ -93,7 +98,6 @@ document.addEventListener("DOMContentLoaded", () => {
     atualizarBadgesEstrelas();
 });
 
-// Atualiza caso a página já tenha sido carregada em cache
 if (document.readyState === "complete" || document.readyState === "interactive") {
     atualizarBadgesEstrelas();
 }

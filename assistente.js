@@ -238,8 +238,8 @@ function processarComandoVoz(comandoOriginal) {
         }
     }
 
-    // 2. Comandos da Central e Ajuda
-    if (tem("comando", "comandos", "ajuda de voz", "o que posso falar", "lista de comandos", "quais comandos")) {
+    // 2. Central de Ajuda por Voz
+    if (tem("comando", "comandos", "ajuda de voz", "o que posso falar", "lista de comandos")) {
         return executarIntencao({acao: "ABRIR_COMANDOS_VOZ"});
     }
 
@@ -266,12 +266,50 @@ function processarComandoVoz(comandoOriginal) {
         }
     }
 
-    // 5. Navegação de Fases (Funciona tanto no Balanceando quanto no Estruturando)
+    // 5. Comandos Exclusivos do Laboratório Virtual (Se estiver na tela do laboratório)
+    if (window.location.pathname.includes("laboratorio")) {
+        if (tem("limpar bancada", "chuveiro de emergencia", "apagar fogo", "renovar bancada")) {
+            return executarIntencao({acao: "LAB_LIMPAR_BANCADA"});
+        }
+        if (tem("balanca", "pesar", "estacao balanca")) {
+            return executarIntencao({acao: "LAB_MUDAR_ESTACAO", detalhe: "balanca"});
+        }
+        if (tem("capela", "exaustao", "estacao capela")) {
+            return executarIntencao({acao: "LAB_MUDAR_ESTACAO", detalhe: "capela"});
+        }
+        if (tem("centrifuga", "estacao centrifuga")) {
+            return executarIntencao({acao: "LAB_MUDAR_ESTACAO", detalhe: "centrifuga"});
+        }
+        if (tem("bancada", "bancada principal", "voltar bancada")) {
+            return executarIntencao({acao: "LAB_MUDAR_ESTACAO", detalhe: "bancada"});
+        }
+        if (tem("exaustor", "ligar exaustor", "desligar exaustor")) {
+            return executarIntencao({acao: "LAB_TOGGLE_EXAUSTOR"});
+        }
+        if (tem("agitador", "ligar agitador", "peixinha")) {
+            return executarIntencao({acao: "LAB_TOGGLE_AGITADOR"});
+        }
+        if (tem("bequer")) return executarIntencao({acao: "LAB_VIDRARIA", detalhe: "bequer"});
+        if (tem("erlenmeyer")) return executarIntencao({acao: "LAB_VIDRARIA", detalhe: "erlenmeyer"});
+        if (tem("tubo de ensaio", "tubo")) return executarIntencao({acao: "LAB_VIDRARIA", detalhe: "tubo"});
+        if (tem("adicionar agua", "colocar agua", "pisseta")) return executarIntencao({acao: "LAB_ADD_AGUA"});
+        
+        if (tem("qual o ph", "quanto de ph", "ph da solucao")) {
+            let elPh = document.getElementById("valor-ph");
+            return falarAssistente(elPh ? `O pH da solução é ${elPh.innerText}.` : "Medidor de pH indisponível.");
+        }
+        if (tem("qual a temperatura", "temperatura", "termometro")) {
+            let elTemp = document.getElementById("valor-temperatura");
+            return falarAssistente(elTemp ? `A temperatura no termômetro é ${elTemp.innerText}.` : "Termômetro indisponível.");
+        }
+    }
+
+    // 6. Navegação de Fases (Balanceando e Estruturando)
     if (tem("voltar fase", "fase anterior", "desafio anterior")) return executarIntencao({acao: "VOLTAR_FASE"});
     if (tem("encerrar desafio", "completar desafio", "finalizar desafio", "concluir desafio")) return executarIntencao({acao: "ENCERRAR_DESAFIO"});
     if (tem("pular fase", "pula a fase", "proximo desafio", "proxima fase", "pular desafio")) return executarIntencao({acao: "PULAR_FASE"});
 
-    // 6. Verificação de Estrutura e Balança
+    // 7. Verificação
     if (tem("verifica", "verificar", "checa", "checar", "corrigir", "veja se ta certo") || tem("terminei")) {
         if(window.location.pathname.includes('balanceando')) return executarIntencao({acao: "VERIFICAR_BALANCA"});
         if(document.getElementById("modal-classificacao") && window.getComputedStyle(document.getElementById("modal-classificacao")).display !== "none") {
@@ -280,7 +318,7 @@ function processarComandoVoz(comandoOriginal) {
         return executarIntencao({acao: "VERIFICAR_ESTRUTURA"});
     }
 
-    // 7. Modais e Telas
+    // 8. Modais e Telas
     if (tem("ver em 3d", "mostrar em 3d", "modo 3d", "abrir 3d", "tres de", "3d")) return executarIntencao({acao: "VER_3D"});
     if (tem("tutorial", "como jogar")) return executarIntencao({acao: "ABRIR_TUTORIAL"});
     if (tem("configura", "configuracoes", "ajuste")) return executarIntencao({acao: "ABRIR_CONFIG"});
@@ -289,14 +327,14 @@ function processarComandoVoz(comandoOriginal) {
     if (tem("catalogo", "pokedex")) return executarIntencao({acao: "ABRIR_CATALOGO"});
     if (tem("adm", "administrador")) return executarIntencao({acao: "ABRIR_ADM"});
 
-    // 8. Leitura em Voz Alta
+    // 9. Leitura em Voz Alta
     if (tem("ler", "leia", "le") && tem("tutorial")) return executarIntencao({acao: "LER_TUTORIAL"});
     if (tem("ler", "leia", "le") && tem("enunciado", "pergunta", "tarefa")) return executarIntencao({acao: "LER_ENUNCIADO"});
     if (tem("quantas vidas", "minhas vidas", "coracoes")) return executarIntencao({acao: "STATUS_VIDAS"});
     if (tem("quantas estrelas", "minhas estrelas")) return executarIntencao({acao: "STATUS_ESTRELAS"});
     if (tem("quanto tempo", "tempo restante", "cronometro")) return executarIntencao({acao: "STATUS_TEMPO"});
 
-    // 9. Montagem Molecular (Modo Estruturando)
+    // 10. Montagem Molecular (Modo Estruturando)
     let regexPeca = /(carbono|oxigenio|hidrogenio|nitrogenio|enxofre|fosforo|cloro|fluor|bromo|iodo)\s*(\d+)?/gi;
     let matchesPeca = [...limpo.matchAll(regexPeca)]; 
 
@@ -319,13 +357,16 @@ function processarComandoVoz(comandoOriginal) {
         return executarIntencao({acao: "CRIAR_ATOMO", detalhe: matchesPeca[0][1] || matchesPeca[0][0]}); 
     }
 
-    // 10. Configurações de Sistema
+    // 11. Configurações de Sistema
     if (tem("modo escuro", "tema escuro", "noturno")) return executarIntencao({acao: "TEMA_ESCURO"});
     if (tem("modo claro", "tema claro", "dia")) return executarIntencao({acao: "TEMA_CLARO"});
     if (tem("desmuta", "liga som", "ativar som", "com som")) return executarIntencao({acao: "DESMUTAR_SOM"});
     if (tem("muta", "mutar", "mudo", "tira som", "sem som")) return executarIntencao({acao: "MUTAR_SOM"});
 
-    // 11. Entradas em Modos
+    // 12. Entrada nos Modos
+    if (tem("laboratorio", "laboratorio virtual")) {
+        return executarIntencao({acao: "JOGAR_LABORATORIO"});
+    }
     if (tem("balancear", "balanceando", "balanca")) {
         contextoAssistente = "escolher_modo_balanceando_base";
         return falarAssistente("Escolha a dificuldade do Balanceando: fácil, médio, difícil ou impossível.");
@@ -347,8 +388,7 @@ function processarComandoVoz(comandoOriginal) {
         return executarIntencao({acao: "VOLTAR"});
     }
 
-    // Resposta padrão imediata para comandos não catalogados
-    falarAssistente(`Eu ouvi "${comandoOriginal}". Diga "comandos" para ver a lista de ações.`);
+    falarAssistente(`Eu ouvi "${comandoOriginal}". Diga "comandos" para ver as ações disponíveis.`);
 }
 
 // ==========================================
@@ -359,6 +399,45 @@ function executarIntencao(intencao) {
     let detalhe = (intencao.detalhe || "").toLowerCase();
 
     switch (acao) {
+        // ENTRADA NO LABORATÓRIO VIRTUAL
+        case "JOGAR_LABORATORIO":
+            localStorage.setItem("modoAtual", "laboratorio");
+            falarAssistente("Entrando no Laboratório Virtual.");
+            if(typeof window.mudarTela === "function") window.mudarTela('laboratorio.html');
+            break;
+
+        // AÇÕES ESPECÍFICAS DENTRO DO LABORATÓRIO
+        case "LAB_LIMPAR_BANCADA":
+            if(typeof window.acionarChuveiroEmergencia === "function") {
+                window.acionarChuveiroEmergencia();
+                falarAssistente("Chuveiro de emergência acionado. Bancada limpa.");
+            } break;
+
+        case "LAB_MUDAR_ESTACAO":
+            if(typeof window.mudarEstacao === "function") {
+                window.mudarEstacao(detalhe);
+                falarAssistente(`Estação alterada para ${detalhe}.`);
+            } break;
+
+        case "LAB_TOGGLE_EXAUSTOR":
+            if(typeof window.toggleExaustor === "function") window.toggleExaustor();
+            break;
+
+        case "LAB_TOGGLE_AGITADOR":
+            if(typeof window.toggleAgitador === "function") window.toggleAgitador();
+            break;
+
+        case "LAB_VIDRARIA":
+            if(typeof window.selecionarVidraria === "function") window.selecionarVidraria(detalhe);
+            break;
+
+        case "LAB_ADD_AGUA":
+            if(typeof window.adicionarAguaDestilada === "function") {
+                window.adicionarAguaDestilada(25);
+                falarAssistente("Adicionado vinte e cinco mililitros de água destilada.");
+            } break;
+
+        // COMANDOS DE NAVEGAÇÃO E MODAIS
         case "ABRIR_COMANDOS_VOZ": 
             if(typeof window.abrirComandosVoz === "function") window.abrirComandosVoz(); 
             falarAssistente("Abrindo a lista de comandos na tela."); 

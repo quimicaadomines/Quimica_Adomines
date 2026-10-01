@@ -1,0 +1,776 @@
+/* ==========================================
+   ESTILOS DO LABORATÓRIO VIRTUAL - ADÔMINES
+   ========================================== */
+
+.lab-container {
+  padding-top: 85px;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 40px;
+}
+
+/* ==========================================
+   HUD SUPERIOR E MEDIDORES DIGITAIS
+   ========================================== */
+.lab-topo-hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 0 10px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.medidores-painel {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.display-digital {
+  background: #0f172a;
+  border: 2px solid #334155;
+  border-radius: 8px;
+  padding: 6px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.6);
+}
+
+.label-sensor {
+  font-size: 10px;
+  font-weight: 900;
+  color: #94a3b8;
+  letter-spacing: 1px;
+}
+
+.display-temp span:last-child {
+  font-family: monospace;
+  font-size: 18px;
+  font-weight: 900;
+  color: #f97316;
+  text-shadow: 0 0 8px rgba(249, 115, 22, 0.7);
+}
+
+.display-ph span:last-child {
+  font-family: monospace;
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.ph-neutro { color: #22c55e; text-shadow: 0 0 8px rgba(34, 197, 94, 0.6); }
+.ph-acido { color: #ef4444; text-shadow: 0 0 8px rgba(239, 68, 68, 0.6); }
+.ph-basico { color: #3b82f6; text-shadow: 0 0 8px rgba(59, 130, 246, 0.6); }
+
+.btn-emergencia {
+  background: linear-gradient(135deg, #ef4444, #b91c1c);
+  color: white;
+  border: 2px solid #fecaca;
+  padding: 10px 16px;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(239, 68, 68, 0.4);
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-emergencia:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.8);
+}
+
+/* ==========================================
+   NAVEGADOR DE ESTAÇÕES
+   ========================================== */
+.lab-abas-estacoes {
+  display: flex;
+  gap: 10px;
+  padding: 0 10px;
+  margin-bottom: 12px;
+  overflow-x: auto;
+}
+
+.aba-btn {
+  background: var(--header-bg);
+  color: var(--text-color);
+  border: 2px solid var(--bordas);
+  padding: 8px 18px;
+  border-radius: 12px;
+  font-weight: bold;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.aba-btn:hover {
+  border-color: #0284c7;
+  transform: translateY(-2px);
+}
+.aba-btn.ativa {
+  background: #0284c7;
+  color: white;
+  border-color: #0284c7;
+  box-shadow: 0 4px 8px rgba(2, 132, 199, 0.3);
+}
+
+/* ==========================================
+   CENÁRIO PRINCIPAL DO LABORATÓRIO
+   ========================================== */
+.lab-cenario {
+  display: grid;
+  grid-template-columns: 200px 1fr 230px;
+  gap: 15px;
+  margin: 0 10px;
+  min-height: 480px;
+}
+
+.lab-armario {
+  background: var(--painel-bg);
+  border: 2px solid var(--bordas);
+  border-radius: 15px;
+  padding: 15px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  max-height: 520px;
+  overflow-y: auto;
+}
+.lab-armario h3 {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #0284c7;
+  margin-bottom: 10px;
+  padding-bottom: 5px;
+  border-bottom: 2px solid var(--bordas);
+}
+
+.lista-itens-lab {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.reagentes-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.card-item-lab {
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid var(--bordas);
+  border-radius: 10px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+}
+.dark .card-item-lab { background: rgba(255, 255, 255, 0.04); }
+.card-item-lab:hover {
+  background: rgba(2, 132, 199, 0.15);
+  border-color: #0284c7;
+  transform: translateX(4px);
+}
+.card-item-lab span { font-size: 13px; font-weight: 600; }
+
+.frasco-cor {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 900;
+  color: white;
+  flex-shrink: 0;
+  box-shadow: inset 0 -2px 4px rgba(0,0,0,0.3);
+}
+
+.frasco-cor.perigo { background: #ef4444; }
+.frasco-cor.azul { background: #2563eb; }
+.frasco-cor.branco { background: #94a3b8; color: #0f172a; }
+.frasco-cor.cinza { background: #64748b; }
+.frasco-cor.acido { background: #ea580c; }
+.frasco-cor.base { background: #7c3aed; }
+.frasco-cor.peroxido { background: #06b6d4; }
+.frasco-cor.detergente { background: #eab308; }
+.frasco-cor.indicador { background: #ec4899; }
+
+/* Ícones de Vidrarias */
+.icone-vidraria {
+  width: 28px;
+  height: 32px;
+  border: 2px solid #0284c7;
+  background: rgba(2, 132, 199, 0.1);
+  flex-shrink: 0;
+}
+.icone-bequer { border-radius: 0 0 6px 6px; }
+.icone-erlenmeyer { clip-path: polygon(35% 0%, 65% 0%, 100% 100%, 0% 100%); }
+.icone-tubo { width: 14px; height: 34px; border-radius: 0 0 10px 10px; margin: 0 7px; }
+.icone-pisseta { font-size: 24px; }
+
+/* ==========================================
+   PALCO CENTRAL / BANCADA DE LABORATÓRIO
+   ========================================== */
+.lab-palco {
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  border: 3px solid #334155;
+  border-radius: 15px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
+}
+
+/* Superfície da Bancada de Granito */
+.lab-palco::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 80px;
+  background: linear-gradient(180deg, #475569 0%, #334155 100%);
+  border-top: 4px solid #64748b;
+  z-index: 1;
+}
+
+/* ==========================================
+   SUPORTE E FORMATO DAS VIDRARIAS
+   ========================================== */
+.suporte-vidraria-central {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.vidraria-ativa {
+  position: relative;
+  border: 3px solid rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(2px);
+  overflow: hidden;
+  box-shadow: inset -4px -4px 10px rgba(255,255,255,0.2), 0 10px 25px rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Formato Béquer */
+.vidraria-ativa.bequer-formato {
+  width: 140px;
+  height: 180px;
+  border-radius: 0 0 15px 15px;
+}
+
+/* Formato Erlenmeyer */
+.vidraria-ativa.erlenmeyer-formato {
+  width: 160px;
+  height: 200px;
+  clip-path: polygon(35% 0%, 65% 0%, 100% 100%, 0% 100%);
+  border-radius: 0;
+}
+
+/* Formato Tubo de Ensaio */
+.vidraria-ativa.tubo-formato {
+  width: 45px;
+  height: 190px;
+  border-radius: 0 0 25px 25px;
+}
+
+/* Linhas de Graduação */
+.graduacao-linhas {
+  position: absolute;
+  top: 15px;
+  left: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  pointer-events: none;
+}
+.graduacao-linhas span {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.6);
+  font-family: monospace;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+  padding-bottom: 2px;
+  width: 25px;
+}
+
+/* ==========================================
+   LÍQUIDO, REAÇÕES E ANIMAÇÕES
+   ========================================== */
+.liquido-camada {
+  width: 100%;
+  position: relative;
+  transition: height 0.6s ease, background-color 0.8s ease;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+}
+
+/* Menisco de superfície líquida */
+.liquido-camada::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  left: 0;
+  width: 100%;
+  height: 12px;
+  background: inherit;
+  filter: brightness(1.2);
+  border-radius: 50%;
+  opacity: 0.8;
+}
+
+/* Partículas de Efervescência */
+.particulas-bolhas {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.bolha-reacao {
+  position: absolute;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
+  animation: subirBolha 1.2s infinite linear;
+}
+@keyframes subirBolha {
+  0% { transform: translateY(0) scale(0.5); opacity: 0.8; }
+  100% { transform: translateY(-160px) scale(1.2); opacity: 0; }
+}
+
+/* Peixinha Magnética do Agitador */
+.peixinha-magnetica {
+  width: 24px;
+  height: 6px;
+  background: white;
+  border-radius: 3px;
+  margin-bottom: 6px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+  display: none;
+}
+.peixinha-girando {
+  display: block;
+  animation: girarPeixinha 0.15s infinite linear;
+}
+@keyframes girarPeixinha {
+  0% { transform: scaleX(1); }
+  50% { transform: scaleX(-1); }
+  100% { transform: scaleX(1); }
+}
+
+/* Precipitado sólido no fundo */
+.precipitado-fundo {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 15px;
+  background: #ffffff;
+  opacity: 0.9;
+  border-radius: 0 0 12px 12px;
+  box-shadow: 0 -2px 6px rgba(0,0,0,0.3);
+}
+
+/* ==========================================
+   CHAPA AQUECEDORA E AGITADOR
+   ========================================== */
+.chapa-aquecedora {
+  width: 220px;
+  background: #334155;
+  border: 2px solid #475569;
+  border-radius: 10px;
+  box-shadow: 0 8px 15px rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px;
+  margin-top: -3px;
+}
+
+.placa-ceramica {
+  width: 170px;
+  height: 14px;
+  background: #e2e8f0;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  transition: background 0.5s ease, box-shadow 0.5s ease;
+}
+.placa-quente {
+  background: #ef4444 !important;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.9);
+}
+
+.controles-chapa {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+}
+
+.knob-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.knob-box label {
+  font-size: 9px;
+  font-weight: 900;
+  color: #94a3b8;
+  margin-bottom: 4px;
+}
+
+.knob-botoes {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.knob-botoes button {
+  background: #0ea5e9;
+  color: white;
+  border: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.knob-botoes button:hover { transform: scale(1.1); }
+
+#btn-agitador {
+  width: auto;
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 11px;
+}
+
+#indicador-calor {
+  font-family: monospace;
+  font-weight: 900;
+  font-size: 13px;
+  color: #fbbf24;
+  min-width: 32px;
+  text-align: center;
+}
+
+/* ==========================================
+   PAINEL DE LEGENDA DO CONTEÚDO
+   ========================================== */
+.painel-conteudo-vidraria {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 10px 14px;
+  max-width: 360px;
+  z-index: 20;
+}
+.painel-conteudo-vidraria h4 {
+  font-size: 11px;
+  color: #38bdf8;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+#descricao-mistura {
+  font-size: 13px;
+  line-height: 1.4;
+  color: #e2e8f0;
+}
+
+/* ==========================================
+   EFEITOS DE EXPLOSÃO, FOGO E VIDRO TRINCADO
+   ========================================== */
+.fumaca-toxica {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.6) 10%, rgba(30, 41, 59, 0.95) 80%);
+  z-index: 50;
+  animation: fumacaAnim 2s infinite alternate;
+}
+@keyframes fumacaAnim {
+  0% { filter: blur(15px); opacity: 0.8; }
+  100% { filter: blur(30px); opacity: 0.95; }
+}
+
+.fogo-explosao {
+  position: absolute;
+  bottom: 60px;
+  width: 250px;
+  height: 250px;
+  background: radial-gradient(circle, #fde047 10%, #ea580c 50%, transparent 80%);
+  border-radius: 50%;
+  z-index: 60;
+  animation: explodirFlash 0.5s ease-out forwards;
+}
+@keyframes explodirFlash {
+  0% { transform: scale(0.2); opacity: 1; }
+  50% { transform: scale(1.5); opacity: 1; filter: drop-shadow(0 0 40px orange); }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+
+.trincos-vidro {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    linear-gradient(45deg, transparent 45%, #ffffff 48%, transparent 52%),
+    linear-gradient(-35deg, transparent 46%, #ffffff 49%, transparent 53%),
+    linear-gradient(80deg, transparent 47%, #ffffff 50%, transparent 53%);
+  opacity: 0.9;
+  z-index: 40;
+  pointer-events: none;
+}
+
+.estilhacos-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.4);
+  z-index: 70;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* ==========================================
+   MODAL DA BALANÇA ANALÍTICA
+   ========================================== */
+.modal-balanca-box {
+  max-width: 520px;
+}
+
+.balanca-digital-cenario {
+  background: #334155;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+  margin-bottom: 20px;
+}
+
+.visor-lcd-balanca {
+  background: #022c22;
+  color: #34d399;
+  font-family: monospace;
+  font-size: 32px;
+  font-weight: 900;
+  padding: 10px 25px;
+  border-radius: 6px;
+  border: 2px solid #064e3b;
+  letter-spacing: 2px;
+  margin-bottom: 20px;
+  box-shadow: inset 0 2px 8px rgba(0,0,0,0.8);
+}
+
+.prato-balanca {
+  width: 160px;
+  height: 16px;
+  background: linear-gradient(180deg, #cbd5e1, #94a3b8);
+  border-radius: 50% / 100%;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+}
+
+.vidro-relogio {
+  width: 100px;
+  height: 20px;
+  border: 2px solid rgba(255,255,255,0.7);
+  background: rgba(255,255,255,0.2);
+  border-radius: 50%;
+  position: absolute;
+  bottom: 6px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.po-pesado {
+  width: 40px;
+  height: 10px;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+}
+
+.controles-pesagem {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.btn-tara {
+  background: #f59e0b;
+  color: #1e293b;
+  border: none;
+  font-weight: 900;
+  padding: 10px 24px;
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+.botoes-dosador {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.btn-dose {
+  background: #0284c7;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 13px;
+  cursor: pointer;
+}
+.btn-dose:hover { background: #0369a1; }
+
+.btn-transferir-vidraria {
+  background: #16a34a;
+  color: white;
+  border: none;
+  font-size: 16px;
+  font-weight: bold;
+  padding: 14px 28px;
+  border-radius: 25px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(22, 163, 74, 0.4);
+}
+
+/* ==========================================
+   MODAL DA CENTRÍFUGA
+   ========================================== */
+.centrifuga-corpo {
+  width: 220px;
+  height: 220px;
+  background: #334155;
+  border-radius: 50%;
+  margin: 0 auto;
+  border: 6px solid #475569;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.6);
+}
+
+.rotor-centrifuga {
+  width: 140px;
+  height: 140px;
+  background: #1e293b;
+  border-radius: 50%;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.rotor-girando {
+  animation: girarRotor 0.2s infinite linear;
+}
+@keyframes girarRotor {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.slot-tubo {
+  position: absolute;
+  width: 18px;
+  height: 50px;
+  background: #cbd5e1;
+  border-radius: 0 0 9px 9px;
+  border: 2px solid #64748b;
+}
+.slot-1 { top: 10px; }
+.slot-2 { bottom: 10px; transform: rotate(180deg); }
+
+.btn-centrifuga-acao {
+  background: #0284c7;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 20px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* ==========================================
+   CAPELA DE EXAUSTÃO
+   ========================================== */
+.capela-box {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 8px solid #475569;
+  border-bottom: none;
+  z-index: 15;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+}
+.capela-topo {
+  background: #1e293b;
+  color: white;
+  padding: 8px 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  pointer-events: auto;
+}
+.btn-toggle-exaustor {
+  background: #0284c7;
+  color: white;
+  border: none;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.capela-vidro {
+  flex: 1;
+  background: linear-gradient(180deg, rgba(56, 189, 248, 0.15) 0%, rgba(2, 132, 199, 0.05) 100%);
+  border-bottom: 8px solid #94a3b8;
+  backdrop-filter: blur(1px);
+}

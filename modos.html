@@ -30,7 +30,6 @@
     <div id="menu" class="menu">
       <div class="menu-item"><p>🎵 Volume da música</p><input type="range" id="rangeMusica" min="0" max="1" step="0.1" onchange="volumeMusica(this.value)"></div>
       <div class="menu-item"><p>🔊 Volume dos efeitos</p><input type="range" id="rangeEfeitos" min="0" max="1" step="0.1" onchange="volumeEfeitos(this.value)"></div>
-      <div class="menu-item checkbox-area"><label><input type="checkbox" id="checkEfeitos" onchange="toggleEfeitos(this)"> Desativar efeitos visuais</label></div>
     </div>
   </div>
   
@@ -114,6 +113,23 @@
         <button class="btn-nivel btn-amarelo" onclick="iniciarModo('balanceando-medio')" data-modo="balanceando-medio">Médio</button>
         <button class="btn-nivel btn-laranja" onclick="iniciarModo('balanceando-dificil')" data-modo="balanceando-dificil">Difícil</button>
         <button class="btn-nivel btn-vermelho" onclick="iniciarModo('balanceando-impossivel')" data-modo="balanceando-impossivel">Impossível</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CARTÃO: MODO LABORATÓRIO VIRTUAL (NOVO!) -->
+  <div class="card-mundo" style="margin-top: 30px;">
+    <div class="card-topo">
+      <div class="card-esquerda">
+        <div style="font-size: 60px; display: flex; align-items: center; justify-content: center; width: 90px; height: 90px; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">🧪</div>
+        <div class="textos-modo">
+          <h2>LABORATÓRIO VIRTUAL</h2>
+          <p>Bancada prática com balança analítica, chapa aquecedora, capela de exaustão, centrífuga e reações químicas com efeitos de explosão!</p>
+        </div>
+      </div>
+     
+      <div class="card-direita">
+        <button class="btn-acao btn-laboratorio" onclick="iniciarModo('laboratorio')" style="background-color: #ffffff; color: #0284c7; font-size: 24px;" title="Entrar no Laboratório Virtual">▶</button>
       </div>
     </div>
   </div>
