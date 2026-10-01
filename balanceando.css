@@ -114,7 +114,7 @@
 .corda-prato {
     position: absolute;
     top: 12px;
-    width: 120px;
+    width: 130px;
     height: 100px;
     border: 3px solid #cbd5e1;
     border-bottom: none;
@@ -125,7 +125,7 @@
 .corda-direita { right: 10px; }
 
 .prato {
-    width: 130px;
+    width: 140px;
     height: 25px;
     background: linear-gradient(180deg, #94a3b8, #475569);
     position: absolute;
@@ -139,14 +139,28 @@
     align-items: flex-end;
 }
 
+/* ==========================================
+   SISTEMA DE MÚLTIPLAS COLUNAS LADO A LADO
+   ========================================== */
 .conteudo-prato {
     position: absolute;
-    bottom: 20px;
-    width: 100%;
+    bottom: 12px;
+    width: 135px;
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
-    flex-direction: column-reverse; 
+    flex-direction: row; 
+    justify-content: center;
+    align-items: flex-end;
+    gap: 4px; 
+    pointer-events: none;
+}
+
+.coluna-prato {
+    display: flex;
+    flex-direction: column-reverse;
     align-items: center;
-    gap: -5px; 
+    gap: 2px;
 }
 
 .molecula-visual {
@@ -156,8 +170,8 @@
     position: relative;
     padding: 0;
     margin: 0;
-    height: 25px; 
-    animation: cair 0.4s ease-out;
+    height: 24px; 
+    animation: cair 0.3s ease-out;
 }
 
 .atomo-bolinha {
@@ -175,7 +189,7 @@
 }
 
 @keyframes cair {
-    0% { transform: translateY(-50px) scale(1.2); opacity: 0; }
+    0% { transform: translateY(-30px) scale(1.1); opacity: 0; }
     100% { transform: translateY(0) scale(1); opacity: 1; }
 }
 

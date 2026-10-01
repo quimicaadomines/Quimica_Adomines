@@ -13,6 +13,15 @@ let somEstrela = document.getElementById("somEstrela");
 let somGanhou = document.getElementById("somGanhou");
 let somPerdeu = document.getElementById("somPerdeu");
 
+// ==========================================
+// TABELA DE MASSAS ATÔMICAS REAIS (LEI DE LAVOISIER)
+// ==========================================
+const MASSAS_ATOMICAS = {
+    'H': 1, 'C': 12, 'N': 14, 'O': 16, 'Na': 23, 'Mg': 24, 'Al': 27,
+    'Si': 28, 'P': 31, 'S': 32, 'Cl': 35.5, 'K': 39, 'Ca': 40, 'Mn': 55,
+    'Fe': 56, 'Cu': 63.5, 'Zn': 65.4
+};
+
 const CORES_ATOMOS = {
     'H': { cor: '#ffffff', texto: '#000', size: 14 },
     'O': { cor: '#ef4444', texto: '#fff', size: 20 },
@@ -72,13 +81,17 @@ let coeficientesReagentes = [];
 let coeficientesProdutos = [];
 let faseAtual = null;
 
-// Cronômetro para o modo impossível
 let tempoMaximo = 90; // 01:30
 let tempoRestante = tempoMaximo;
 let intervaloCronometro = null;
 
 let nivelDisplay = modoAtual.replace("balanceando-", "").toUpperCase();
 titulo.innerText = `BALANCEANDO (${nivelDisplay})`;
+
+function obterLimiteCoeficiente() {
+    if (modoAtual === "balanceando-facil" || modoAtual === "balanceando-medio") return 8;
+    return 16;
+}
 
 function iniciarFase() {
     faseAtual = bancoFases[modoAtual][indexFaseAtual];
@@ -131,10 +144,26 @@ function atualizarHUD() {
 
 function formatarFormula(texto) { return texto.replace(/(\d+)/g, '<sub>$1</sub>'); }
 
+// ==========================================
+// CONTROLE COM LIMITE INTELIGENTE DE COEFICIENTES
+// ==========================================
 window.alterarCoeficiente = function(tipo, indice, valor) {
     if(typeof tocarSomClick === "function") tocarSomClick();
-    if(tipo === 'R') { coeficientesReagentes[indice] = Math.max(1, coeficientesReagentes[indice] + valor); } 
-    else { coeficientesProdutos[indice] = Math.max(1, coeficientesProdutos[indice] + valor); }
+    let limiteMax = obterLimiteCoeficiente();
+
+    if(tipo === 'R') { 
+        if(valor > 0 && coeficientesReagentes[indice] >= limiteMax) {
+            if(typeof mostrarMensagemGlob === "function") mostrarMensagemGlob(`⚠️ Limite máximo de ${limiteMax} atingido!`);
+            return;
+        }
+        coeficientesReagentes[indice] = Math.max(1, coeficientesReagentes[indice] + valor); 
+    } else { 
+        if(valor > 0 && coeficientesProdutos[indice] >= limiteMax) {
+            if(typeof mostrarMensagemGlob === "function") mostrarMensagemGlob(`⚠️ Limite máximo de ${limiteMax} atingido!`);
+            return;
+        }
+        coeficientesProdutos[indice] = Math.max(1, coeficientesProdutos[indice] + valor); 
+    }
     renderizarEquacao(); 
     atualizarBalanca();
 };
@@ -171,10 +200,6 @@ function renderizarEquacao() {
     });
 }
 
-// ==========================================
-// PARSER QUÍMICO COM SUPORTE TOTAL A PARÊNTESES
-// Resolve Ca(OH)2, Fe2(SO4)3, Ca3(PO4)2, Cu(NO3)2
-// ==========================================
 function extrairElementos(formula) {
     let pilha = [{}];
     let i = 0;
@@ -223,6 +248,15 @@ function extrairElementos(formula) {
         }
     }
     return resultado;
+}
+
+function obterMassaMolecula(formula) {
+    let elementos = extrairElementos(formula);
+    let massa = 0;
+    elementos.forEach(el => {
+        massa += (MASSAS_ATOMICAS[el] || 10);
+    });
+    return massa;
 }
 
 function criarBolinha(nomeElemento, transX, transY, zIndex = 5) {
@@ -293,24 +327,56 @@ function desenharMoleculaGeometria(formula) {
     return caixa;
 }
 
+// ==========================================
+// DISTRIBUIÇÃO EM MÚLTIPLAS COLUNAS LADO A LADO
+// (Organização compacta que nunca sobe até o topo)
+// ==========================================
 function desenharPrato(pratoElemento, moleculas, coeficientes) {
     pratoElemento.innerHTML = "";
-    let totalMols = coeficientes.reduce((a,b)=>a+b, 0);
-    let scale = 1;
-    if(totalMols > 6) scale = 0.8;
-    if(totalMols > 10) scale = 0.6;
-    if(totalMols > 15) scale = 0.45; 
-
+    
+    let listaMol = [];
     moleculas.forEach((mol, idx) => {
         let coef = coeficientes[idx];
-        for(let c=0; c<coef; c++) {
-            let divMol = desenharMoleculaGeometria(mol);
-            divMol.style.transform = `scale(${scale})`;
-            pratoElemento.appendChild(divMol);
+        for (let c = 0; c < coef; c++) {
+            listaMol.push(mol);
         }
+    });
+
+    let totalMols = listaMol.length;
+    if (totalMols === 0) return;
+
+    // Máximo de 3 moléculas empilhadas por coluna
+    const MAX_POR_COLUNA = 3;
+    let qtdColunas = Math.ceil(totalMols / MAX_POR_COLUNA);
+    
+    let colunasDOM = [];
+    for (let i = 0; i < qtdColunas; i++) {
+        let col = document.createElement("div");
+        col.className = "coluna-prato";
+        pratoElemento.appendChild(col);
+        colunasDOM.push(col);
+    }
+
+    // Escala adaptável para acomodar confortavelmente no prato
+    let scale = 1;
+    if (qtdColunas === 2) scale = 0.85;
+    else if (qtdColunas === 3) scale = 0.72;
+    else if (qtdColunas >= 4) scale = 0.6;
+    if (totalMols > 12) scale = 0.5;
+
+    listaMol.forEach((mol, index) => {
+        let colIdx = Math.floor(index / MAX_POR_COLUNA);
+        if (colIdx >= colunasDOM.length) colIdx = colunasDOM.length - 1;
+        
+        let divMol = desenharMoleculaGeometria(mol);
+        divMol.style.transform = `scale(${scale})`;
+        colunasDOM[colIdx].appendChild(divMol);
     });
 }
 
+// ==========================================
+// CÁLCULO DE MASSA REAL (FÍSICA DA BALANÇA)
+// ==========================================
 function atualizarBalanca() {
     desenharPrato(pratoReagentes, faseAtual.reagentes, coeficientesReagentes);
     desenharPrato(pratoProdutos, faseAtual.produtos, coeficientesProdutos);
@@ -318,14 +384,16 @@ function atualizarBalanca() {
     let massaEsq = 0; 
     let massaDir = 0;
     faseAtual.reagentes.forEach((mol, idx) => { 
-        massaEsq += (extrairElementos(mol).length * coeficientesReagentes[idx]); 
+        massaEsq += (obterMassaMolecula(mol) * coeficientesReagentes[idx]); 
     });
     faseAtual.produtos.forEach((mol, idx) => { 
-        massaDir += (extrairElementos(mol).length * coeficientesProdutos[idx]); 
+        massaDir += (obterMassaMolecula(mol) * coeficientesProdutos[idx]); 
     });
     
     let diferenca = massaEsq - massaDir;
-    let angulo = diferenca * 2.5; 
+    
+    // Sensibilidade calibrada para que 1 H2 + 2 O2 vs 2 H2O (diferença de 30u) incline a balança a 24°
+    let angulo = diferenca * 0.8; 
     angulo = Math.max(-25, Math.min(25, angulo));
 
     hasteBalanca.style.transform = `translate(-50%, 0) rotate(${angulo}deg)`;
@@ -339,7 +407,6 @@ function atualizarBalanca() {
 window.verificarBalanceamento = function() {
     if(typeof tocarSomClick === "function") tocarSomClick();
 
-    // Checagem rigorosa por tipo de átomo (garantia química absoluta)
     let contagemEsq = {};
     let contagemDir = {};
 
@@ -487,7 +554,6 @@ window.encerrarDesafioBalanceando = function(vitoriaForcada = null) {
         sub.innerText = `Você salvou ${estrelasGanhas} estrela(s). Balanço químico impecável!`;
         if(somGanhou) { somGanhou.currentTime=0; somGanhou.play().catch(()=>{}); }
 
-        // Desbloqueio das novas conquistas do modo Balanceando
         if (typeof desbloquearConquista === "function") {
             if (modoAtual === "balanceando-facil") desbloquearConquista('c8');
             if (modoAtual === "balanceando-medio") desbloquearConquista('c9');
@@ -509,7 +575,7 @@ window.encerrarDesafioBalanceando = function(vitoriaForcada = null) {
 };
 
 // ==========================================
-// CHEATS ADMINISTRATIVOS INTEGRADOS AO BALANCEANDO
+// CHEATS ADMINISTRATIVOS
 // ==========================================
 window.cheatCompletarFase = function() {
     estrelasGanhas = 10;
